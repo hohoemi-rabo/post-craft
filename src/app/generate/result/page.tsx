@@ -7,22 +7,27 @@ import Header from '@/components/layout/header'
 import Footer from '@/components/layout/footer'
 import Spinner from '@/components/ui/spinner'
 import Button from '@/components/ui/button'
+import Textarea from '@/components/ui/textarea'
+import { useToast } from '@/components/ui/toast'
 
-interface GeneratedContent {
-  caption: string
-  hashtags: string[]
-}
+const MAX_CAPTION_LENGTH = 150
 
 export default function ResultPage() {
   const router = useRouter()
+  const { showToast } = useToast()
 
   const [title, setTitle] = useState<string | null>(null)
   const [content, setContent] = useState<string | null>(null)
   const [source, setSource] = useState<string | null>(null)
+  const [sourceUrl, setSourceUrl] = useState<string | null>(null)
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [error, setError] = useState('')
-  const [generatedContent, setGeneratedContent] = useState<GeneratedContent | null>(null)
   const [retryCount, setRetryCount] = useState(0)
+
+  // 編集可能な状態
+  const [caption, setCaption] = useState('')
+  const [hashtags, setHashtags] = useState<string[]>([])
+  const [selectedHashtags, setSelectedHashtags] = useState<Set<string>>(new Set())
 
   // sessionStorageからデータを取得
   useEffect(() => {
@@ -39,6 +44,7 @@ export default function ResultPage() {
       setTitle(parsed.title || null)
       setContent(parsed.content || null)
       setSource(parsed.source || null)
+      setSourceUrl(parsed.sourceUrl || null)
     } catch (err) {
       setStatus('error')
       setError('データの読み込みに失敗しました')
@@ -73,10 +79,11 @@ export default function ResultPage() {
         throw new Error(data.error || 'コンテンツの生成に失敗しました')
       }
 
-      setGeneratedContent({
-        caption: data.caption,
-        hashtags: data.hashtags,
-      })
+      // 生成結果を設定
+      setCaption(data.caption)
+      setHashtags(data.hashtags)
+      // デフォルトで全選択
+      setSelectedHashtags(new Set(data.hashtags))
       setStatus('success')
     } catch (err) {
       setStatus('error')
@@ -90,12 +97,43 @@ export default function ResultPage() {
     }
   }
 
+  const handleHashtagToggle = (tag: string) => {
+    const newSelected = new Set(selectedHashtags)
+    if (newSelected.has(tag)) {
+      newSelected.delete(tag)
+    } else {
+      newSelected.add(tag)
+    }
+    setSelectedHashtags(newSelected)
+  }
+
+  const handleSelectAll = () => {
+    setSelectedHashtags(new Set(hashtags))
+  }
+
+  const handleDeselectAll = () => {
+    setSelectedHashtags(new Set())
+  }
+
+  const handleCopy = async () => {
+    const selectedHashtagsArray = Array.from(selectedHashtags)
+    const hashtagsText = selectedHashtagsArray.map((tag) => `#${tag.replace(/^#+/, '')}`).join(' ')
+    const text = selectedHashtagsArray.length > 0 ? `${caption}\n\n${hashtagsText}` : caption
+
+    try {
+      await navigator.clipboard.writeText(text)
+      showToast('クリップボードにコピーしました', 'success')
+    } catch (err) {
+      showToast('コピーに失敗しました', 'error')
+    }
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
 
       <main className="flex-1 bg-gray-50">
-        <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           {/* 戻るリンク */}
           <Link
             href="/"
@@ -183,80 +221,213 @@ export default function ResultPage() {
           )}
 
           {/* 生成成功 */}
-          {status === 'success' && generatedContent && (
-            <div className="space-y-6">
-              <div className="rounded-lg border border-border bg-white p-8">
-                <h1 className="text-2xl font-bold text-text-primary">
+          {status === 'success' && (
+            <>
+              {/* タイトル */}
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold text-text-primary">
                   投稿素材の生成が完了しました
                 </h1>
+                <p className="mt-2 text-text-secondary">
+                  キャプションとハッシュタグを編集して、コピーしてInstagramに投稿しましょう
+                </p>
+              </div>
 
-                {/* メタ情報 */}
-                <div className="mt-6 space-y-4 border-b border-border pb-6">
-                  <div>
-                    <h3 className="text-sm font-medium text-text-secondary">ソース</h3>
-                    <p className="mt-1 text-text-primary">
-                      {source === 'manual' ? '直接入力' : 'URL'}
-                    </p>
-                  </div>
-
-                  {title && (
-                    <div>
-                      <h3 className="text-sm font-medium text-text-secondary">
-                        元記事タイトル
-                      </h3>
-                      <p className="mt-1 text-text-primary">{title}</p>
+              {/* 2カラムレイアウト（PC）/ 1カラム（モバイル） */}
+              <div className="grid gap-8 lg:grid-cols-2">
+                {/* 左カラム: 編集エリア */}
+                <div className="space-y-6">
+                  {/* メタ情報 */}
+                  <div className="rounded-lg border border-border bg-white p-6">
+                    <h2 className="text-lg font-semibold text-text-primary">元記事情報</h2>
+                    <div className="mt-4 space-y-3">
+                      {sourceUrl && (
+                        <div>
+                          <p className="text-xs font-medium text-text-secondary">URL</p>
+                          <a
+                            href={sourceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-1 block break-all text-sm text-primary hover:underline"
+                          >
+                            {sourceUrl}
+                          </a>
+                        </div>
+                      )}
+                      {!sourceUrl && source === 'manual' && (
+                        <div>
+                          <p className="text-xs font-medium text-text-secondary">ソース</p>
+                          <p className="mt-1 text-sm text-text-primary">直接入力</p>
+                        </div>
+                      )}
+                      {title && (
+                        <div>
+                          <p className="text-xs font-medium text-text-secondary">タイトル</p>
+                          <p className="mt-1 text-sm text-text-primary">{title}</p>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                  </div>
 
-                {/* 生成されたキャプション */}
-                <div className="mt-6">
-                  <h3 className="text-sm font-medium text-text-secondary">
-                    生成されたキャプション
-                  </h3>
-                  <div className="mt-2 rounded-lg border border-border bg-gray-50 p-4">
-                    <p className="text-text-primary">{generatedContent.caption}</p>
-                    <p className="mt-2 text-xs text-text-secondary">
-                      文字数: {generatedContent.caption.length}文字
+                  {/* キャプション編集 */}
+                  <div className="rounded-lg border border-border bg-white p-6">
+                    <h2 className="text-lg font-semibold text-text-primary">キャプション</h2>
+                    <div className="mt-4">
+                      <Textarea
+                        value={caption}
+                        onChange={(e) => setCaption(e.target.value)}
+                        maxLength={MAX_CAPTION_LENGTH}
+                        showCount
+                        className="min-h-[120px]"
+                        placeholder="キャプションを入力してください..."
+                      />
+                    </div>
+                  </div>
+
+                  {/* ハッシュタグ選択 */}
+                  <div className="rounded-lg border border-border bg-white p-6">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-lg font-semibold text-text-primary">ハッシュタグ</h2>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={handleSelectAll}
+                          className="text-xs text-primary hover:underline"
+                        >
+                          全選択
+                        </button>
+                        <span className="text-xs text-text-secondary">|</span>
+                        <button
+                          onClick={handleDeselectAll}
+                          className="text-xs text-primary hover:underline"
+                        >
+                          全解除
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 space-y-2">
+                      {hashtags.map((tag, index) => {
+                        const cleanTag = tag.replace(/^#+/, '')
+                        return (
+                          <label
+                            key={index}
+                            className="flex cursor-pointer items-center space-x-3 rounded-lg border border-border p-3 transition-colors hover:bg-gray-50"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedHashtags.has(tag)}
+                              onChange={() => handleHashtagToggle(tag)}
+                              className="h-4 w-4 rounded border-border text-primary focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                            />
+                            <span className="text-sm text-text-primary">#{cleanTag}</span>
+                          </label>
+                        )
+                      })}
+                    </div>
+
+                    <p className="mt-3 text-xs text-text-secondary">
+                      {selectedHashtags.size} / {hashtags.length} 個選択中
                     </p>
                   </div>
-                </div>
 
-                {/* 生成されたハッシュタグ */}
-                <div className="mt-6">
-                  <h3 className="text-sm font-medium text-text-secondary">
-                    生成されたハッシュタグ
-                  </h3>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {generatedContent.hashtags.map((tag, index) => (
-                      <span
-                        key={index}
-                        className="rounded-full bg-primary/10 px-3 py-1 text-sm text-primary"
+                  {/* アクションボタン */}
+                  <div className="flex flex-col space-y-3 sm:flex-row sm:space-x-3 sm:space-y-0">
+                    <Button onClick={handleCopy} className="flex-1">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="mr-2"
                       >
-                        #{tag.replace(/^#+/, '')}
-                      </span>
-                    ))}
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                      </svg>
+                      コピーする
+                    </Button>
+                    <Button variant="outline" onClick={handleRetry} className="flex-1">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="mr-2"
+                      >
+                        <polyline points="23 4 23 10 17 10" />
+                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                      </svg>
+                      再生成
+                    </Button>
                   </div>
-                  <p className="mt-2 text-xs text-text-secondary">
-                    {generatedContent.hashtags.length}個のハッシュタグ
-                  </p>
                 </div>
 
-                <div className="mt-8 rounded-lg bg-blue-50 p-4">
-                  <p className="text-sm text-blue-900">
-                    ✨ 次のチケット（06-caption-hashtag-generation）で、編集・コピー・画像生成機能を追加します
-                  </p>
-                </div>
+                {/* 右カラム: プレビュー */}
+                <div className="space-y-6">
+                  {/* プレビュー */}
+                  <div className="rounded-lg border border-border bg-white p-6">
+                    <h2 className="text-lg font-semibold text-text-primary">プレビュー</h2>
+                    <div className="mt-4">
+                      <div className="rounded-lg border border-border bg-gray-50 p-4">
+                        <p className="whitespace-pre-wrap text-sm text-text-primary">
+                          {caption || 'キャプションが入力されていません'}
+                        </p>
 
-                {/* アクション */}
-                <div className="mt-8 flex space-x-4">
-                  <Button onClick={() => router.push('/')}>トップに戻る</Button>
-                  <Button variant="outline" onClick={handleRetry}>
-                    再生成
-                  </Button>
+                        {selectedHashtags.size > 0 && (
+                          <>
+                            <div className="my-3 border-t border-border" />
+                            <div className="flex flex-wrap gap-1">
+                              {Array.from(selectedHashtags).map((tag, index) => {
+                                const cleanTag = tag.replace(/^#+/, '')
+                                return (
+                                  <span key={index} className="text-sm text-primary">
+                                    #{cleanTag}
+                                  </span>
+                                )
+                              })}
+                            </div>
+                          </>
+                        )}
+                      </div>
+
+                      <div className="mt-3 flex items-center justify-between text-xs text-text-secondary">
+                        <span>文字数: {caption.length} / {MAX_CAPTION_LENGTH}</span>
+                        <span>ハッシュタグ: {selectedHashtags.size}個</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 次のステップ案内 */}
+                  <div className="rounded-lg border border-border bg-blue-50 p-6">
+                    <h3 className="font-semibold text-blue-900">📱 次のステップ</h3>
+                    <ol className="mt-3 space-y-2 text-sm text-blue-900">
+                      <li>1. 上の「コピーする」ボタンをクリック</li>
+                      <li>2. Instagramアプリを開く</li>
+                      <li>3. 新しい投稿を作成</li>
+                      <li>4. キャプション欄に貼り付け</li>
+                      <li>5. 投稿完了！✨</li>
+                    </ol>
+                  </div>
+
+                  {/* 画像生成予告 */}
+                  <div className="rounded-lg border border-border bg-white p-6">
+                    <h3 className="font-semibold text-text-primary">🎨 画像生成機能（準備中）</h3>
+                    <p className="mt-2 text-sm text-text-secondary">
+                      次のチケット（07-image-generation）で、記事タイトルから自動的にInstagram用の画像を生成する機能を追加します。
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            </>
           )}
         </div>
       </main>

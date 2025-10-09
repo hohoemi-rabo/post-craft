@@ -53,6 +53,7 @@ export default function GeneratePage() {
           title: data.title || '',
           content: data.content || '',
           source: 'url',
+          sourceUrl: url, // 元のURLを保存
         })
       )
       router.push('/generate/result')
