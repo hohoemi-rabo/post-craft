@@ -8,13 +8,6 @@ import Footer from '@/components/layout/footer'
 import Spinner from '@/components/ui/spinner'
 import Button from '@/components/ui/button'
 
-interface ExtractResult {
-  title: string
-  content: string
-  excerpt: string
-  success: boolean
-}
-
 export default function GeneratePage() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -53,14 +46,16 @@ export default function GeneratePage() {
         throw new Error(data.error || '記事の抽出に失敗しました')
       }
 
-      // TODO: 次のチケット（05-openai-integration）でOpenAI APIに渡す
-      // 今はresultページにリダイレクト
-      const params = new URLSearchParams({
-        title: data.title || '',
-        content: data.content || '',
-        source: 'url',
-      })
-      router.push(`/generate/result?${params.toString()}`)
+      // sessionStorageに保存してからリダイレクト（URLパラメータだと長すぎて431エラーになる）
+      sessionStorage.setItem(
+        'extractedContent',
+        JSON.stringify({
+          title: data.title || '',
+          content: data.content || '',
+          source: 'url',
+        })
+      )
+      router.push('/generate/result')
     } catch (err) {
       setStatus('error')
       setError(err instanceof Error ? err.message : '記事の抽出に失敗しました')

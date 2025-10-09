@@ -33,13 +33,16 @@ export default function ManualInputPage() {
     setIsLoading(true)
 
     try {
-      // TODO: 次のチケット（05-openai-integration）で実装
-      // 今はcontentをクエリパラメータとして渡す
-      const params = new URLSearchParams({
-        content: content.substring(0, MAX_CHARS),
-        source: 'manual',
-      })
-      router.push(`/generate/result?${params.toString()}`)
+      // sessionStorageに保存してからリダイレクト（URLパラメータだと長すぎて431エラーになる）
+      sessionStorage.setItem(
+        'extractedContent',
+        JSON.stringify({
+          title: '',
+          content: content.substring(0, MAX_CHARS),
+          source: 'manual',
+        })
+      )
+      router.push('/generate/result')
     } catch (err) {
       setError('エラーが発生しました。もう一度お試しください。')
       setIsLoading(false)
