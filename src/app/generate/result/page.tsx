@@ -233,7 +233,7 @@ export default function ResultPage() {
                         key={index}
                         className="rounded-full bg-primary/10 px-3 py-1 text-sm text-primary"
                       >
-                        #{tag}
+                        #{tag.replace(/^#+/, '')}
                       </span>
                     ))}
                   </div>
