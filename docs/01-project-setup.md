@@ -14,10 +14,10 @@ Week 1
 - [×] ESLint設定
 - [×] パスエイリアス設定（@/*）
 - [×] Turbopack有効化
-- [ ] フォント設定（Noto Sans JP追加）
-- [ ] 環境変数設定（.env.local）
-- [ ] Git初期設定
-- [ ] README.md更新
+- [×] フォント設定（Noto Sans JP追加）
+- [×] 環境変数設定（.env.local）
+- [×] Git初期設定
+- [×] README.md更新
 
 ## 技術詳細
 
