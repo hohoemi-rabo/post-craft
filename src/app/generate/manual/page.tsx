@@ -40,11 +40,17 @@ export default function ManualInputPage() {
     setIsLoading(true)
 
     try {
+      // contentの最初の部分をタイトルとして使用（最初の50文字、または最初の行）
+      const firstLine = content.split('\n')[0]
+      const generatedTitle = firstLine.length > 50
+        ? firstLine.substring(0, 50) + '...'
+        : firstLine
+
       // sessionStorageに保存してからリダイレクト（URLパラメータだと長すぎて431エラーになる）
       sessionStorage.setItem(
         'extractedContent',
         JSON.stringify({
-          title: '',
+          title: generatedTitle,
           content: content.substring(0, MAX_CHARS),
           source: 'manual',
         })

@@ -138,13 +138,10 @@ export default function ResultPage() {
   }
 
   const handleDownloadImage = async () => {
-    if (!title) {
-      showToast('タイトルが見つかりません', 'error')
-      return
-    }
+    const imageTitle = title || caption.substring(0, 50) || 'Instagram投稿'
 
     try {
-      const imageUrl = `/api/og?title=${encodeURIComponent(title)}&bgColorIndex=${bgColorIndex}`
+      const imageUrl = `/api/og?title=${encodeURIComponent(imageTitle)}&bgColorIndex=${bgColorIndex}`
       const response = await fetch(imageUrl)
       const blob = await response.blob()
       const url = URL.createObjectURL(blob)
@@ -162,17 +159,14 @@ export default function ResultPage() {
   }
 
   const handleStartPostAssist = async () => {
-    if (!title) {
-      showToast('タイトルが見つかりません', 'error')
-      return
-    }
+    const imageTitle = title || caption.substring(0, 50) || 'Instagram投稿'
 
     try {
       setShowAssistGuide(true)
 
       // Step 1: 画像ダウンロード
       setAssistStep(1)
-      const imageUrl = `/api/og?title=${encodeURIComponent(title)}&bgColorIndex=${bgColorIndex}`
+      const imageUrl = `/api/og?title=${encodeURIComponent(imageTitle)}&bgColorIndex=${bgColorIndex}`
       const response = await fetch(imageUrl)
       const blob = await response.blob()
       const url = URL.createObjectURL(blob)
@@ -618,66 +612,64 @@ export default function ResultPage() {
                   </div>
 
                   {/* 画像プレビュー */}
-                  {title && (
-                    <div className="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md p-6">
-                      <h2 className="text-lg font-semibold text-white">生成画像</h2>
+                  <div className="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md p-6">
+                    <h2 className="text-lg font-semibold text-white">生成画像</h2>
 
-                      {/* 色選択UI */}
-                      <div className="mt-4">
-                        <p className="mb-2 text-sm font-medium text-gray-300">背景色を選択</p>
-                        <div className="grid grid-cols-6 gap-2">
-                          {BG_COLORS.map((color, index) => (
-                            <button
-                              key={color}
-                              onClick={() => setBgColorIndex(index)}
-                              className={`h-11 w-11 min-h-[44px] min-w-[44px] rounded-lg border-2 transition-all hover:scale-110 ${
-                                bgColorIndex === index
-                                  ? 'border-primary ring-2 ring-primary ring-offset-2'
-                                  : 'border-border'
-                              }`}
-                              style={{ backgroundColor: color }}
-                              title={`色 ${index + 1}`}
-                              aria-label={`背景色 ${index + 1} を選択`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="mt-4">
-                        <div className="overflow-hidden rounded-lg border border-border">
-                          <img
-                            src={`/api/og?title=${encodeURIComponent(title)}&bgColorIndex=${bgColorIndex}`}
-                            alt="Instagram投稿用画像"
-                            className="w-full"
+                    {/* 色選択UI */}
+                    <div className="mt-4">
+                      <p className="mb-2 text-sm font-medium text-gray-300">背景色を選択</p>
+                      <div className="grid grid-cols-6 gap-2">
+                        {BG_COLORS.map((color, index) => (
+                          <button
+                            key={color}
+                            onClick={() => setBgColorIndex(index)}
+                            className={`h-11 w-11 min-h-[44px] min-w-[44px] rounded-lg border-2 transition-all hover:scale-110 ${
+                              bgColorIndex === index
+                                ? 'border-primary ring-2 ring-primary ring-offset-2'
+                                : 'border-border'
+                            }`}
+                            style={{ backgroundColor: color }}
+                            title={`色 ${index + 1}`}
+                            aria-label={`背景色 ${index + 1} を選択`}
                           />
-                        </div>
-                        <p className="mt-3 text-xs text-gray-400">
-                          サイズ: 1080×1080px（Instagram正方形）
-                        </p>
-                      </div>
-                      <div className="mt-4">
-                        <Button onClick={handleDownloadImage} className="w-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 border-0">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="mr-2"
-                          >
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                            <polyline points="7 10 12 15 17 10" />
-                            <line x1="12" y1="15" x2="12" y2="3" />
-                          </svg>
-                          画像をダウンロード
-                        </Button>
+                        ))}
                       </div>
                     </div>
-                  )}
+
+                    <div className="mt-4">
+                      <div className="overflow-hidden rounded-lg border border-border">
+                        <img
+                          src={`/api/og?title=${encodeURIComponent(title || caption.substring(0, 50) || 'Instagram投稿')}&bgColorIndex=${bgColorIndex}`}
+                          alt="Instagram投稿用画像"
+                          className="w-full"
+                        />
+                      </div>
+                      <p className="mt-3 text-xs text-gray-400">
+                        サイズ: 1080×1080px（Instagram正方形）
+                      </p>
+                    </div>
+                    <div className="mt-4">
+                      <Button onClick={handleDownloadImage} className="w-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 border-0">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="mr-2"
+                        >
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                          <polyline points="7 10 12 15 17 10" />
+                          <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                        画像をダウンロード
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </>
