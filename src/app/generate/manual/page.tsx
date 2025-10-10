@@ -8,6 +8,7 @@ import Footer from '@/components/layout/footer'
 import Button from '@/components/ui/button'
 import Textarea from '@/components/ui/textarea'
 import { canGenerate } from '@/lib/rate-limiter'
+import { ERROR_MESSAGES } from '@/lib/error-messages'
 
 const MAX_CHARS = 10000
 
@@ -23,17 +24,17 @@ export default function ManualInputPage() {
 
     // 回数制限チェック
     if (!canGenerate()) {
-      setError('本日の生成回数を使い切りました。明日また5回ご利用いただけます。')
+      setError(ERROR_MESSAGES.RATE_LIMIT_EXCEEDED)
       return
     }
 
     if (!content.trim()) {
-      setError('記事本文を入力してください')
+      setError(ERROR_MESSAGES.CONTENT_REQUIRED)
       return
     }
 
     if (content.length < 100) {
-      setError('記事本文が短すぎます（最低100文字必要です）')
+      setError(ERROR_MESSAGES.CONTENT_TOO_SHORT)
       return
     }
 

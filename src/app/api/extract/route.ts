@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { JSDOM } from 'jsdom'
 import { Readability } from '@mozilla/readability'
+import { ERROR_MESSAGES } from '@/lib/error-messages'
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,7 +9,7 @@ export async function POST(request: NextRequest) {
 
     if (!url) {
       return NextResponse.json(
-        { error: 'URLが指定されていません' },
+        { error: ERROR_MESSAGES.URL_REQUIRED },
         { status: 400 }
       )
     }
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     if (!article || !article.textContent) {
       return NextResponse.json(
-        { error: '記事の本文を抽出できませんでした' },
+        { error: ERROR_MESSAGES.SCRAPING_FAILED },
         { status: 400 }
       )
     }
@@ -60,21 +61,21 @@ export async function POST(request: NextRequest) {
     if (error instanceof Error) {
       if (error.name === 'AbortError') {
         return NextResponse.json(
-          { error: '処理がタイムアウトしました。もう一度お試しください。' },
+          { error: ERROR_MESSAGES.API_TIMEOUT },
           { status: 408 }
         )
       }
 
       if (error.message.includes('fetch')) {
         return NextResponse.json(
-          { error: 'URLへのアクセスに失敗しました。URLを確認してください。' },
-          { status: 400 }
+          { error: ERROR_MESSAGES.NETWORK_ERROR },
+          { status: 503 }
         )
       }
     }
 
     return NextResponse.json(
-      { error: '記事の抽出に失敗しました。URLを確認するか、記事を直接入力してください。' },
+      { error: ERROR_MESSAGES.SCRAPING_FAILED },
       { status: 500 }
     )
   }

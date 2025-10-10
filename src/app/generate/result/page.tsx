@@ -10,6 +10,8 @@ import Button from '@/components/ui/button'
 import Textarea from '@/components/ui/textarea'
 import { useToast } from '@/components/ui/toast'
 import { incrementUsage } from '@/lib/rate-limiter'
+import { apiPost, APIError } from '@/lib/api-client'
+import { ERROR_MESSAGES } from '@/lib/error-messages'
 
 const MAX_CAPTION_LENGTH = 150
 
@@ -41,7 +43,7 @@ export default function ResultPage() {
 
     if (!data) {
       setStatus('error')
-      setError('コンテンツが見つかりません。もう一度やり直してください。')
+      setError(ERROR_MESSAGES.DATA_NOT_FOUND)
       return
     }
 
@@ -53,7 +55,7 @@ export default function ResultPage() {
       setSourceUrl(parsed.sourceUrl || null)
     } catch (err) {
       setStatus('error')
-      setError('データの読み込みに失敗しました')
+      setError(ERROR_MESSAGES.SESSION_ERROR)
     }
   }, [])
 
@@ -68,22 +70,14 @@ export default function ResultPage() {
     setError('')
 
     try {
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const data = await apiPost<{ caption: string; hashtags: string[] }>(
+        '/api/generate',
+        {
           content,
           title: title || undefined,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'コンテンツの生成に失敗しました')
-      }
+        },
+        { maxRetries: 3, timeout: 30000 }
+      )
 
       // 生成結果を設定
       setCaption(data.caption)
@@ -96,7 +90,13 @@ export default function ResultPage() {
       incrementUsage()
     } catch (err) {
       setStatus('error')
-      setError(err instanceof Error ? err.message : 'コンテンツの生成に失敗しました')
+      if (err instanceof APIError) {
+        setError(err.message)
+      } else if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError(ERROR_MESSAGES.GENERATION_FAILED)
+      }
     }
   }
 
@@ -133,7 +133,7 @@ export default function ResultPage() {
       await navigator.clipboard.writeText(text)
       showToast('クリップボードにコピーしました', 'success')
     } catch (err) {
-      showToast('コピーに失敗しました', 'error')
+      showToast(ERROR_MESSAGES.COPY_FAILED, 'error')
     }
   }
 
@@ -154,7 +154,7 @@ export default function ResultPage() {
       URL.revokeObjectURL(url)
       showToast('画像をダウンロードしました', 'success')
     } catch (err) {
-      showToast('ダウンロードに失敗しました', 'error')
+      showToast(ERROR_MESSAGES.IMAGE_DOWNLOAD_FAILED, 'error')
     }
   }
 

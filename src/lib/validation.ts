@@ -1,3 +1,5 @@
+import { ERROR_MESSAGES } from './error-messages'
+
 /**
  * URLの形式をチェック
  */
@@ -20,11 +22,11 @@ export function isValidUrl(url: string): boolean {
  */
 export function getUrlValidationError(url: string): string | null {
   if (!url || url.trim() === '') {
-    return 'URLを入力してください'
+    return ERROR_MESSAGES.URL_REQUIRED
   }
 
   if (!isValidUrl(url)) {
-    return '有効なURLを入力してください（例: https://example.com/blog/post）'
+    return ERROR_MESSAGES.INVALID_URL
   }
 
   return null

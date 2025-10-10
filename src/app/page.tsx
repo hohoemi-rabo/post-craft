@@ -9,6 +9,7 @@ import Button from '@/components/ui/button'
 import Input from '@/components/ui/input'
 import { getUrlValidationError } from '@/lib/validation'
 import { canGenerate } from '@/lib/rate-limiter'
+import { ERROR_MESSAGES } from '@/lib/error-messages'
 
 export default function Home() {
   const router = useRouter()
@@ -22,7 +23,7 @@ export default function Home() {
 
     // 回数制限チェック
     if (!canGenerate()) {
-      setError('本日の生成回数を使い切りました。明日また5回ご利用いただけます。')
+      setError(ERROR_MESSAGES.RATE_LIMIT_EXCEEDED)
       return
     }
 
@@ -36,11 +37,9 @@ export default function Home() {
     setIsLoading(true)
 
     try {
-      // TODO: 実際の生成処理は後で実装
-      // 今はURLをクエリパラメータとして渡すだけ
       router.push(`/generate?url=${encodeURIComponent(url)}`)
     } catch (err) {
-      setError('エラーが発生しました。もう一度お試しください。')
+      setError(ERROR_MESSAGES.UNKNOWN_ERROR)
       setIsLoading(false)
     }
   }

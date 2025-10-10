@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { generatePostContent, hasApiKey } from '@/lib/openai'
+import { ERROR_MESSAGES } from '@/lib/error-messages'
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,14 +18,14 @@ export async function POST(request: NextRequest) {
     // バリデーション
     if (!content || typeof content !== 'string') {
       return NextResponse.json(
-        { error: 'コンテンツが指定されていません' },
+        { error: ERROR_MESSAGES.CONTENT_REQUIRED },
         { status: 400 }
       )
     }
 
     if (content.trim().length < 100) {
       return NextResponse.json(
-        { error: 'コンテンツが短すぎます（最低100文字必要です）' },
+        { error: ERROR_MESSAGES.CONTENT_TOO_SHORT },
         { status: 400 }
       )
     }
@@ -45,10 +46,7 @@ export async function POST(request: NextRequest) {
       // OpenAI APIのエラー
       if (error.message.includes('OpenAI API')) {
         return NextResponse.json(
-          {
-            error:
-              'AI生成に失敗しました。しばらく待ってから再度お試しください。',
-          },
+          { error: ERROR_MESSAGES.API_FAILED },
           { status: 503 }
         )
       }
@@ -56,7 +54,7 @@ export async function POST(request: NextRequest) {
       // タイムアウトエラー
       if (error.message.includes('タイムアウト')) {
         return NextResponse.json(
-          { error: '処理がタイムアウトしました。もう一度お試しください。' },
+          { error: ERROR_MESSAGES.API_TIMEOUT },
           { status: 408 }
         )
       }
@@ -83,7 +81,7 @@ export async function POST(request: NextRequest) {
 
     // その他のエラー
     return NextResponse.json(
-      { error: 'コンテンツの生成に失敗しました。もう一度お試しください。' },
+      { error: ERROR_MESSAGES.GENERATION_FAILED },
       { status: 500 }
     )
   }
