@@ -246,12 +246,17 @@ export default function ResultPage() {
     <div className="flex min-h-screen flex-col">
       <Header />
 
-      <main className="flex-1 bg-gray-50">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <main className="relative flex-1 overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        {/* グラデーションアクセント */}
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 via-pink-500/10 to-orange-500/20" />
+        {/* パターン背景 */}
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiM5QzkyQUMiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDE4YzAtOS45NC04LjA2LTE4LTE4LTE4UzAgOC4wNiAwIDE4czguMDYgMTggMTggMTggMTgtOC4wNiAxOC0xOHptLTEzLjI0NCAwYzAtNC42OTQgMy44MDYtOC41IDguNS04LjVzOC41IDMuODA2IDguNSA4LjUtMy44MDYgOC41LTguNSA4LjUtOC41LTMuODA2LTguNS04LjV6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-10" />
+
+        <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           {/* 戻るリンク */}
           <Link
             href="/"
-            className="mb-6 inline-flex min-h-[44px] items-center py-2 text-sm text-text-secondary hover:text-text-primary"
+            className="mb-6 inline-flex min-h-[44px] items-center py-2 text-sm text-gray-400 hover:text-white transition-colors"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -272,17 +277,17 @@ export default function ResultPage() {
 
           {/* ローディング状態 */}
           {status === 'loading' && (
-            <div className="rounded-lg border border-border bg-white p-12 text-center">
+            <div className="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md p-12 text-center">
               <Spinner size="lg" />
-              <h2 className="mt-6 text-xl font-semibold text-text-primary">
+              <h2 className="mt-6 text-xl font-semibold text-white">
                 AIが投稿素材を生成しています...
               </h2>
-              <p className="mt-2 text-sm text-text-secondary">
+              <p className="mt-2 text-sm text-gray-300">
                 この処理には最大30秒かかる場合があります
               </p>
 
-              <div className="mt-8 rounded-lg bg-blue-50 p-4">
-                <div className="text-left text-sm text-blue-900">
+              <div className="mt-8 rounded-lg bg-white/10 backdrop-blur-sm p-4 border border-white/20">
+                <div className="text-left text-sm text-gray-300">
                   <p className="font-medium">処理内容:</p>
                   <ul className="mt-2 space-y-1">
                     <li>• 記事の内容を分析中...</li>
@@ -296,7 +301,7 @@ export default function ResultPage() {
 
           {/* エラー状態 */}
           {status === 'error' && (
-            <div className="rounded-lg border border-border bg-white p-8">
+            <div className="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md p-8">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-error/10">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -316,18 +321,18 @@ export default function ResultPage() {
                 </svg>
               </div>
 
-              <h2 className="mt-6 text-center text-xl font-semibold text-text-primary">
+              <h2 className="mt-6 text-center text-xl font-semibold text-white">
                 生成に失敗しました
               </h2>
-              <p className="mt-2 text-center text-sm text-text-secondary">{error}</p>
+              <p className="mt-2 text-center text-sm text-gray-300">{error}</p>
 
               <div className="mt-8 flex justify-center space-x-4">
                 {retryCount < 3 && (
-                  <Button onClick={handleRetry}>
+                  <Button onClick={handleRetry} className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 border-0">
                     もう一度試す ({retryCount}/3)
                   </Button>
                 )}
-                <Button variant="outline" onClick={() => router.back()}>
+                <Button onClick={() => router.back()} className="border-2 border-white/30 bg-transparent text-white hover:border-white/50 hover:bg-white/10">
                   戻る
                 </Button>
               </div>
@@ -339,10 +344,10 @@ export default function ResultPage() {
             <>
               {/* タイトル */}
               <div className="mb-8">
-                <h1 className="text-2xl font-bold text-text-primary sm:text-3xl">
+                <h1 className="text-2xl font-bold text-white sm:text-3xl">
                   投稿素材の生成が完了しました
                 </h1>
-                <p className="mt-2 text-sm text-text-secondary sm:text-base">
+                <p className="mt-2 text-sm text-gray-300 sm:text-base">
                   キャプションとハッシュタグを編集して、コピーしてInstagramに投稿しましょう
                 </p>
               </div>
@@ -352,17 +357,17 @@ export default function ResultPage() {
                 {/* 左カラム: 編集エリア */}
                 <div className="space-y-6">
                   {/* メタ情報 */}
-                  <div className="rounded-lg border border-border bg-white p-6">
-                    <h2 className="text-lg font-semibold text-text-primary">元記事情報</h2>
+                  <div className="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md p-6">
+                    <h2 className="text-lg font-semibold text-white">元記事情報</h2>
                     <div className="mt-4 space-y-3">
                       {sourceUrl && (
                         <div>
-                          <p className="text-xs font-medium text-text-secondary">URL</p>
+                          <p className="text-xs font-medium text-gray-400">URL</p>
                           <a
                             href={sourceUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="mt-1 block break-all text-sm text-primary hover:underline"
+                            className="mt-1 block break-all text-sm text-purple-400 hover:text-pink-400 hover:underline transition-colors"
                           >
                             {sourceUrl}
                           </a>
@@ -370,49 +375,49 @@ export default function ResultPage() {
                       )}
                       {!sourceUrl && source === 'manual' && (
                         <div>
-                          <p className="text-xs font-medium text-text-secondary">ソース</p>
-                          <p className="mt-1 text-sm text-text-primary">直接入力</p>
+                          <p className="text-xs font-medium text-gray-400">ソース</p>
+                          <p className="mt-1 text-sm text-gray-300">直接入力</p>
                         </div>
                       )}
                       {title && (
                         <div>
-                          <p className="text-xs font-medium text-text-secondary">タイトル</p>
-                          <p className="mt-1 text-sm text-text-primary">{title}</p>
+                          <p className="text-xs font-medium text-gray-400">タイトル</p>
+                          <p className="mt-1 text-sm text-gray-300">{title}</p>
                         </div>
                       )}
                     </div>
                   </div>
 
                   {/* キャプション編集 */}
-                  <div className="rounded-lg border border-border bg-white p-6">
-                    <h2 className="text-lg font-semibold text-text-primary">キャプション</h2>
+                  <div className="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md p-6">
+                    <h2 className="text-lg font-semibold text-white">キャプション</h2>
                     <div className="mt-4">
                       <Textarea
                         value={caption}
                         onChange={(e) => setCaption(e.target.value)}
                         maxLength={MAX_CAPTION_LENGTH}
                         showCount
-                        className="min-h-[120px]"
+                        className="min-h-[120px] bg-white/90 border-white/30 text-gray-900 placeholder:text-gray-500"
                         placeholder="キャプションを入力してください..."
                       />
                     </div>
                   </div>
 
                   {/* ハッシュタグ選択 */}
-                  <div className="rounded-lg border border-border bg-white p-6">
+                  <div className="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md p-6">
                     <div className="flex items-center justify-between">
-                      <h2 className="text-lg font-semibold text-text-primary">ハッシュタグ</h2>
+                      <h2 className="text-lg font-semibold text-white">ハッシュタグ</h2>
                       <div className="flex space-x-2">
                         <button
                           onClick={handleSelectAll}
-                          className="min-h-[44px] py-2 text-xs text-primary hover:underline"
+                          className="min-h-[44px] py-2 text-xs text-purple-400 hover:text-pink-400 hover:underline transition-colors"
                         >
                           全選択
                         </button>
-                        <span className="text-xs text-text-secondary">|</span>
+                        <span className="text-xs text-gray-400">|</span>
                         <button
                           onClick={handleDeselectAll}
-                          className="min-h-[44px] py-2 text-xs text-primary hover:underline"
+                          className="min-h-[44px] py-2 text-xs text-purple-400 hover:text-pink-400 hover:underline transition-colors"
                         >
                           全解除
                         </button>
@@ -425,28 +430,28 @@ export default function ResultPage() {
                         return (
                           <label
                             key={index}
-                            className="flex min-h-[44px] cursor-pointer items-center space-x-3 rounded-lg border border-border p-3 transition-colors hover:bg-gray-50"
+                            className="flex min-h-[44px] cursor-pointer items-center space-x-3 rounded-lg border border-white/20 bg-white/5 p-3 transition-colors hover:bg-white/10"
                           >
                             <input
                               type="checkbox"
                               checked={selectedHashtags.has(tag)}
                               onChange={() => handleHashtagToggle(tag)}
-                              className="h-4 w-4 rounded border-border text-primary focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                              className="h-4 w-4 rounded border-white/30 text-purple-500 focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-gray-900"
                             />
-                            <span className="text-sm text-text-primary">#{cleanTag}</span>
+                            <span className="text-sm text-gray-300">#{cleanTag}</span>
                           </label>
                         )
                       })}
                     </div>
 
-                    <p className="mt-3 text-xs text-text-secondary">
+                    <p className="mt-3 text-xs text-gray-400">
                       {selectedHashtags.size} / {hashtags.length} 個選択中
                     </p>
                   </div>
 
                   {/* アクションボタン */}
                   <div className="flex flex-col space-y-3 sm:flex-row sm:space-x-3 sm:space-y-0">
-                    <Button onClick={handleCopy} className="flex-1">
+                    <Button onClick={handleCopy} className="flex-1 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 border-0">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="16"
@@ -464,7 +469,7 @@ export default function ResultPage() {
                       </svg>
                       コピーする
                     </Button>
-                    <Button variant="outline" onClick={handleRetry} className="flex-1">
+                    <Button onClick={handleRetry} className="flex-1 border-2 border-white/30 bg-transparent text-white hover:border-white/50 hover:bg-white/10">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="16"
@@ -488,22 +493,22 @@ export default function ResultPage() {
                 {/* 右カラム: プレビュー */}
                 <div className="space-y-6">
                   {/* プレビュー */}
-                  <div className="rounded-lg border border-border bg-white p-6">
-                    <h2 className="text-lg font-semibold text-text-primary">プレビュー</h2>
+                  <div className="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md p-6">
+                    <h2 className="text-lg font-semibold text-white">プレビュー</h2>
                     <div className="mt-4">
-                      <div className="rounded-lg border border-border bg-gray-50 p-4">
-                        <p className="whitespace-pre-wrap text-sm text-text-primary">
+                      <div className="rounded-lg border border-white/20 bg-white/5 p-4">
+                        <p className="whitespace-pre-wrap text-sm text-gray-300">
                           {caption || 'キャプションが入力されていません'}
                         </p>
 
                         {selectedHashtags.size > 0 && (
                           <>
-                            <div className="my-3 border-t border-border" />
+                            <div className="my-3 border-t border-white/20" />
                             <div className="flex flex-wrap gap-1">
                               {Array.from(selectedHashtags).map((tag, index) => {
                                 const cleanTag = tag.replace(/^#+/, '')
                                 return (
-                                  <span key={index} className="text-sm text-primary">
+                                  <span key={index} className="text-sm text-purple-400">
                                     #{cleanTag}
                                   </span>
                                 )
@@ -513,7 +518,7 @@ export default function ResultPage() {
                         )}
                       </div>
 
-                      <div className="mt-3 flex items-center justify-between text-xs text-text-secondary">
+                      <div className="mt-3 flex items-center justify-between text-xs text-gray-400">
                         <span>文字数: {caption.length} / {MAX_CAPTION_LENGTH}</span>
                         <span>ハッシュタグ: {selectedHashtags.size}個</span>
                       </div>
@@ -521,18 +526,18 @@ export default function ResultPage() {
                   </div>
 
                   {/* 投稿アシスト */}
-                  <div className="rounded-lg border border-border bg-white p-6">
-                    <h2 className="text-lg font-semibold text-text-primary">
+                  <div className="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md p-6">
+                    <h2 className="text-lg font-semibold text-white">
                       📱 Instagram投稿準備
                     </h2>
-                    <p className="mt-2 text-sm text-text-secondary">
+                    <p className="mt-2 text-sm text-gray-300">
                       ワンクリックで画像ダウンロード、キャプションコピー、Instagram起動を自動実行します
                     </p>
 
                     <div className="mt-4">
                       <Button
                         onClick={handleStartPostAssist}
-                        className="w-full"
+                        className="w-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 border-0"
                         disabled={assistStep > 0 && assistStep < 4}
                       >
                         {assistStep === 0 && '投稿準備を開始'}
@@ -543,7 +548,7 @@ export default function ResultPage() {
 
                     {/* 進捗表示 */}
                     {showAssistGuide && (
-                      <div className="mt-4 space-y-3 rounded-lg bg-gray-50 p-4">
+                      <div className="mt-4 space-y-3 rounded-lg bg-white/5 border border-white/20 p-4">
                         <div className="flex items-center space-x-3">
                           <div
                             className={`flex h-6 w-6 items-center justify-center rounded-full ${
@@ -554,7 +559,7 @@ export default function ResultPage() {
                           </div>
                           <span
                             className={`text-sm ${
-                              assistStep >= 1 ? 'font-medium text-text-primary' : 'text-text-secondary'
+                              assistStep >= 1 ? 'font-medium text-white' : 'text-gray-400'
                             }`}
                           >
                             画像をダウンロード
@@ -564,14 +569,14 @@ export default function ResultPage() {
                         <div className="flex items-center space-x-3">
                           <div
                             className={`flex h-6 w-6 items-center justify-center rounded-full ${
-                              assistStep >= 2 ? 'bg-success text-white' : 'bg-gray-300'
+                              assistStep >= 2 ? 'bg-success text-white' : 'bg-gray-600'
                             }`}
                           >
                             {assistStep >= 2 ? '✓' : '2'}
                           </div>
                           <span
                             className={`text-sm ${
-                              assistStep >= 2 ? 'font-medium text-text-primary' : 'text-text-secondary'
+                              assistStep >= 2 ? 'font-medium text-white' : 'text-gray-400'
                             }`}
                           >
                             キャプション・ハッシュタグをコピー
@@ -581,14 +586,14 @@ export default function ResultPage() {
                         <div className="flex items-center space-x-3">
                           <div
                             className={`flex h-6 w-6 items-center justify-center rounded-full ${
-                              assistStep >= 3 ? 'bg-success text-white' : 'bg-gray-300'
+                              assistStep >= 3 ? 'bg-success text-white' : 'bg-gray-600'
                             }`}
                           >
                             {assistStep >= 3 ? '✓' : '3'}
                           </div>
                           <span
                             className={`text-sm ${
-                              assistStep >= 3 ? 'font-medium text-text-primary' : 'text-text-secondary'
+                              assistStep >= 3 ? 'font-medium text-white' : 'text-gray-400'
                             }`}
                           >
                             Instagramを起動
@@ -596,12 +601,12 @@ export default function ResultPage() {
                         </div>
 
                         {assistStep === 4 && (
-                          <div className="mt-4 rounded-lg border border-success bg-success/10 p-4">
+                          <div className="mt-4 rounded-lg border border-success/30 bg-success/10 backdrop-blur-sm p-4">
                             <h4 className="font-semibold text-success">準備完了！</h4>
-                            <p className="mt-2 text-sm text-text-primary">
+                            <p className="mt-2 text-sm text-gray-300">
                               Instagramで以下の手順で投稿してください：
                             </p>
-                            <ol className="mt-2 space-y-1 text-sm text-text-primary">
+                            <ol className="mt-2 space-y-1 text-sm text-gray-300">
                               <li>1. ダウンロードした画像を選択</li>
                               <li>2. キャプション欄に貼り付け（Ctrl/Cmd + V）</li>
                               <li>3. 投稿ボタンをタップ</li>
@@ -614,12 +619,12 @@ export default function ResultPage() {
 
                   {/* 画像プレビュー */}
                   {title && (
-                    <div className="rounded-lg border border-border bg-white p-6">
-                      <h2 className="text-lg font-semibold text-text-primary">生成画像</h2>
+                    <div className="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md p-6">
+                      <h2 className="text-lg font-semibold text-white">生成画像</h2>
 
                       {/* 色選択UI */}
                       <div className="mt-4">
-                        <p className="mb-2 text-sm font-medium text-text-secondary">背景色を選択</p>
+                        <p className="mb-2 text-sm font-medium text-gray-300">背景色を選択</p>
                         <div className="grid grid-cols-6 gap-2">
                           {BG_COLORS.map((color, index) => (
                             <button
@@ -646,12 +651,12 @@ export default function ResultPage() {
                             className="w-full"
                           />
                         </div>
-                        <p className="mt-3 text-xs text-text-secondary">
+                        <p className="mt-3 text-xs text-gray-400">
                           サイズ: 1080×1080px（Instagram正方形）
                         </p>
                       </div>
                       <div className="mt-4">
-                        <Button onClick={handleDownloadImage} className="w-full">
+                        <Button onClick={handleDownloadImage} className="w-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 border-0">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="16"
