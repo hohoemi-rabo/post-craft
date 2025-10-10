@@ -8,6 +8,7 @@ import Footer from '@/components/layout/footer'
 import Button from '@/components/ui/button'
 import Input from '@/components/ui/input'
 import { getUrlValidationError } from '@/lib/validation'
+import { canGenerate } from '@/lib/rate-limiter'
 
 export default function Home() {
   const router = useRouter()
@@ -18,6 +19,12 @@ export default function Home() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setError('')
+
+    // 回数制限チェック
+    if (!canGenerate()) {
+      setError('本日の生成回数を使い切りました。明日また5回ご利用いただけます。')
+      return
+    }
 
     // バリデーション
     const validationError = getUrlValidationError(url)

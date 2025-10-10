@@ -7,6 +7,7 @@ import Header from '@/components/layout/header'
 import Footer from '@/components/layout/footer'
 import Button from '@/components/ui/button'
 import Textarea from '@/components/ui/textarea'
+import { canGenerate } from '@/lib/rate-limiter'
 
 const MAX_CHARS = 10000
 
@@ -19,6 +20,12 @@ export default function ManualInputPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setError('')
+
+    // 回数制限チェック
+    if (!canGenerate()) {
+      setError('本日の生成回数を使い切りました。明日また5回ご利用いただけます。')
+      return
+    }
 
     if (!content.trim()) {
       setError('記事本文を入力してください')

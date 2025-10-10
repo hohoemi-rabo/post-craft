@@ -9,6 +9,7 @@ import Spinner from '@/components/ui/spinner'
 import Button from '@/components/ui/button'
 import Textarea from '@/components/ui/textarea'
 import { useToast } from '@/components/ui/toast'
+import { incrementUsage } from '@/lib/rate-limiter'
 
 const MAX_CAPTION_LENGTH = 150
 
@@ -90,6 +91,9 @@ export default function ResultPage() {
       // デフォルトで全選択
       setSelectedHashtags(new Set(data.hashtags))
       setStatus('success')
+
+      // 使用回数をインクリメント
+      incrementUsage()
     } catch (err) {
       setStatus('error')
       setError(err instanceof Error ? err.message : 'コンテンツの生成に失敗しました')

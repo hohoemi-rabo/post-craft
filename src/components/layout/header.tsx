@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import UsageIndicator from '@/components/usage-indicator'
 
 export default function Header() {
   return (
@@ -22,19 +23,14 @@ export default function Header() {
               <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
             </svg>
           </div>
-          <span className="text-lg font-semibold text-text-primary">
+          <span className="hidden text-lg font-semibold text-text-primary sm:inline">
             Instagram Post Generator
           </span>
         </Link>
 
-        <nav className="hidden items-center space-x-6 sm:flex">
-          <Link
-            href="/"
-            className="text-sm font-medium text-text-secondary transition-colors hover:text-text-primary"
-          >
-            ホーム
-          </Link>
-        </nav>
+        <div className="flex items-center space-x-6">
+          <UsageIndicator />
+        </div>
       </div>
     </header>
   )
