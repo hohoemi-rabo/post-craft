@@ -30,6 +30,10 @@ export default function ResultPage() {
   const [selectedHashtags, setSelectedHashtags] = useState<Set<string>>(new Set())
   const [bgColorIndex, setBgColorIndex] = useState(0)
 
+  // 投稿アシスト状態
+  const [assistStep, setAssistStep] = useState(0) // 0: 未開始, 1: ダウンロード中, 2: コピー中, 3: Instagram起動, 4: 完了
+  const [showAssistGuide, setShowAssistGuide] = useState(false)
+
   // sessionStorageからデータを取得
   useEffect(() => {
     const data = sessionStorage.getItem('extractedContent')
@@ -150,6 +154,72 @@ export default function ResultPage() {
       showToast('画像をダウンロードしました', 'success')
     } catch (err) {
       showToast('ダウンロードに失敗しました', 'error')
+    }
+  }
+
+  const handleStartPostAssist = async () => {
+    if (!title) {
+      showToast('タイトルが見つかりません', 'error')
+      return
+    }
+
+    try {
+      setShowAssistGuide(true)
+
+      // Step 1: 画像ダウンロード
+      setAssistStep(1)
+      const imageUrl = `/api/og?title=${encodeURIComponent(title)}&bgColorIndex=${bgColorIndex}`
+      const response = await fetch(imageUrl)
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `instagram-post-${Date.now()}.png`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+
+      // 少し待つ（ユーザーがダウンロードを確認できるように）
+      await new Promise((resolve) => setTimeout(resolve, 500))
+
+      // Step 2: キャプション+ハッシュタグをコピー
+      setAssistStep(2)
+      const selectedHashtagsArray = Array.from(selectedHashtags)
+      const hashtagsText = selectedHashtagsArray
+        .map((tag) => `#${tag.replace(/^#+/, '')}`)
+        .join(' ')
+      const text =
+        selectedHashtagsArray.length > 0 ? `${caption}\n\n${hashtagsText}` : caption
+      await navigator.clipboard.writeText(text)
+
+      await new Promise((resolve) => setTimeout(resolve, 500))
+
+      // Step 3: Instagram起動
+      setAssistStep(3)
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+
+      if (isMobile) {
+        // モバイル: Instagramアプリを起動
+        window.location.href = 'instagram://camera'
+        // アプリがない場合のフォールバック（1秒後にWeb版を開く）
+        setTimeout(() => {
+          window.open('https://www.instagram.com/', '_blank')
+        }, 1000)
+      } else {
+        // PC: Instagram Web版を新しいタブで開く
+        window.open('https://www.instagram.com/', '_blank')
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 500))
+
+      // Step 4: 完了
+      setAssistStep(4)
+      showToast('投稿準備が完了しました！', 'success')
+    } catch (err) {
+      showToast('投稿準備中にエラーが発生しました', 'error')
+      setShowAssistGuide(false)
+      setAssistStep(0)
     }
   }
 
@@ -446,17 +516,96 @@ export default function ResultPage() {
                     </div>
                   </div>
 
-                  {/* 次のステップ案内 */}
-                  <div className="rounded-lg border border-border bg-blue-50 p-6">
-                    <h3 className="font-semibold text-blue-900">📱 次のステップ</h3>
-                    <ol className="mt-3 space-y-2 text-sm text-blue-900">
-                      <li>1. 下の「画像をダウンロード」ボタンをクリック</li>
-                      <li>2. 「コピーする」ボタンでキャプション・ハッシュタグをコピー</li>
-                      <li>3. Instagramアプリを開く</li>
-                      <li>4. 新しい投稿を作成してダウンロードした画像を選択</li>
-                      <li>5. キャプション欄に貼り付け</li>
-                      <li>6. 投稿完了！✨</li>
-                    </ol>
+                  {/* 投稿アシスト */}
+                  <div className="rounded-lg border border-border bg-white p-6">
+                    <h2 className="text-lg font-semibold text-text-primary">
+                      📱 Instagram投稿準備
+                    </h2>
+                    <p className="mt-2 text-sm text-text-secondary">
+                      ワンクリックで画像ダウンロード、キャプションコピー、Instagram起動を自動実行します
+                    </p>
+
+                    <div className="mt-4">
+                      <Button
+                        onClick={handleStartPostAssist}
+                        className="w-full"
+                        disabled={assistStep > 0 && assistStep < 4}
+                      >
+                        {assistStep === 0 && '投稿準備を開始'}
+                        {assistStep > 0 && assistStep < 4 && '実行中...'}
+                        {assistStep === 4 && 'もう一度実行'}
+                      </Button>
+                    </div>
+
+                    {/* 進捗表示 */}
+                    {showAssistGuide && (
+                      <div className="mt-4 space-y-3 rounded-lg bg-gray-50 p-4">
+                        <div className="flex items-center space-x-3">
+                          <div
+                            className={`flex h-6 w-6 items-center justify-center rounded-full ${
+                              assistStep >= 1 ? 'bg-success text-white' : 'bg-gray-300'
+                            }`}
+                          >
+                            {assistStep >= 1 ? '✓' : '1'}
+                          </div>
+                          <span
+                            className={`text-sm ${
+                              assistStep >= 1 ? 'font-medium text-text-primary' : 'text-text-secondary'
+                            }`}
+                          >
+                            画像をダウンロード
+                          </span>
+                        </div>
+
+                        <div className="flex items-center space-x-3">
+                          <div
+                            className={`flex h-6 w-6 items-center justify-center rounded-full ${
+                              assistStep >= 2 ? 'bg-success text-white' : 'bg-gray-300'
+                            }`}
+                          >
+                            {assistStep >= 2 ? '✓' : '2'}
+                          </div>
+                          <span
+                            className={`text-sm ${
+                              assistStep >= 2 ? 'font-medium text-text-primary' : 'text-text-secondary'
+                            }`}
+                          >
+                            キャプション・ハッシュタグをコピー
+                          </span>
+                        </div>
+
+                        <div className="flex items-center space-x-3">
+                          <div
+                            className={`flex h-6 w-6 items-center justify-center rounded-full ${
+                              assistStep >= 3 ? 'bg-success text-white' : 'bg-gray-300'
+                            }`}
+                          >
+                            {assistStep >= 3 ? '✓' : '3'}
+                          </div>
+                          <span
+                            className={`text-sm ${
+                              assistStep >= 3 ? 'font-medium text-text-primary' : 'text-text-secondary'
+                            }`}
+                          >
+                            Instagramを起動
+                          </span>
+                        </div>
+
+                        {assistStep === 4 && (
+                          <div className="mt-4 rounded-lg border border-success bg-success/10 p-4">
+                            <h4 className="font-semibold text-success">準備完了！</h4>
+                            <p className="mt-2 text-sm text-text-primary">
+                              Instagramで以下の手順で投稿してください：
+                            </p>
+                            <ol className="mt-2 space-y-1 text-sm text-text-primary">
+                              <li>1. ダウンロードした画像を選択</li>
+                              <li>2. キャプション欄に貼り付け（Ctrl/Cmd + V）</li>
+                              <li>3. 投稿ボタンをタップ</li>
+                            </ol>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* 画像プレビュー */}
