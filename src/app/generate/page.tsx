@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Header from '@/components/layout/header'
@@ -8,7 +8,7 @@ import Footer from '@/components/layout/footer'
 import Spinner from '@/components/ui/spinner'
 import Button from '@/components/ui/button'
 
-export default function GeneratePage() {
+function GenerateContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const url = searchParams.get('url')
@@ -155,5 +155,33 @@ export default function GeneratePage() {
 
       <Footer />
     </div>
+  )
+}
+
+export default function GeneratePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen flex-col">
+        <Header />
+        <main className="relative flex flex-1 items-center justify-center overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+          {/* グラデーションアクセント */}
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 via-pink-500/10 to-orange-500/20" />
+          {/* パターン背景 */}
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiM5QzkyQUMiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDE4YzAtOS45NC04LjA2LTE4LTE4LTE4UzAgOC4wNiAwIDE4czguMDYgMTggMTggMTggMTgtOC4wNiAxOC0xOHptLTEzLjI0NCAwYzAtNC42OTQgMy44MDYtOC41IDguNS04LjVzOC41IDMuODA2IDguNSA4LjUtMy44MDYgOC41LTguNSA4LjUtOC41LTMuODA2LTguNS04LjV6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-10" />
+
+          <div className="relative w-full max-w-md px-4 text-center">
+            <div className="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md p-8 shadow-lg">
+              <Spinner size="lg" />
+              <p className="mt-6 text-lg font-medium text-white">
+                読み込み中...
+              </p>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    }>
+      <GenerateContent />
+    </Suspense>
   )
 }
