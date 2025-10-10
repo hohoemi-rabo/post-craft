@@ -28,6 +28,7 @@ export default function ResultPage() {
   const [caption, setCaption] = useState('')
   const [hashtags, setHashtags] = useState<string[]>([])
   const [selectedHashtags, setSelectedHashtags] = useState<Set<string>>(new Set())
+  const [bgColorIndex, setBgColorIndex] = useState(0)
 
   // sessionStorageからデータを取得
   useEffect(() => {
@@ -127,6 +128,45 @@ export default function ResultPage() {
       showToast('コピーに失敗しました', 'error')
     }
   }
+
+  const handleDownloadImage = async () => {
+    if (!title) {
+      showToast('タイトルが見つかりません', 'error')
+      return
+    }
+
+    try {
+      const imageUrl = `/api/og?title=${encodeURIComponent(title)}&bgColorIndex=${bgColorIndex}`
+      const response = await fetch(imageUrl)
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `instagram-post-${Date.now()}.png`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+      showToast('画像をダウンロードしました', 'success')
+    } catch (err) {
+      showToast('ダウンロードに失敗しました', 'error')
+    }
+  }
+
+  const BG_COLORS = [
+    '#1E293B', // ダークネイビー
+    '#334155', // グレー
+    '#F5F5F5', // ライトグレー
+    '#10B981', // グリーン
+    '#3B82F6', // ブルー
+    '#EC4899', // ピンク
+    '#8B5CF6', // パープル
+    '#F59E0B', // オレンジ
+    '#EF4444', // レッド
+    '#06B6D4', // シアン
+    '#000000', // ブラック
+    '#FFFFFF', // ホワイト
+  ]
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -410,21 +450,76 @@ export default function ResultPage() {
                   <div className="rounded-lg border border-border bg-blue-50 p-6">
                     <h3 className="font-semibold text-blue-900">📱 次のステップ</h3>
                     <ol className="mt-3 space-y-2 text-sm text-blue-900">
-                      <li>1. 上の「コピーする」ボタンをクリック</li>
-                      <li>2. Instagramアプリを開く</li>
-                      <li>3. 新しい投稿を作成</li>
-                      <li>4. キャプション欄に貼り付け</li>
-                      <li>5. 投稿完了！✨</li>
+                      <li>1. 下の「画像をダウンロード」ボタンをクリック</li>
+                      <li>2. 「コピーする」ボタンでキャプション・ハッシュタグをコピー</li>
+                      <li>3. Instagramアプリを開く</li>
+                      <li>4. 新しい投稿を作成してダウンロードした画像を選択</li>
+                      <li>5. キャプション欄に貼り付け</li>
+                      <li>6. 投稿完了！✨</li>
                     </ol>
                   </div>
 
-                  {/* 画像生成予告 */}
-                  <div className="rounded-lg border border-border bg-white p-6">
-                    <h3 className="font-semibold text-text-primary">🎨 画像生成機能（準備中）</h3>
-                    <p className="mt-2 text-sm text-text-secondary">
-                      次のチケット（07-image-generation）で、記事タイトルから自動的にInstagram用の画像を生成する機能を追加します。
-                    </p>
-                  </div>
+                  {/* 画像プレビュー */}
+                  {title && (
+                    <div className="rounded-lg border border-border bg-white p-6">
+                      <h2 className="text-lg font-semibold text-text-primary">生成画像</h2>
+
+                      {/* 色選択UI */}
+                      <div className="mt-4">
+                        <p className="mb-2 text-sm font-medium text-text-secondary">背景色を選択</p>
+                        <div className="grid grid-cols-6 gap-2">
+                          {BG_COLORS.map((color, index) => (
+                            <button
+                              key={color}
+                              onClick={() => setBgColorIndex(index)}
+                              className={`h-10 w-10 rounded-lg border-2 transition-all hover:scale-110 ${
+                                bgColorIndex === index
+                                  ? 'border-primary ring-2 ring-primary ring-offset-2'
+                                  : 'border-border'
+                              }`}
+                              style={{ backgroundColor: color }}
+                              title={`色 ${index + 1}`}
+                              aria-label={`背景色 ${index + 1} を選択`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="mt-4">
+                        <div className="overflow-hidden rounded-lg border border-border">
+                          <img
+                            src={`/api/og?title=${encodeURIComponent(title)}&bgColorIndex=${bgColorIndex}`}
+                            alt="Instagram投稿用画像"
+                            className="w-full"
+                          />
+                        </div>
+                        <p className="mt-3 text-xs text-text-secondary">
+                          サイズ: 1080×1080px（Instagram正方形）
+                        </p>
+                      </div>
+                      <div className="mt-4">
+                        <Button onClick={handleDownloadImage} className="w-full">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="mr-2"
+                          >
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                          </svg>
+                          画像をダウンロード
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </>
