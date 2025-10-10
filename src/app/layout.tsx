@@ -1,22 +1,18 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Noto_Sans_JP } from "next/font/google";
+import { Poppins, M_PLUS_Rounded_1c } from "next/font/google";
 import { Providers } from "@/components/providers/providers";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const poppins = Poppins({
+  variable: "--font-poppins",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const mPlusRounded = M_PLUS_Rounded_1c({
+  variable: "--font-mplus-rounded",
   subsets: ["latin"],
-});
-
-const notoSansJP = Noto_Sans_JP({
-  variable: "--font-noto-sans-jp",
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
+  weight: ["400", "500", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -32,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${notoSansJP.variable} antialiased`}
+        className={`${poppins.variable} ${mPlusRounded.variable} antialiased`}
       >
         <Providers>{children}</Providers>
       </body>

@@ -22,14 +22,14 @@ export default function UsageIndicator() {
 
   return (
     <div className="flex items-center space-x-2 text-sm">
-      <span className="text-text-secondary">本日の残り:</span>
+      <span className="text-gray-400">本日の残り:</span>
       <span
         className={`font-semibold ${
           isZero
-            ? 'text-error'
+            ? 'text-red-400'
             : isLow
-            ? 'text-orange-600'
-            : 'text-text-primary'
+            ? 'text-orange-400'
+            : 'text-white'
         }`}
       >
         {remaining} / {maxUses}
