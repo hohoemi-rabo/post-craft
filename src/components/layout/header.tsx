@@ -31,7 +31,13 @@ export default function Header() {
           </span>
         </Link>
 
-        <div className="flex items-center space-x-6">
+        <div className="flex items-center space-x-4 sm:space-x-6">
+          <Link
+            href="/contact"
+            className="flex items-center min-h-[44px] text-sm font-medium text-gray-300 hover:text-white transition-colors"
+          >
+            お問い合わせ
+          </Link>
           <UsageIndicator />
         </div>
       </div>

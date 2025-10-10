@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function Footer() {
   return (
     <footer className="border-t border-white/10 bg-gray-900/80 backdrop-blur-md relative">
@@ -11,8 +13,14 @@ export default function Footer() {
           </div>
 
           <div className="flex items-center space-x-6">
+            <Link
+              href="/contact"
+              className="min-h-[44px] py-2 text-sm text-gray-400 hover:text-white transition-colors"
+            >
+              お問い合わせ
+            </Link>
             <a
-              href="https://github.com"
+              href="https://github.com/hohoemi-rabo/post-craft"
               target="_blank"
               rel="noopener noreferrer"
               className="text-gray-400 transition-colors hover:text-white group"
