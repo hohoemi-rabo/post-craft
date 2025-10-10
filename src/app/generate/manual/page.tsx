@@ -58,7 +58,7 @@ export default function ManualInputPage() {
           {/* 戻るリンク */}
           <Link
             href="/"
-            className="mb-6 inline-flex items-center text-sm text-text-secondary hover:text-text-primary"
+            className="mb-6 inline-flex min-h-[44px] items-center py-2 text-sm text-text-secondary hover:text-text-primary"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -79,10 +79,10 @@ export default function ManualInputPage() {
 
           {/* タイトル */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-text-primary">
+            <h1 className="text-2xl font-bold text-text-primary sm:text-3xl">
               記事を直接入力
             </h1>
-            <p className="mt-2 text-text-secondary">
+            <p className="mt-2 text-sm text-text-secondary sm:text-base">
               ブログ記事の本文を貼り付けてください（最大10,000文字）
             </p>
           </div>
@@ -106,12 +106,13 @@ App Routerの改善により、パフォーマンスが大幅に向上しまし�
                 className="min-h-[400px]"
               />
 
-              <div className="flex justify-end space-x-4">
+              <div className="flex flex-col-reverse justify-end space-y-3 space-y-reverse sm:flex-row sm:space-x-4 sm:space-y-0">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => router.back()}
                   disabled={isLoading}
+                  className="w-full sm:w-auto"
                 >
                   キャンセル
                 </Button>
@@ -119,6 +120,7 @@ App Routerの改善により、パフォーマンスが大幅に向上しまし�
                   type="submit"
                   loading={isLoading}
                   disabled={!content.trim() || content.length < 100}
+                  className="w-full sm:w-auto"
                 >
                   生成する
                 </Button>

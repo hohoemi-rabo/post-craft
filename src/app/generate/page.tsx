@@ -117,7 +117,7 @@ export default function GeneratePage() {
                 </svg>
               </div>
 
-              <h2 className="mt-6 text-xl font-semibold text-text-primary">
+              <h2 className="mt-6 text-lg font-semibold text-text-primary sm:text-xl">
                 エラーが発生しました
               </h2>
               <p className="mt-2 text-sm text-text-secondary">{error}</p>
@@ -139,7 +139,7 @@ export default function GeneratePage() {
 
                 <Link
                   href="/"
-                  className="block text-sm text-text-secondary hover:text-text-primary hover:underline"
+                  className="block min-h-[44px] py-2 text-sm text-text-secondary hover:text-text-primary hover:underline"
                 >
                   トップに戻る
                 </Link>

@@ -247,7 +247,7 @@ export default function ResultPage() {
           {/* 戻るリンク */}
           <Link
             href="/"
-            className="mb-6 inline-flex items-center text-sm text-text-secondary hover:text-text-primary"
+            className="mb-6 inline-flex min-h-[44px] items-center py-2 text-sm text-text-secondary hover:text-text-primary"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -335,16 +335,16 @@ export default function ResultPage() {
             <>
               {/* タイトル */}
               <div className="mb-8">
-                <h1 className="text-3xl font-bold text-text-primary">
+                <h1 className="text-2xl font-bold text-text-primary sm:text-3xl">
                   投稿素材の生成が完了しました
                 </h1>
-                <p className="mt-2 text-text-secondary">
+                <p className="mt-2 text-sm text-text-secondary sm:text-base">
                   キャプションとハッシュタグを編集して、コピーしてInstagramに投稿しましょう
                 </p>
               </div>
 
               {/* 2カラムレイアウト（PC）/ 1カラム（モバイル） */}
-              <div className="grid gap-8 lg:grid-cols-2">
+              <div className="grid gap-8 md:grid-cols-2">
                 {/* 左カラム: 編集エリア */}
                 <div className="space-y-6">
                   {/* メタ情報 */}
@@ -401,14 +401,14 @@ export default function ResultPage() {
                       <div className="flex space-x-2">
                         <button
                           onClick={handleSelectAll}
-                          className="text-xs text-primary hover:underline"
+                          className="min-h-[44px] py-2 text-xs text-primary hover:underline"
                         >
                           全選択
                         </button>
                         <span className="text-xs text-text-secondary">|</span>
                         <button
                           onClick={handleDeselectAll}
-                          className="text-xs text-primary hover:underline"
+                          className="min-h-[44px] py-2 text-xs text-primary hover:underline"
                         >
                           全解除
                         </button>
@@ -421,7 +421,7 @@ export default function ResultPage() {
                         return (
                           <label
                             key={index}
-                            className="flex cursor-pointer items-center space-x-3 rounded-lg border border-border p-3 transition-colors hover:bg-gray-50"
+                            className="flex min-h-[44px] cursor-pointer items-center space-x-3 rounded-lg border border-border p-3 transition-colors hover:bg-gray-50"
                           >
                             <input
                               type="checkbox"
@@ -621,7 +621,7 @@ export default function ResultPage() {
                             <button
                               key={color}
                               onClick={() => setBgColorIndex(index)}
-                              className={`h-10 w-10 rounded-lg border-2 transition-all hover:scale-110 ${
+                              className={`h-11 w-11 min-h-[44px] min-w-[44px] rounded-lg border-2 transition-all hover:scale-110 ${
                                 bgColorIndex === index
                                   ? 'border-primary ring-2 ring-primary ring-offset-2'
                                   : 'border-border'

@@ -85,7 +85,7 @@ export default function Home() {
             <div className="mt-6">
               <Link
                 href="/generate/manual"
-                className="text-sm text-text-secondary underline-offset-4 hover:text-text-primary hover:underline"
+                className="inline-block min-h-[44px] py-2 text-sm text-text-secondary underline-offset-4 hover:text-text-primary hover:underline"
               >
                 または記事を直接入力
               </Link>
@@ -93,7 +93,7 @@ export default function Home() {
           </div>
 
           {/* 特徴セクション */}
-          <div className="mt-20 grid gap-8 sm:grid-cols-3">
+          <div className="mt-16 grid gap-8 sm:mt-20 sm:grid-cols-2 lg:grid-cols-3">
             <div className="text-center">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
                 <svg
