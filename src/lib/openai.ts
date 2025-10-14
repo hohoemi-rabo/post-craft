@@ -1,9 +1,22 @@
 import OpenAI from 'openai'
 
-// OpenAIクライアントの初期化
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+// OpenAIクライアントのインスタンスをキャッシュ
+let openaiInstance: OpenAI | null = null
+
+/**
+ * OpenAIクライアントを取得（遅延初期化）
+ */
+function getOpenAIClient(): OpenAI {
+  if (!openaiInstance) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY is not set')
+    }
+    openaiInstance = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    })
+  }
+  return openaiInstance
+}
 
 // システムプロンプト
 const SYSTEM_PROMPT = `あなたはInstagram投稿用のコンテンツを生成する専門家です。
@@ -76,6 +89,9 @@ export async function generatePostContent(
   // リトライロジック
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
+      // OpenAIクライアントを取得
+      const openai = getOpenAIClient()
+
       // タイムアウト制御
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), timeout)
