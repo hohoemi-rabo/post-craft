@@ -9,6 +9,7 @@ import Button from '@/components/ui/button'
 import Textarea from '@/components/ui/textarea'
 import { canGenerate } from '@/lib/rate-limiter'
 import { ERROR_MESSAGES } from '@/lib/error-messages'
+import { trackGenerateStart } from '@/lib/analytics'
 
 const MAX_CHARS = 10000
 
@@ -41,6 +42,9 @@ export default function ManualInputPage() {
     setIsLoading(true)
 
     try {
+      // アナリティクス: 生成開始 (manual)
+      trackGenerateStart('manual')
+
       // contentの最初の部分をタイトルとして使用（最初の50文字、または最初の行）
       const firstLine = content.split('\n')[0]
       const generatedTitle = firstLine.length > 50

@@ -10,6 +10,7 @@ import Input from '@/components/ui/input'
 import { getUrlValidationError } from '@/lib/validation'
 import { canGenerate } from '@/lib/rate-limiter'
 import { ERROR_MESSAGES } from '@/lib/error-messages'
+import { trackGenerateStart } from '@/lib/analytics'
 
 export default function Home() {
   const router = useRouter()
@@ -37,6 +38,9 @@ export default function Home() {
     setIsLoading(true)
 
     try {
+      // アナリティクス: 生成開始 (URL)
+      trackGenerateStart('url')
+
       router.push(`/generate?url=${encodeURIComponent(url)}`)
     } catch (err) {
       setError(ERROR_MESSAGES.UNKNOWN_ERROR)

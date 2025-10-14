@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Poppins, M_PLUS_Rounded_1c } from "next/font/google";
+import { GoogleAnalytics } from '@next/third-parties/google'
 import { Providers } from "@/components/providers/providers";
 import "./globals.css";
 
@@ -25,12 +26,15 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const gaId = process.env.NEXT_PUBLIC_GA_ID
+
   return (
     <html lang="ja">
       <body
         className={`${poppins.variable} ${mPlusRounded.variable} antialiased`}
       >
         <Providers>{children}</Providers>
+        {gaId && <GoogleAnalytics gaId={gaId} />}
       </body>
     </html>
   );

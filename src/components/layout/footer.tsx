@@ -19,6 +19,12 @@ export default function Footer() {
             >
               お問い合わせ
             </Link>
+            <Link
+              href="/privacy"
+              className="min-h-[44px] py-2 text-sm text-gray-400 hover:text-white transition-colors"
+            >
+              プライバシーポリシー
+            </Link>
             <a
               href="https://github.com/hohoemi-rabo/post-craft"
               target="_blank"

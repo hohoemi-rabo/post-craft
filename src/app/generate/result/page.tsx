@@ -13,6 +13,16 @@ import { useToast } from '@/components/ui/toast'
 import { incrementUsage } from '@/lib/rate-limiter'
 import { apiPost, APIError } from '@/lib/api-client'
 import { ERROR_MESSAGES } from '@/lib/error-messages'
+import {
+  trackGenerateSuccess,
+  trackGenerateError,
+  trackImageDownload,
+  trackCopyCaption,
+  trackOpenInstagram,
+  trackPostAssistComplete,
+  trackAddHashtag,
+  trackChangeBgColor,
+} from '@/lib/analytics'
 
 const MAX_CAPTION_LENGTH = 150
 
@@ -72,6 +82,8 @@ export default function ResultPage() {
     setStatus('loading')
     setError('')
 
+    const startTime = Date.now()
+
     try {
       const data = await apiPost<{ caption: string; hashtags: string[] }>(
         '/api/generate',
@@ -91,15 +103,33 @@ export default function ResultPage() {
 
       // 使用回数をインクリメント
       incrementUsage()
+
+      // アナリティクス: 生成成功
+      const processingTime = Date.now() - startTime
+      trackGenerateSuccess({
+        source: source === 'manual' ? 'manual' : 'url',
+        contentLength: content?.length || 0,
+        hashtagCount: data.hashtags.length,
+        processingTime,
+      })
     } catch (err) {
       setStatus('error')
+      let errorMessage: string = ERROR_MESSAGES.GENERATION_FAILED
       if (err instanceof APIError) {
+        errorMessage = err.message
         setError(err.message)
       } else if (err instanceof Error) {
+        errorMessage = err.message
         setError(err.message)
       } else {
         setError(ERROR_MESSAGES.GENERATION_FAILED)
       }
+
+      // アナリティクス: 生成エラー
+      trackGenerateError({
+        source: source === 'manual' ? 'manual' : 'url',
+        errorMessage,
+      })
     }
   }
 
@@ -148,6 +178,9 @@ export default function ResultPage() {
     // 入力フィールドをクリア
     setNewHashtagInput('')
     showToast('ハッシュタグを追加しました', 'success')
+
+    // アナリティクス: ハッシュタグ追加
+    trackAddHashtag(true)
   }
 
   const handleRemoveCustomHashtag = (tag: string) => {
@@ -158,6 +191,11 @@ export default function ResultPage() {
     newSelected.delete(tag)
     setSelectedHashtags(newSelected)
     showToast('ハッシュタグを削除しました', 'success')
+  }
+
+  const handleChangeBgColor = (index: number) => {
+    setBgColorIndex(index)
+    trackChangeBgColor(index)
   }
 
   const handleHashtagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -175,6 +213,13 @@ export default function ResultPage() {
     try {
       await navigator.clipboard.writeText(text)
       showToast('クリップボードにコピーしました', 'success')
+
+      // アナリティクス: コピー成功
+      trackCopyCaption({
+        captionLength: caption.length,
+        hashtagCount: selectedHashtagsArray.length,
+        hasCustomHashtags: customHashtags.length > 0,
+      })
     } catch (err) {
       showToast(ERROR_MESSAGES.COPY_FAILED, 'error')
     }
@@ -196,6 +241,9 @@ export default function ResultPage() {
       document.body.removeChild(link)
       URL.revokeObjectURL(url)
       showToast('画像をダウンロードしました', 'success')
+
+      // アナリティクス: 画像ダウンロード
+      trackImageDownload(bgColorIndex)
     } catch (err) {
       showToast(ERROR_MESSAGES.IMAGE_DOWNLOAD_FAILED, 'error')
     }
@@ -252,11 +300,17 @@ export default function ResultPage() {
         window.open('https://www.instagram.com/', '_blank')
       }
 
+      // アナリティクス: Instagram起動
+      trackOpenInstagram(isMobile ? 'mobile' : 'desktop')
+
       await new Promise((resolve) => setTimeout(resolve, 500))
 
       // Step 4: 完了
       setAssistStep(4)
       showToast('投稿準備が完了しました！', 'success')
+
+      // アナリティクス: 投稿アシスト完了
+      trackPostAssistComplete()
     } catch (err) {
       showToast('投稿準備中にエラーが発生しました', 'error')
       setShowAssistGuide(false)
@@ -732,7 +786,7 @@ export default function ResultPage() {
                         {BG_COLORS.map((color, index) => (
                           <button
                             key={color}
-                            onClick={() => setBgColorIndex(index)}
+                            onClick={() => handleChangeBgColor(index)}
                             className={`h-11 w-11 min-h-[44px] min-w-[44px] rounded-lg border-2 transition-all hover:scale-110 ${
                               bgColorIndex === index
                                 ? 'border-primary ring-2 ring-primary ring-offset-2'
