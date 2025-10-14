@@ -8,6 +8,7 @@ import Footer from '@/components/layout/footer'
 import Spinner from '@/components/ui/spinner'
 import Button from '@/components/ui/button'
 import Textarea from '@/components/ui/textarea'
+import Input from '@/components/ui/input'
 import { useToast } from '@/components/ui/toast'
 import { incrementUsage } from '@/lib/rate-limiter'
 import { apiPost, APIError } from '@/lib/api-client'
@@ -32,6 +33,8 @@ export default function ResultPage() {
   const [hashtags, setHashtags] = useState<string[]>([])
   const [selectedHashtags, setSelectedHashtags] = useState<Set<string>>(new Set())
   const [bgColorIndex, setBgColorIndex] = useState(0)
+  const [customHashtags, setCustomHashtags] = useState<string[]>([]) // ユーザーが追加したハッシュタグ
+  const [newHashtagInput, setNewHashtagInput] = useState('') // 入力中のハッシュタグ
 
   // 投稿アシスト状態
   const [assistStep, setAssistStep] = useState(0) // 0: 未開始, 1: ダウンロード中, 2: コピー中, 3: Instagram起動, 4: 完了
@@ -117,11 +120,51 @@ export default function ResultPage() {
   }
 
   const handleSelectAll = () => {
-    setSelectedHashtags(new Set(hashtags))
+    const allHashtags = [...hashtags, ...customHashtags]
+    setSelectedHashtags(new Set(allHashtags))
   }
 
   const handleDeselectAll = () => {
     setSelectedHashtags(new Set())
+  }
+
+  const handleAddHashtag = () => {
+    const input = newHashtagInput.trim().replace(/^#+/, '') // # を除去
+    if (!input) return
+
+    // すでに存在するかチェック
+    const allHashtags = [...hashtags, ...customHashtags]
+    if (allHashtags.includes(input)) {
+      showToast('このハッシュタグは既に追加されています', 'error')
+      return
+    }
+
+    // 追加
+    setCustomHashtags([...customHashtags, input])
+    // デフォルトで選択状態にする
+    const newSelected = new Set(selectedHashtags)
+    newSelected.add(input)
+    setSelectedHashtags(newSelected)
+    // 入力フィールドをクリア
+    setNewHashtagInput('')
+    showToast('ハッシュタグを追加しました', 'success')
+  }
+
+  const handleRemoveCustomHashtag = (tag: string) => {
+    // カスタムハッシュタグリストから削除
+    setCustomHashtags(customHashtags.filter((t) => t !== tag))
+    // 選択からも削除
+    const newSelected = new Set(selectedHashtags)
+    newSelected.delete(tag)
+    setSelectedHashtags(newSelected)
+    showToast('ハッシュタグを削除しました', 'success')
+  }
+
+  const handleHashtagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleAddHashtag()
+    }
   }
 
   const handleCopy = async () => {
@@ -418,7 +461,30 @@ export default function ResultPage() {
                       </div>
                     </div>
 
+                    {/* ハッシュタグ追加フィールド */}
+                    <div className="mt-4 flex space-x-2">
+                      <div className="flex-1">
+                        <Input
+                          type="text"
+                          value={newHashtagInput}
+                          onChange={(e) => setNewHashtagInput(e.target.value)}
+                          onKeyDown={handleHashtagInputKeyDown}
+                          placeholder="ハッシュタグを追加（例: ブログ更新）"
+                          className="bg-white/90 border-white/30 text-gray-900 placeholder:text-gray-500"
+                        />
+                      </div>
+                      <Button
+                        onClick={handleAddHashtag}
+                        className="border-2 border-purple-400/50 bg-purple-500/20 text-purple-300 hover:border-purple-400 hover:bg-purple-500/30"
+                        disabled={!newHashtagInput.trim()}
+                      >
+                        追加
+                      </Button>
+                    </div>
+
+                    {/* AI生成ハッシュタグ */}
                     <div className="mt-4 space-y-2">
+                      <p className="text-xs font-medium text-gray-400">AI生成ハッシュタグ</p>
                       {hashtags.map((tag, index) => {
                         const cleanTag = tag.replace(/^#+/, '')
                         return (
@@ -432,14 +498,58 @@ export default function ResultPage() {
                               onChange={() => handleHashtagToggle(tag)}
                               className="h-4 w-4 rounded border-white/30 text-purple-500 focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-gray-900"
                             />
-                            <span className="text-sm text-gray-300">#{cleanTag}</span>
+                            <span className="flex-1 text-sm text-gray-300">#{cleanTag}</span>
                           </label>
                         )
                       })}
                     </div>
 
+                    {/* 追加したハッシュタグ */}
+                    {customHashtags.length > 0 && (
+                      <div className="mt-4 space-y-2">
+                        <p className="text-xs font-medium text-gray-400">追加したハッシュタグ</p>
+                        {customHashtags.map((tag, index) => {
+                          const cleanTag = tag.replace(/^#+/, '')
+                          return (
+                            <div
+                              key={index}
+                              className="flex min-h-[44px] items-center space-x-3 rounded-lg border border-purple-400/30 bg-purple-500/10 p-3"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedHashtags.has(tag)}
+                                onChange={() => handleHashtagToggle(tag)}
+                                className="h-4 w-4 rounded border-purple-400/50 text-purple-500 focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-gray-900"
+                              />
+                              <span className="flex-1 text-sm text-purple-300">#{cleanTag}</span>
+                              <button
+                                onClick={() => handleRemoveCustomHashtag(tag)}
+                                className="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-red-500/20 hover:text-red-400 transition-colors"
+                                aria-label="削除"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <line x1="18" y1="6" x2="6" y2="18" />
+                                  <line x1="6" y1="6" x2="18" y2="18" />
+                                </svg>
+                              </button>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+
                     <p className="mt-3 text-xs text-gray-400">
-                      {selectedHashtags.size} / {hashtags.length} 個選択中
+                      {selectedHashtags.size} / {hashtags.length + customHashtags.length} 個選択中
                     </p>
                   </div>
 
