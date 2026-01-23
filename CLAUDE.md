@@ -10,15 +10,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Tech Stack
 
-- **Framework**: Next.js 15.5.4 (App Router, React 19.1.0)
+- **Framework**: Next.js 15.5.9 (App Router, React 19.1.0)
 - **Language**: TypeScript 5.x
 - **Styling**: Tailwind CSS 3.4.17
 - **Build Tool**: Turbopack (`--turbopack` flag in scripts)
 - **Deployment**: Vercel
-- **Future Integrations**:
-  - OpenAI API (GPT-4) for content generation
-  - @mozilla/readability + jsdom for article extraction
-  - @vercel/og or Canvas API for image generation
+- **AI/Content**: OpenAI API (GPT-4) for caption/hashtag generation
+- **Scraping**: @mozilla/readability + jsdom for article extraction
+- **Image Generation**: @vercel/og (Satori-based OG image generation)
+- **Analytics**: Google Analytics 4 via @next/third-parties
+- **Utilities**: clsx + tailwind-merge, js-cookie (rate limiting)
 
 ## Development Commands
 
@@ -66,10 +67,43 @@ npm run lint
 
 ```
 src/
-└── app/                    # Next.js App Router
-    ├── layout.tsx         # Root layout (Geist fonts configured)
-    ├── page.tsx           # Home page
-    └── globals.css        # Global styles
+├── app/                          # Next.js App Router
+│   ├── layout.tsx               # Root layout (Geist + Noto Sans JP)
+│   ├── page.tsx                 # Landing page
+│   ├── error.tsx                # Global error boundary
+│   ├── globals.css              # Global styles
+│   ├── generate/
+│   │   ├── page.tsx             # URL input page
+│   │   ├── manual/page.tsx      # Manual text input page
+│   │   └── result/page.tsx      # Generation result page
+│   ├── contact/page.tsx         # Contact page
+│   ├── privacy/page.tsx         # Privacy policy page
+│   └── api/
+│       ├── extract/route.ts     # Article extraction API
+│       ├── generate/route.ts    # OpenAI content generation API
+│       └── og/route.tsx         # OG image generation API
+├── components/
+│   ├── ui/                      # Reusable UI components
+│   │   ├── button.tsx
+│   │   ├── input.tsx
+│   │   ├── textarea.tsx
+│   │   ├── card.tsx
+│   │   ├── spinner.tsx
+│   │   ├── toast.tsx
+│   │   └── modal.tsx
+│   ├── layout/
+│   │   ├── header.tsx
+│   │   └── footer.tsx
+│   ├── providers/providers.tsx  # Client providers wrapper
+│   └── usage-indicator.tsx      # Rate limit usage display
+└── lib/
+    ├── utils.ts                 # cn() utility (clsx + tailwind-merge)
+    ├── openai.ts                # OpenAI API client
+    ├── api-client.ts            # Frontend API utilities
+    ├── validation.ts            # Input validation
+    ├── error-messages.ts        # Error message constants
+    ├── rate-limiter.ts          # Cookie-based rate limiting
+    └── analytics.ts             # GA4 event tracking
 ```
 
 ## Key Technical Details
@@ -78,8 +112,8 @@ src/
 - `@/*` maps to `./src/*` (configured in tsconfig.json)
 
 ### Fonts
-- **Default**: Geist Sans and Geist Mono (Google Fonts)
-- **Japanese support required**: Noto Sans JP (per requirements - not yet implemented)
+- **Default**: Geist Sans and Geist Mono (via next/font)
+- **Japanese**: Noto Sans JP (via next/font/google)
 
 ### TypeScript Configuration
 - Target: ES2017
@@ -114,40 +148,52 @@ Error: #EF4444 (Red)
 ### Design Inspiration
 Modern & chic styling inspired by Notion, Linear, and Vercel - generous whitespace, calm color scheme.
 
-## Core Features to Implement
+## Implemented Features
 
-1. **URL Input & Content Extraction**
-   - Use @mozilla/readability + jsdom for article scraping
-   - Fallback to manual text input (max 10,000 chars) on failure
+1. **URL Input & Content Extraction** (`/generate`)
+   - @mozilla/readability + jsdom for article scraping
+   - Fallback to manual text input (`/generate/manual`, max 10,000 chars)
 
-2. **AI-Powered Content Generation** (via OpenAI API)
+2. **AI-Powered Content Generation** (`/api/generate`)
    - Caption: 100-150 chars, business tone, no emojis
    - Hashtags: 10 tags (8 content-related + 2 generic), Japanese-focused
    - Model: GPT-4, temperature: 0.7, max_tokens: 500
 
-3. **Image Generation**
+3. **Image Generation** (`/api/og`)
    - Size: 1080×1080px (square)
-   - Tech: @vercel/og or Canvas API
+   - Tech: @vercel/og (Satori)
    - Font: Noto Sans JP
    - Background: Random from 3 preset colors
    - Text color: Auto-select based on background (white/black)
 
-4. **Post Assist Flow**
-   - Auto-download generated image
+4. **Post Assist Flow** (`/generate/result`)
+   - Image download button
    - Copy caption + hashtags to clipboard
    - Open Instagram (app on mobile via `instagram://camera`, web on desktop)
 
-## API Endpoints (Planned)
+## API Endpoints
 
+### POST /api/extract
+Extract article content from URL.
 ```
-POST /api/generate
-Request: { url: string } | { content: string }
-Response: {
-  caption: string,
-  hashtags: string[],
-  imageUrl: string
-}
-Error: { error: string, code: number }
+Request: { url: string }
+Response: { title: string, content: string, excerpt: string }
+Error: { error: string }
+```
+
+### POST /api/generate
+Generate caption and hashtags using OpenAI.
+```
+Request: { content: string, title?: string }
+Response: { caption: string, hashtags: string[] }
+Error: { error: string }
+```
+
+### GET /api/og
+Generate OG image with title text.
+```
+Query: ?title=string&bg=string
+Response: PNG image (1080×1080)
 ```
 
 ## Rate Limiting
@@ -172,9 +218,16 @@ Error: { error: string, code: number }
 
 - **Do NOT use** Zustand, database, or authentication in MVP
 - Minimize Framer Motion usage (keep animations minimal)
-- Google Analytics 4 will be added in Week 4
+- Google Analytics 4 is integrated via `@next/third-parties` (see `lib/analytics.ts`)
 - Mobile-first responsive design (1-column layout on mobile)
 - Minimum touch target: 44×44px
+
+### Environment Variables
+```
+OPENAI_API_KEY=sk-...              # Required: OpenAI API key
+NEXT_PUBLIC_GA_ID=G-...            # Optional: Google Analytics 4 ID
+NEXT_PUBLIC_APP_URL=https://...    # Optional: App URL for OG images
+```
 
 ## Testing & Deployment
 
@@ -185,6 +238,8 @@ Error: { error: string, code: number }
 
 ## Next.js 15 App Router Best Practices
 
+> Based on Next.js 15.x official documentation (Context7 MCP)
+
 ### Server Components vs Client Components
 
 **Default to Server Components** - All components in the `app` directory are Server Components by default. Only add `'use client'` when you need:
@@ -192,31 +247,68 @@ Error: { error: string, code: number }
 - Browser APIs (localStorage, window, etc.)
 - React hooks (useState, useEffect, useContext, etc.)
 
-**Composition Pattern** - Keep Client Component boundaries minimal to optimize bundle size:
+**Client Component Pattern** - Use `'use client'` directive at the top of file:
 ```tsx
-// ✅ Good: Server Component wraps Client Component
-// app/page.tsx (Server Component)
-export default async function Page() {
-  const data = await fetch('https://api.example.com/data')
-  const posts = await data.json()
-  return <InteractiveList posts={posts} />  // Pass data as props
-}
-
-// app/interactive-list.tsx (Client Component)
 'use client'
-export default function InteractiveList({ posts }) {
-  const [selected, setSelected] = useState(null)
-  // ... interactive logic
+
+import { useState } from 'react'
+
+export default function Counter() {
+  const [count, setCount] = useState(0)
+
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={() => setCount(count + 1)}>Increment</button>
+    </div>
+  )
 }
 ```
 
-### Data Fetching Strategies
-
-**Server Components** - Fetch data directly in async components:
+**Safe Browser API Access** - Use `useEffect` to access browser APIs:
 ```tsx
-// app/page.tsx
+'use client'
+
+import { useEffect } from 'react'
+
+export default function ClientComponent() {
+  useEffect(() => {
+    // Safe: runs only in browser after hydration
+    console.log(window.innerHeight)
+  }, [])
+
+  return <div>...</div>
+}
+```
+
+### Data Fetching in Server Components
+
+**Fetch with caching options**:
+```tsx
 export default async function Page() {
-  // Parallel fetching
+  // Static (cached until manual invalidation) - Default in Next.js 15
+  const staticData = await fetch('https://...', { cache: 'force-cache' })
+
+  // Dynamic (refetch on every request)
+  const dynamicData = await fetch('https://...', { cache: 'no-store' })
+
+  // Revalidate (cached with time-based invalidation)
+  const revalidatedData = await fetch('https://...', {
+    next: { revalidate: 60 },  // 60 seconds
+  })
+
+  // Tagged for on-demand revalidation
+  const taggedData = await fetch('https://...', {
+    next: { tags: ['posts'] },
+  })
+
+  return <div>...</div>
+}
+```
+
+**Parallel fetching** to avoid waterfalls:
+```tsx
+export default async function Page() {
   const [posts, users] = await Promise.all([
     fetch('https://api.example.com/posts'),
     fetch('https://api.example.com/users')
@@ -226,143 +318,209 @@ export default async function Page() {
 }
 ```
 
-**Caching Options** with `fetch`:
+### Server Actions (Mutations)
+
+**Define Server Action** with `'use server'` directive:
 ```tsx
-// Static (cached until manual invalidation) - Default
-fetch('https://...', { cache: 'force-cache' })
+// app/actions.ts
+'use server'
 
-// Dynamic (refetch on every request)
-fetch('https://...', { cache: 'no-store' })
+import { revalidatePath, revalidateTag } from 'next/cache'
 
-// Revalidate (cached with time-based invalidation)
-fetch('https://...', { next: { revalidate: 60 } })  // 60 seconds
+export async function createPost(formData: FormData) {
+  const title = formData.get('title')
+  // ... save to database
 
-// Tagged for on-demand revalidation
-fetch('https://...', { next: { tags: ['posts'] } })
+  // Revalidate cache after mutation
+  revalidatePath('/posts')      // Invalidate specific path
+  revalidateTag('posts')        // Invalidate all fetches tagged 'posts'
+}
 ```
 
-**For non-fetch requests** (ORMs, databases):
+**Use in form**:
 ```tsx
-import { unstable_cache } from 'next/cache'
+export default function Page() {
+  async function handleSubmit(formData: FormData) {
+    'use server'
 
-const getCachedData = unstable_cache(
-  async () => db.select().from(posts),
-  ['posts-key'],
-  { revalidate: 3600, tags: ['posts'] }
-)
+    const rawFormData = {
+      title: formData.get('title'),
+      content: formData.get('content'),
+    }
+
+    // mutate data, then revalidate cache
+  }
+
+  return <form action={handleSubmit}>...</form>
+}
 ```
 
-**Route Handlers** - Use for API endpoints, NOT for fetching from Server Components:
+### Route Handlers (API Routes)
+
+**Basic Route Handler**:
 ```tsx
-// ✅ Good: Client Component → Route Handler → Backend
 // app/api/generate/route.ts
 export async function POST(request: Request) {
   const body = await request.json()
-  // ... call OpenAI, database, etc.
+  // ... call OpenAI, external API, etc.
   return Response.json({ data })
 }
+```
 
-// ❌ Bad: Server Component → Route Handler (unnecessary extra request)
+**Cookie Management** in Route Handlers:
+```tsx
+import { cookies } from 'next/headers'
+
+export async function GET(request: Request) {
+  const cookieStore = await cookies()
+
+  const token = cookieStore.get('token')     // Read cookie
+  cookieStore.set('session', 'value')        // Set cookie
+  cookieStore.delete('old-cookie')           // Delete cookie
+
+  return new Response('Hello', {
+    status: 200,
+    headers: { 'Set-Cookie': `token=${token?.value}` },
+  })
+}
 ```
 
 ### Streaming and Loading States
 
-**Use Suspense boundaries** for progressive rendering:
+**Suspense for streaming**:
 ```tsx
 import { Suspense } from 'react'
+import BlogList from '@/components/BlogList'
+import BlogListSkeleton from '@/components/BlogListSkeleton'
 
-export default function Page() {
+export default function BlogPage() {
   return (
     <div>
-      <Suspense fallback={<Skeleton />}>
-        <SlowComponent />
-      </Suspense>
-      <Suspense fallback={<Skeleton />}>
-        <AnotherSlowComponent />
-      </Suspense>
+      {/* Sent to client immediately */}
+      <header>
+        <h1>Welcome to the Blog</h1>
+      </header>
+      <main>
+        {/* Streamed with fallback */}
+        <Suspense fallback={<BlogListSkeleton />}>
+          <BlogList />
+        </Suspense>
+      </main>
     </div>
   )
 }
 ```
 
-**loading.tsx** for route-level loading states:
-```
-app/
-├── dashboard/
-│   ├── loading.tsx    # Shown while page.tsx loads
-│   └── page.tsx
-```
-
-### Dynamic Routes and Static Generation
-
-**Dynamic segments**:
-```
-app/blog/[slug]/page.tsx  → /blog/hello-world
+**loading.tsx** for route-level loading:
+```tsx
+// app/generate/loading.tsx
+export default function Loading() {
+  return <LoadingSkeleton />
+}
 ```
 
-**Pre-render with `generateStaticParams`**:
+### Error Handling
+
+**Two categories of errors**:
+1. **Expected errors** - Return as values, use `useActionState`
+2. **Unexpected errors** - Use error boundaries (`error.tsx`)
+
+**error.tsx** for route-level error boundaries:
+```tsx
+'use client'  // Error components must be Client Components
+
+import { useEffect } from 'react'
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  useEffect(() => {
+    console.error(error)  // Log to error reporting service
+  }, [error])
+
+  return (
+    <div>
+      <h2>Something went wrong!</h2>
+      <button onClick={() => reset()}>Try again</button>
+    </div>
+  )
+}
+```
+
+### Dynamic Routes
+
+**Next.js 15: `params` is now a Promise**:
 ```tsx
 // app/blog/[slug]/page.tsx
 export async function generateStaticParams() {
-  const posts = await fetch('https://api.example.com/posts').then(res => res.json())
+  const posts = await fetch('https://api.example.com/posts', {
+    cache: 'force-cache',
+  }).then(res => res.json())
+
   return posts.map((post) => ({ slug: post.slug }))
 }
 
-export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ slug: string }>  // Promise in Next.js 15
+}) {
   const { slug } = await params
   const post = await fetch(`https://api.example.com/posts/${slug}`).then(res => res.json())
   return <article>{post.content}</article>
 }
 ```
 
-**Route Segment Config** for cache control:
+### Metadata
+
+**Static metadata**:
 ```tsx
-// Force dynamic rendering
-export const dynamic = 'force-dynamic'
+import type { Metadata } from 'next'
 
-// Revalidate interval
-export const revalidate = 3600  // 1 hour
-
-// Control static param behavior
-export const dynamicParams = true  // true = on-demand render, false = 404
-```
-
-### Cache Revalidation
-
-**Time-based**:
-```tsx
-export const revalidate = 60  // Revalidate page every 60 seconds
-```
-
-**On-demand** (in Server Actions or Route Handlers):
-```tsx
-'use server'
-import { revalidatePath, revalidateTag } from 'next/cache'
-
-export async function createPost(data: FormData) {
-  // ... save to database
-
-  revalidatePath('/posts')              // Invalidate specific path
-  revalidateTag('posts')                 // Invalidate all fetches tagged 'posts'
+export const metadata: Metadata = {
+  title: 'Post Craft',
+  description: 'ブログ記事からInstagram投稿素材を自動生成',
+  openGraph: {
+    title: 'Post Craft',
+    description: 'ブログ記事からInstagram投稿素材を自動生成',
+    url: 'https://post-craft.vercel.app',
+    siteName: 'Post Craft',
+    locale: 'ja_JP',
+    type: 'website',
+  },
 }
 ```
 
-### Layouts and Templates
-
-**Layouts persist** across navigations (state preserved):
+**Dynamic metadata** with `generateMetadata`:
 ```tsx
-// app/dashboard/layout.tsx
-export default function DashboardLayout({ children }) {
-  return (
-    <div>
-      <Sidebar />  {/* Persists, won't re-render */}
-      {children}
-    </div>
-  )
+import type { Metadata, ResolvingMetadata } from 'next'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}, parent: ResolvingMetadata): Promise<Metadata> {
+  const { id } = await params
+  const post = await fetch(`https://api.example.com/posts/${id}`).then(res => res.json())
+
+  return {
+    title: post.title,
+    description: post.excerpt,
+    openGraph: {
+      ...(await parent).openGraph,
+      images: post.image,
+    },
+  }
 }
 ```
 
-**Access request data** in Server Components:
+### Cookies and Headers in Server Components
+
+**Access request data** (Next.js 15: these are now async):
 ```tsx
 import { headers, cookies } from 'next/headers'
 
@@ -375,145 +533,26 @@ export default async function Page() {
 }
 ```
 
-### Performance Optimization
+### Route Segment Config
+
+```tsx
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
+// Revalidate interval
+export const revalidate = 3600  // 1 hour
+
+// Control static param behavior
+export const dynamicParams = true  // true = on-demand render, false = 404
+```
+
+### Performance Tips
 
 1. **Parallel data fetching** - Use `Promise.all()` to avoid waterfalls
-2. **Preloading** - Call data functions early to start fetching:
-   ```tsx
-   import { preload } from './data'
-
-   export default function Page() {
-     preload('blog-posts')  // Start fetching immediately
-     return <Posts />
-   }
-   ```
-3. **Image optimization** - Always use `next/image`:
-   ```tsx
-   import Image from 'next/image'
-
-   <Image
-     src="/image.jpg"
-     alt="Description"
-     width={1080}
-     height={1080}
-     priority  // For LCP images
-   />
-   ```
-4. **Font optimization** - Use `next/font` (already configured with Geist)
-5. **Minimize Client Components** - Push `'use client'` as deep as possible
-
-### Security Best Practices
-
-**Prevent data leakage** with taint APIs:
-```tsx
-import { experimental_taintObjectReference } from 'react'
-
-export async function getUser() {
-  const user = await db.query.users.findFirst()
-  experimental_taintObjectReference(
-    'Do not pass user object to client',
-    user
-  )
-  return user
-}
-```
-
-**Server Actions authorization**:
-```tsx
-'use server'
-import { auth } from '@/lib/auth'
-
-export async function deletePost(id: string) {
-  const session = await auth()
-  if (!session) throw new Error('Unauthorized')
-  // ... perform action
-}
-```
-
-### Error Handling
-
-**error.tsx** for route-level error boundaries:
-```tsx
-'use client'  // Error components must be Client Components
-
-export default function Error({
-  error,
-  reset,
-}: {
-  error: Error & { digest?: string }
-  reset: () => void
-}) {
-  return (
-    <div>
-      <h2>Something went wrong!</h2>
-      <button onClick={reset}>Try again</button>
-    </div>
-  )
-}
-```
-
-**Expected errors** in Server Components:
-```tsx
-export default async function Page() {
-  const res = await fetch('https://api.example.com/data')
-
-  if (!res.ok) {
-    return <div>Failed to load data</div>
-  }
-
-  const data = await res.json()
-  return <div>{data.message}</div>
-}
-```
-
-### Navigation
-
-**Use Link for client-side navigation**:
-```tsx
-import Link from 'next/link'
-
-<Link href="/dashboard" prefetch={false}>  {/* Disable prefetch if needed */}
-  Dashboard
-</Link>
-```
-
-**Programmatic navigation** in Client Components:
-```tsx
-'use client'
-import { useRouter } from 'next/navigation'
-
-export default function Component() {
-  const router = useRouter()
-
-  const handleClick = () => {
-    router.push('/dashboard')
-    router.refresh()  // Re-fetch Server Component data
-  }
-}
-```
-
-### Metadata
-
-**Static metadata**:
-```tsx
-import type { Metadata } from 'next'
-
-export const metadata: Metadata = {
-  title: 'Instagram Post Generator',
-  description: 'Generate Instagram posts from blog URLs',
-}
-```
-
-**Dynamic metadata**:
-```tsx
-export async function generateMetadata({ params }): Promise<Metadata> {
-  const post = await fetch(`https://api.example.com/posts/${params.id}`)
-  return {
-    title: post.title,
-    description: post.excerpt,
-  }
-}
-```
+2. **Minimize Client Components** - Push `'use client'` as deep as possible
+3. **Image optimization** - Always use `next/image` with `priority` for LCP images
+4. **Font optimization** - Use `next/font` (Geist + Noto Sans JP configured)
+5. **Streaming** - Use Suspense boundaries for progressive rendering
 
 ## Future Phases
 
