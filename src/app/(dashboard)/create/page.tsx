@@ -126,7 +126,8 @@ export default function CreatePage() {
       })
 
       if (!captionResponse.ok) {
-        throw new Error('キャプション生成に失敗しました')
+        const errorData = await captionResponse.json().catch(() => ({}))
+        throw new Error(errorData.error || 'キャプション生成に失敗しました')
       }
 
       const captionData = await captionResponse.json()

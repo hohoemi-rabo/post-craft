@@ -41,7 +41,9 @@ export function StepContentInput({
 
   const typeConfig = POST_TYPES[postType]
   const minLength = 20
-  const isValid = text.length >= minLength || url.length > 0
+  // Text must be at least minLength characters
+  // URL alone is not enough - user must extract content first
+  const isValid = text.length >= minLength
 
   const handleExtractUrl = async () => {
     if (!url) return
@@ -136,6 +138,11 @@ export function StepContentInput({
           </button>
         </div>
         {error && <p className="text-xs text-red-500">{error}</p>}
+        {url && text.length < minLength && !isExtracting && (
+          <p className="text-xs text-blue-400">
+            URLを入力したら「抽出」ボタンを押してください
+          </p>
+        )}
       </div>
 
       {/* Navigation */}
