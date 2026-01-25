@@ -5,8 +5,7 @@ import Header from '@/components/layout/header'
 import Footer from '@/components/layout/footer'
 import Button from '@/components/ui/button'
 
-const GITHUB_REPO = 'https://github.com/hohoemi-rabo/post-craft'
-const GITHUB_ISSUES = `${GITHUB_REPO}/issues`
+const INSTAGRAM_URL = 'https://www.instagram.com/hohoemi.rabo/'
 
 export default function ContactPage() {
   return (
@@ -54,10 +53,10 @@ export default function ContactPage() {
 
           {/* メインコンテンツ */}
           <div className="space-y-6">
-            {/* GitHub Issuesについて */}
+            {/* Instagram DMについて */}
             <div className="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md p-8 shadow-lg">
               <div className="flex items-start space-x-4">
-                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg">
+                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 shadow-lg">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -70,23 +69,25 @@ export default function ContactPage() {
                     strokeLinejoin="round"
                     className="text-white"
                   >
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
                   </svg>
                 </div>
                 <div className="flex-1">
                   <h2 className="text-xl font-semibold text-white">
-                    GitHub Issuesで受け付けています
+                    Instagram DMで受け付けています
                   </h2>
                   <p className="mt-2 text-sm text-gray-300 leading-relaxed">
-                    当サービスでは、GitHub Issuesを通じてフィードバックを受け付けています。
-                    バグ報告、機能リクエスト、使い方の質問など、お気軽にお寄せください。
+                    当サービスでは、Instagram DMを通じてお問い合わせを受け付けています。
+                    バグ報告、機能リクエスト、使い方の質問など、お気軽にメッセージをお送りください。
                   </p>
                 </div>
               </div>
 
               <div className="mt-6">
                 <a
-                  href={GITHUB_ISSUES}
+                  href={INSTAGRAM_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-block w-full sm:w-auto"
@@ -97,12 +98,18 @@ export default function ContactPage() {
                       width="16"
                       height="16"
                       viewBox="0 0 24 24"
-                      fill="currentColor"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                       className="mr-2"
                     >
-                      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
                     </svg>
-                    GitHub Issuesを開く
+                    Instagramを開く
                   </Button>
                 </a>
               </div>
@@ -110,16 +117,16 @@ export default function ContactPage() {
 
             {/* 利用方法 */}
             <div className="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md p-8 shadow-lg">
-              <h3 className="text-lg font-semibold text-white">利用方法</h3>
+              <h3 className="text-lg font-semibold text-white">お問い合わせ方法</h3>
               <ol className="mt-4 space-y-4 text-sm text-gray-300">
                 <li className="flex items-start space-x-3">
                   <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-xs font-bold text-white">
                     1
                   </span>
                   <div>
-                    <p className="font-medium text-white">GitHub Issuesページを開く</p>
+                    <p className="font-medium text-white">Instagramを開く</p>
                     <p className="mt-1 text-gray-400">
-                      上のボタンから GitHub Issuesページに移動します
+                      上のボタンから「ほほ笑みラボ」のInstagramページに移動します
                     </p>
                   </div>
                 </li>
@@ -128,9 +135,9 @@ export default function ContactPage() {
                     2
                   </span>
                   <div>
-                    <p className="font-medium text-white">既存のIssueを確認（任意）</p>
+                    <p className="font-medium text-white">「メッセージ」をタップ</p>
                     <p className="mt-1 text-gray-400">
-                      同じ内容のIssueがないか検索してみてください
+                      プロフィールページの「メッセージ」ボタンからDMを送信できます
                     </p>
                   </div>
                 </li>
@@ -139,20 +146,9 @@ export default function ContactPage() {
                     3
                   </span>
                   <div>
-                    <p className="font-medium text-white">「New issue」をクリック</p>
-                    <p className="mt-1 text-gray-400">
-                      新しいIssueを作成します（GitHubアカウントが必要です）
-                    </p>
-                  </div>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-yellow-400 to-green-400 text-xs font-bold text-white">
-                    4
-                  </span>
-                  <div>
                     <p className="font-medium text-white">内容を記入して送信</p>
                     <p className="mt-1 text-gray-400">
-                      タイトルと詳細を記入し、「Submit new issue」をクリック
+                      お問い合わせ内容を記入してメッセージを送信してください
                     </p>
                   </div>
                 </li>
@@ -202,8 +198,89 @@ export default function ContactPage() {
               </div>
             </div>
 
+            {/* 運営者情報 */}
+            <div className="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md p-8 shadow-lg">
+              <h3 className="text-lg font-semibold text-white">ほほ笑みラボについて</h3>
+              <p className="mt-2 text-sm text-gray-300">
+                パソコン・スマホ・AI活用サポートを行っています。
+              </p>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <a
+                  href="https://www.hohoemi-rabo.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center rounded-lg border border-white/20 bg-white/5 px-4 py-2 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="mr-2"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="2" y1="12" x2="22" y2="12" />
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                  </svg>
+                  ホームページ
+                </a>
+                <a
+                  href="https://www.masayuki-kiwami.com/works"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center rounded-lg border border-white/20 bg-white/5 px-4 py-2 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="mr-2"
+                  >
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                  </svg>
+                  ポートフォリオ
+                </a>
+                <a
+                  href="https://www.instagram.com/hohoemi.rabo/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center rounded-lg border border-white/20 bg-white/5 px-4 py-2 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="mr-2"
+                  >
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                  </svg>
+                  Instagram
+                </a>
+              </div>
+            </div>
+
             {/* 注意事項 */}
-            <div className="rounded-2xl border border-yellow-500/30 bg-yellow-500/10 backdrop-blur-md p-6 shadow-lg">
+            <div className="rounded-2xl border border-blue-500/30 bg-blue-500/10 backdrop-blur-md p-6 shadow-lg">
               <div className="flex items-start space-x-3">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -215,17 +292,16 @@ export default function ContactPage() {
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="mt-0.5 flex-shrink-0 text-yellow-400"
+                  className="mt-0.5 flex-shrink-0 text-blue-400"
                 >
                   <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="8" x2="12" y2="12" />
-                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
                 </svg>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-yellow-300">注意事項</h3>
+                  <h3 className="font-semibold text-blue-300">ご案内</h3>
                   <ul className="mt-2 space-y-1 text-sm text-gray-300">
-                    <li>• GitHub Issuesは公開されます。個人情報は記入しないでください</li>
-                    <li>• GitHubアカウント（無料）が必要です</li>
+                    <li>• Instagramアカウントが必要です</li>
                     <li>• 回答までにお時間をいただく場合があります</li>
                     <li>• すべてのリクエストに対応できるとは限りません</li>
                   </ul>

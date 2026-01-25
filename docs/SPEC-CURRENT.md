@@ -1,15 +1,19 @@
 # Post Craft 現状仕様書
 
 > 作成日: 2026-01-23
-> フェーズ: MVP (Phase 1) 完了 → Phase 2 準備中
+> 最終更新: 2026-01-25
+> フェーズ: Phase 2 完了
 
 ## 1. プロジェクト概要
 
-**Post Craft** は、ブログ記事URLからInstagram投稿素材（キャプション、ハッシュタグ、画像）を自動生成するWebサービスです。
+**Post Craft** は、メモ書きやブログ記事URLからInstagram投稿素材（キャプション、ハッシュタグ、画像）を自動生成するWebサービスです。
 
 ### ターゲットユーザー
-- ブロガー、ライター
+- パソコン・スマホ・AI活用に関する情報発信者
 - SNSプロモーションを効率化したい個人・小規模事業者
+
+### 本番URL
+https://post-craft-rho.vercel.app/
 
 ### 技術スタック
 | カテゴリ | 技術 | バージョン |
@@ -18,46 +22,64 @@
 | Language | TypeScript | 5.x |
 | UI | React | 19.1.0 |
 | Styling | Tailwind CSS | 3.4.17 |
-| AI | OpenAI API (GPT-4o-mini) | 最新 |
+| Database | Supabase (PostgreSQL) | - |
+| Auth | NextAuth.js + Google OAuth | 5.x |
+| AI (文章) | Google Gemini Flash | gemini-2.0-flash |
+| AI (画像) | Google Gemini Imagen | imagen-3.0-generate-002 |
 | Scraping | @mozilla/readability + jsdom | 0.6.0 / 27.0.0 |
-| Image Gen | @vercel/og (Satori) | 0.8.5 |
 | Analytics | Google Analytics 4 | @next/third-parties |
-| Cookie | js-cookie | 3.0.5 |
-| Build | Turbopack | - |
+| Hosting | Vercel | - |
 
 ---
 
-## 2. Phase 1 (MVP) 実装状況
+## 2. Phase 2 実装状況
 
 ### 2.1 機能一覧
 
 | # | 機能 | 状態 | 実装ファイル |
 |---|------|------|-------------|
-| 1 | URL入力・記事抽出 | ✅ 完了 | `app/page.tsx`, `api/extract/route.ts` |
-| 2 | 手動テキスト入力 | ✅ 完了 | `app/generate/manual/page.tsx` |
-| 3 | AIキャプション生成 | ✅ 完了 | `api/generate/route.ts`, `lib/openai.ts` |
-| 4 | AIハッシュタグ生成 | ✅ 完了 | 同上 |
-| 5 | カスタムハッシュタグ追加 | ✅ 完了 | `app/generate/result/page.tsx` |
-| 6 | 画像生成 (1080x1080) | ✅ 完了 | `api/og/route.tsx` |
-| 7 | 背景色選択 (12色) | ✅ 完了 | 同上 |
-| 8 | 画像ダウンロード | ✅ 完了 | `app/generate/result/page.tsx` |
-| 9 | クリップボードコピー | ✅ 完了 | 同上 |
-| 10 | Instagram起動 | ✅ 完了 | 同上 |
-| 11 | Cookie回数制限 (5回/日) | ✅ 完了 | `lib/rate-limiter.ts` |
-| 12 | エラーハンドリング | ✅ 完了 | `lib/error-messages.ts`, `app/error.tsx` |
-| 13 | レスポンシブデザイン | ✅ 完了 | 全ページ |
-| 14 | GA4アナリティクス | ✅ 完了 | `lib/analytics.ts` |
-| 15 | プライバシーポリシー | ✅ 完了 | `app/privacy/page.tsx` |
-| 16 | お問い合わせ | ✅ 完了 | `app/contact/page.tsx` |
+| 1 | Google OAuth認証 | ✅ 完了 | `lib/auth.ts`, `api/auth/[...nextauth]` |
+| 2 | ホワイトリスト認証 | ✅ 完了 | `ALLOWED_EMAILS` 環境変数 |
+| 3 | ダッシュボード | ✅ 完了 | `app/(dashboard)/dashboard/` |
+| 4 | 4種類の投稿タイプ | ✅ 完了 | `lib/post-types.ts`, `lib/templates.ts` |
+| 5 | AIキャプション生成 (Gemini) | ✅ 完了 | `api/generate/caption/route.ts` |
+| 6 | AIハッシュタグ生成 | ✅ 完了 | 同上 |
+| 7 | カスタムハッシュタグ追加/削除 | ✅ 完了 | `components/create/step-result.tsx` |
+| 8 | AI画像生成 (Gemini Imagen) | ✅ 完了 | `api/generate/image/route.ts` |
+| 9 | 4種類の画像スタイル | ✅ 完了 | `lib/image-styles.ts` |
+| 10 | キャラクター登録・管理 | ✅ 完了 | `app/(dashboard)/characters/` |
+| 11 | キャラクター特徴抽出 | ✅ 完了 | `api/characters/analyze/route.ts` |
+| 12 | 投稿履歴保存 | ✅ 完了 | `api/posts/route.ts`, Supabase |
+| 13 | 履歴一覧・詳細表示 | ✅ 完了 | `app/(dashboard)/history/` |
+| 14 | 履歴削除 | ✅ 完了 | `api/posts/[id]/route.ts` |
+| 15 | URL記事抽出 | ✅ 完了 | `api/extract/route.ts` |
+| 16 | 手動テキスト入力 | ✅ 完了 | `components/create/step-content-input.tsx` |
+| 17 | クリップボードコピー | ✅ 完了 | `components/create/step-result.tsx` |
+| 18 | 画像ダウンロード | ✅ 完了 | 同上 |
+| 19 | Instagram起動 | ✅ 完了 | 同上 |
+| 20 | レスポンシブデザイン | ✅ 完了 | 全ページ |
+| 21 | GA4アナリティクス | ✅ 完了 | `lib/analytics.ts` |
+| 22 | プライバシーポリシー | ✅ 完了 | `app/privacy/page.tsx` |
+| 23 | お問い合わせ (Instagram DM) | ✅ 完了 | `app/contact/page.tsx` |
+| 24 | ランディングページ | ✅ 完了 | `app/page.tsx` |
 
-### 2.2 未完了タスク (Phase 1)
+### 2.2 投稿タイプ
 
-| タスク | 状態 | 備考 |
-|--------|------|------|
-| Vercelデプロイ | ⏳ 未実施 | 環境変数設定必要 |
-| 本番GA4設定 | ⏳ 未実施 | GA ID取得必要 |
-| ブラウザテスト | ⏳ 未実施 | - |
-| ベータテスト | ⏳ 未実施 | - |
+| ID | タイプ名 | ターゲット | 必須フィールド |
+|----|---------|-----------|---------------|
+| `solution` | 解決タイプ | 全般 | question, step1-3 |
+| `promotion` | 宣伝タイプ | ビジネス層 | headline, pain_point1-3 |
+| `tips` | Tipsタイプ | ビジネス層 | title, benefit1-3 |
+| `showcase` | 実績タイプ | ビジネス層 | deliverable_type, challenge, solution, result |
+
+### 2.3 画像スタイル
+
+| ID | スタイル名 | キャラクター |
+|----|-----------|-------------|
+| `manga_male` | マンガ風（男性） | あり |
+| `manga_female` | マンガ風（女性） | あり |
+| `pixel_art` | ピクセルアート | あり |
+| `illustration` | イラスト（人物なし） | なし |
 
 ---
 
@@ -68,58 +90,88 @@
 ```
 src/
 ├── app/
-│   ├── layout.tsx              # Root Layout (フォント, GA4)
-│   ├── page.tsx                # トップページ (URL入力)
+│   ├── layout.tsx              # Root Layout (フォント, GA4, Providers)
+│   ├── page.tsx                # ランディングページ
 │   ├── error.tsx               # グローバルエラー境界
 │   ├── globals.css             # グローバルスタイル
 │   │
-│   ├── generate/
-│   │   ├── page.tsx            # 記事抽出中間ページ
-│   │   ├── manual/
-│   │   │   └── page.tsx        # 手動入力ページ
-│   │   └── result/
-│   │       └── page.tsx        # 生成結果ページ (847行)
+│   ├── (auth)/
+│   │   ├── login/page.tsx      # ログインページ
+│   │   └── unauthorized/page.tsx # 未認可ページ
+│   │
+│   ├── (dashboard)/
+│   │   ├── layout.tsx          # ダッシュボードレイアウト (認証必須)
+│   │   ├── dashboard/page.tsx  # ダッシュボードホーム
+│   │   ├── create/page.tsx     # 投稿作成 (ステップUI)
+│   │   ├── history/
+│   │   │   ├── page.tsx        # 履歴一覧
+│   │   │   └── [id]/page.tsx   # 履歴詳細
+│   │   ├── characters/page.tsx # キャラクター管理
+│   │   └── settings/page.tsx   # 設定
 │   │
 │   ├── api/
-│   │   ├── extract/
-│   │   │   └── route.ts        # 記事抽出API
+│   │   ├── auth/[...nextauth]/ # NextAuth.js
+│   │   ├── characters/
+│   │   │   ├── route.ts        # GET (list), POST (create)
+│   │   │   ├── [id]/route.ts   # PUT, DELETE
+│   │   │   └── analyze/route.ts # POST (特徴抽出)
+│   │   ├── extract/route.ts    # POST (URL記事抽出)
 │   │   ├── generate/
-│   │   │   └── route.ts        # AI生成API
-│   │   └── og/
-│   │       └── route.tsx       # 画像生成API (Edge)
+│   │   │   ├── caption/route.ts # POST (キャプション生成)
+│   │   │   ├── image/route.ts   # POST (画像生成)
+│   │   │   └── scene/route.ts   # POST (シーン候補生成)
+│   │   └── posts/
+│   │       ├── route.ts        # GET (list), POST (create)
+│   │       └── [id]/route.ts   # GET, DELETE
 │   │
-│   ├── privacy/
-│   │   └── page.tsx            # プライバシーポリシー
-│   └── contact/
-│       └── page.tsx            # お問い合わせ
+│   ├── contact/page.tsx        # お問い合わせ
+│   └── privacy/page.tsx        # プライバシーポリシー
 │
 ├── components/
-│   ├── ui/
-│   │   ├── button.tsx          # ボタン (variant: primary/secondary/ghost)
-│   │   ├── input.tsx           # 入力フィールド
-│   │   ├── textarea.tsx        # テキストエリア (文字数カウント付き)
-│   │   ├── card.tsx            # カード
-│   │   ├── spinner.tsx         # ローディング
-│   │   ├── toast.tsx           # トースト通知
-│   │   └── modal.tsx           # モーダル
+│   ├── ui/                     # 汎用UIコンポーネント
+│   │   ├── button.tsx
+│   │   ├── input.tsx
+│   │   ├── textarea.tsx
+│   │   ├── card.tsx
+│   │   ├── spinner.tsx
+│   │   ├── toast.tsx
+│   │   └── modal.tsx
 │   │
 │   ├── layout/
-│   │   ├── header.tsx          # ヘッダー
-│   │   └── footer.tsx          # フッター
+│   │   ├── header.tsx
+│   │   └── footer.tsx
 │   │
-│   ├── providers/
-│   │   └── providers.tsx       # Context Providers
+│   ├── dashboard/
+│   │   └── sidebar.tsx
 │   │
-│   └── usage-indicator.tsx     # 残り回数表示
+│   ├── create/                 # 投稿作成ステップ
+│   │   ├── step-post-type.tsx
+│   │   ├── step-content-input.tsx
+│   │   ├── step-image-settings.tsx
+│   │   └── step-result.tsx
+│   │
+│   ├── characters/
+│   │   └── character-form.tsx
+│   │
+│   └── providers/
+│       └── providers.tsx       # SessionProvider, ToastProvider
 │
-└── lib/
-    ├── utils.ts                # cn() ユーティリティ
-    ├── openai.ts               # OpenAI クライアント
-    ├── api-client.ts           # fetch ラッパー (リトライ付き)
-    ├── validation.ts           # URL バリデーション
-    ├── error-messages.ts       # エラーメッセージ定数
-    ├── rate-limiter.ts         # Cookie回数制限
-    └── analytics.ts            # GA4 イベント関数
+├── lib/
+│   ├── utils.ts                # cn() ユーティリティ
+│   ├── auth.ts                 # NextAuth設定
+│   ├── supabase.ts             # Supabaseクライアント
+│   ├── gemini.ts               # Gemini AIクライアント
+│   ├── post-types.ts           # 投稿タイプ定義
+│   ├── templates.ts            # テンプレート定義
+│   ├── image-styles.ts         # 画像スタイル定義
+│   ├── image-prompt.ts         # 画像プロンプト生成
+│   ├── api-client.ts           # fetchラッパー (リトライ付き)
+│   ├── validation.ts           # URLバリデーション
+│   ├── error-messages.ts       # エラーメッセージ
+│   └── analytics.ts            # GA4イベント
+│
+└── types/
+    └── post.ts                 # 型定義
 ```
 
 ### 3.2 データフロー
@@ -127,155 +179,237 @@ src/
 ```
 [ユーザー]
     │
-    ▼ URL入力
-[トップページ] ─────────────────────────────────────┐
-    │                                               │
-    ▼ POST /api/extract                             │ 抽出失敗
-[記事抽出API]                                       │
-    │ ├── @mozilla/readability                      │
-    │ └── jsdom                                     │
-    │                                               ▼
-    ▼ sessionStorage                        [手動入力ページ]
-[生成結果ページ]                                    │
-    │                                               │
-    ├─────────────────────────────────────────────┘
+    ▼ Google OAuth ログイン
+[ログインページ] ──────────────────────────────────────┐
+    │                                                  │
+    ▼ 認証成功                                         │ 未認可
+[ダッシュボード]                                       ▼
+    │                                           [未認可ページ]
+    ├── 投稿作成
+    │     │
+    │     ▼ Step 1: 投稿タイプ選択
+    │   [PostTypeSelector]
+    │     │
+    │     ▼ Step 2: 内容入力 (メモ or URL抽出)
+    │   [ContentInput] ──── POST /api/extract (URL時)
+    │     │
+    │     ▼ Step 3: 画像設定
+    │   [ImageSettings]
+    │     │
+    │     ▼ POST /api/generate/caption
+    │   [Gemini Flash] → キャプション + ハッシュタグ
+    │     │
+    │     ▼ POST /api/generate/image
+    │   [Gemini Imagen] → 画像生成
+    │     │
+    │     ▼ POST /api/posts (保存)
+    │   [Supabase] → posts, post_images テーブル
+    │     │
+    │     ▼ Step 4: 結果表示
+    │   [ResultPage]
+    │     ├── キャプション編集
+    │     ├── ハッシュタグ選択/追加/削除
+    │     ├── 画像ダウンロード
+    │     ├── テキストコピー
+    │     └── Instagram起動
     │
-    ▼ POST /api/generate
-[AI生成API]
-    │ ├── OpenAI GPT-4o-mini
-    │ └── システムプロンプト
+    ├── 履歴一覧 ──── GET /api/posts
+    │     │
+    │     ▼ 詳細表示 ──── GET /api/posts/[id]
     │
-    ▼ キャプション + ハッシュタグ
-[生成結果ページ]
-    │
-    ├── キャプション編集
-    ├── ハッシュタグ選択/追加
-    │
-    ▼ GET /api/og?title=...&bg=...
-[画像生成API]
-    │ └── @vercel/og (Edge Runtime)
-    │
-    ▼ 1080x1080 PNG
-[生成結果ページ]
-    │
-    ├── 画像ダウンロード
-    ├── テキストコピー
-    └── Instagram起動
+    └── キャラクター管理
+          │
+          ├── 一覧取得 ──── GET /api/characters
+          ├── 登録 ──── POST /api/characters
+          │     └── 特徴抽出 ──── POST /api/characters/analyze
+          ├── 更新 ──── PUT /api/characters/[id]
+          └── 削除 ──── DELETE /api/characters/[id]
 ```
 
 ---
 
-## 4. APIエンドポイント仕様
+## 4. データベース設計 (Supabase)
 
-### 4.1 POST /api/extract
+### 4.1 テーブル構造
 
-記事URLから本文を抽出する。
+#### characters
+| カラム | 型 | 説明 |
+|--------|-----|------|
+| id | uuid | 主キー |
+| user_id | text | ユーザーID |
+| name | text | キャラクター名 |
+| image_url | text | 画像URL (Storage) |
+| description | text | 特徴説明 |
+| created_at | timestamp | 作成日時 |
+| updated_at | timestamp | 更新日時 |
 
+#### posts
+| カラム | 型 | 説明 |
+|--------|-----|------|
+| id | uuid | 主キー |
+| user_id | text | ユーザーID |
+| post_type | text | 投稿タイプ |
+| input_text | text | 入力テキスト |
+| caption | text | 生成キャプション |
+| hashtags | text[] | ハッシュタグ配列 |
+| created_at | timestamp | 作成日時 |
+
+#### post_images
+| カラム | 型 | 説明 |
+|--------|-----|------|
+| id | uuid | 主キー |
+| post_id | uuid | 投稿ID (FK) |
+| image_url | text | 画像URL |
+| style | text | 画像スタイル |
+| aspect_ratio | text | アスペクト比 |
+| created_at | timestamp | 作成日時 |
+
+### 4.2 Storage バケット
+
+| バケット名 | 用途 | 公開 |
+|-----------|------|------|
+| characters | キャラクター画像 | Yes |
+| post-images | 生成画像 | Yes |
+
+### 4.3 Row Level Security
+
+全テーブルでRLS有効化。ユーザーは自身のデータのみアクセス可能。
+
+---
+
+## 5. APIエンドポイント仕様
+
+### 5.1 認証API
+
+#### GET/POST /api/auth/[...nextauth]
+NextAuth.js ハンドラ。Google OAuth認証。
+
+---
+
+### 5.2 キャラクターAPI
+
+#### GET /api/characters
+ユーザーのキャラクター一覧を取得。
+
+#### POST /api/characters
+キャラクターを登録。画像はSupabase Storageにアップロード。
+
+#### PUT /api/characters/[id]
+キャラクター情報を更新。
+
+#### DELETE /api/characters/[id]
+キャラクターを削除。Storage画像も削除。
+
+#### POST /api/characters/analyze
+画像からキャラクター特徴を抽出 (Gemini Vision)。
+
+---
+
+### 5.3 生成API
+
+#### POST /api/generate/caption
 **Request:**
 ```typescript
 {
-  url: string  // https://example.com/article
+  postType: 'solution' | 'promotion' | 'tips' | 'showcase'
+  inputText: string
 }
 ```
-
-**Response (成功):**
-```typescript
-{
-  title: string      // 記事タイトル
-  content: string    // 本文 (最大8000文字に切り詰め)
-  excerpt: string    // 抜粋 (最大200文字)
-}
-```
-
-**Response (エラー):**
-```typescript
-{
-  error: string      // エラーメッセージ
-}
-```
-
-**エラーケース:**
-- 400: URLが未指定
-- 400: 無効なURL形式
-- 500: 記事の取得に失敗
-- 500: 記事の解析に失敗
-
----
-
-### 4.2 POST /api/generate
-
-本文からキャプション・ハッシュタグを生成する。
-
-**Request:**
-```typescript
-{
-  content: string    // 本文
-  title?: string     // タイトル (オプション)
-}
-```
-
-**Response (成功):**
-```typescript
-{
-  caption: string    // キャプション (100-150文字)
-  hashtags: string[] // ハッシュタグ (10個)
-}
-```
-
-**Response (エラー):**
-```typescript
-{
-  error: string
-}
-```
-
-**生成仕様:**
-- キャプション: 100-150文字、ビジネストーン、絵文字なし
-- ハッシュタグ: 10個 (内容関連8個 + 汎用2個)、日本語中心
-- モデル: GPT-4o-mini
-- Temperature: 0.7
-- Max tokens: 500
-
----
-
-### 4.3 GET /api/og
-
-Instagram用画像を生成する。
-
-**Query Parameters:**
-| パラメータ | 型 | 必須 | 説明 |
-|-----------|-----|------|------|
-| title | string | Yes | 表示テキスト |
-| bg | string | No | 背景色 (例: "1E293B") |
 
 **Response:**
-- Content-Type: `image/png`
-- サイズ: 1080×1080 px
-
-**背景色プリセット (12色):**
 ```typescript
-const BG_COLORS = [
-  '#1E293B', '#334155', '#0F172A', '#1E3A5F',
-  '#312E81', '#3730A3', '#4C1D95', '#581C87',
-  '#831843', '#9F1239', '#1F2937', '#374151'
-]
+{
+  caption: string    // テンプレート適用済みキャプション
+  hashtags: string[] // ハッシュタグ10個
+}
+```
+
+#### POST /api/generate/image
+**Request:**
+```typescript
+{
+  style: 'manga_male' | 'manga_female' | 'pixel_art' | 'illustration'
+  aspectRatio: '1:1' | '9:16'
+  sceneDescription: string
+  characterDescription?: string
+}
+```
+
+**Response:**
+```typescript
+{
+  imageUrl: string  // Supabase Storage URL
+}
+```
+
+#### POST /api/generate/scene
+**Request:**
+```typescript
+{
+  caption: string
+  postType: string
+}
+```
+
+**Response:**
+```typescript
+{
+  scenes: string[]  // シーン候補3つ
+}
 ```
 
 ---
 
-## 5. UI/UXデザイン仕様
+### 5.4 投稿API
 
-### 5.1 デザインシステム
+#### GET /api/posts
+ユーザーの投稿履歴一覧。
+
+#### POST /api/posts
+新規投稿を保存。
+
+#### GET /api/posts/[id]
+投稿詳細を取得。
+
+#### DELETE /api/posts/[id]
+投稿を削除。関連画像も削除。
+
+---
+
+### 5.5 抽出API
+
+#### POST /api/extract
+**Request:**
+```typescript
+{
+  url: string
+}
+```
+
+**Response:**
+```typescript
+{
+  title: string
+  content: string
+  excerpt: string
+}
+```
+
+---
+
+## 6. UI/UXデザイン仕様
+
+### 6.1 デザインシステム
 
 **カラーパレット:**
 ```css
---primary: #3B82F6 (Blue)
---background: グラデーション (slate-950 → slate-900)
+--primary: グラデーション (purple-600 → pink-500 → orange-400)
+--background: グラデーション (gray-900 → gray-800 → gray-900)
 --text-primary: #FFFFFF
---text-secondary: #94A3B8
+--text-secondary: #9CA3AF (gray-400)
 --border: rgba(255,255,255,0.1)
---success: #10B981
---error: #EF4444
+--success: #10B981 (green-500)
+--error: #EF4444 (red-500)
 ```
 
 **フォント:**
@@ -284,173 +418,91 @@ const BG_COLORS = [
 
 **デザインスタイル:**
 - ダークテーマ
-- グラスモーフィズム (backdrop-blur)
-- グラデーション背景
+- グラスモーフィズム (backdrop-blur, bg-white/10)
+- グラデーションアクセント
 - モダン・ミニマル
 
-### 5.2 レスポンシブブレイクポイント
+### 6.2 レスポンシブブレイクポイント
 
 | ブレイクポイント | サイズ | レイアウト |
 |-----------------|--------|-----------|
-| Mobile | < 768px | 1カラム |
-| Tablet | 768px - 1023px | 1カラム (余白調整) |
-| Desktop | >= 1024px | 2カラム |
+| Mobile | < 768px | 1カラム、サイドバー非表示 |
+| Tablet | 768px - 1023px | 1カラム、サイドバー折りたたみ |
+| Desktop | >= 1024px | 2カラム、サイドバー表示 |
 
-### 5.3 タッチターゲット
+### 6.3 タッチターゲット
 
 - 最小サイズ: 44×44 px
 - ボタン padding: min 12px
 
 ---
 
-## 6. エラーハンドリング
+## 7. セキュリティ
 
-### 6.1 エラーメッセージ一覧
+### 7.1 認証
 
-```typescript
-// lib/error-messages.ts
-export const ERROR_MESSAGES = {
-  NETWORK_ERROR: 'ネットワークエラーが発生しました。接続を確認してください。',
-  TIMEOUT_ERROR: 'リクエストがタイムアウトしました。もう一度お試しください。',
-  EXTRACTION_FAILED: '記事の取得に失敗しました。URLを確認するか、本文を直接入力してください。',
-  GENERATION_FAILED: 'コンテンツの生成に失敗しました。もう一度お試しください。',
-  RATE_LIMIT_EXCEEDED: '本日の利用回数上限に達しました。明日またお試しください。',
-  INVALID_URL: '有効なURLを入力してください。',
-  CONTENT_TOO_SHORT: '本文が短すぎます。100文字以上入力してください。',
-  CONTENT_TOO_LONG: '本文が長すぎます。10,000文字以内で入力してください。',
-  UNKNOWN_ERROR: '予期しないエラーが発生しました。',
-}
-```
-
-### 6.2 リトライ戦略
-
-```typescript
-// lib/api-client.ts
-- 最大リトライ回数: 3
-- バックオフ: 指数関数的 (1s → 2s → 4s)
-- リトライ対象: 5xx, 429
-- タイムアウト: 30秒
-```
-
----
-
-## 7. セキュリティ・制限
-
-### 7.1 レート制限
-
-| 制限 | 値 | 実装 |
-|------|-----|------|
-| 日次生成回数 | 5回/日 | Cookie (クライアント側) |
-| リセットタイミング | 日付変更時 | UTC基準 |
-
-**注意:** クライアント側のみの制限のため、技術的には回避可能。Phase 2でサーバーサイド認証と併用予定。
-
-### 7.2 入力制限
-
-| 項目 | 制限 |
+| 項目 | 実装 |
 |------|------|
-| URL | http/https のみ |
-| 手動入力 | 100〜10,000文字 |
-| キャプション | 最大150文字 |
-| API本文送信 | 最大8,000文字 (トークン制限) |
+| 認証方式 | Google OAuth 2.0 |
+| セッション | NextAuth.js (JWT) |
+| アクセス制御 | ホワイトリスト (ALLOWED_EMAILS) |
+| ミドルウェア | /dashboard, /create, /history を保護 |
+
+### 7.2 データアクセス
+
+| 項目 | 実装 |
+|------|------|
+| RLS | 全テーブルで有効 |
+| サーバー側認証 | 全APIでセッションチェック |
+| Storage | 認証ユーザーのみアップロード可 |
 
 ### 7.3 環境変数
 
 ```bash
-# 必須
-OPENAI_API_KEY=sk-...
+# 認証
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+NEXTAUTH_SECRET=
+NEXTAUTH_URL=
+ALLOWED_EMAILS=user1@example.com,user2@example.com
 
-# オプション
-NEXT_PUBLIC_GA_ID=G-...
-NEXT_PUBLIC_APP_URL=https://...
-NEXT_PUBLIC_DISABLE_RATE_LIMIT=true  # 開発用
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+
+# AI
+GOOGLE_AI_API_KEY=
+
+# Analytics
+NEXT_PUBLIC_GA_ID=
 ```
 
 ---
 
-## 8. アナリティクスイベント
+## 8. 運営情報
 
-| イベント名 | トリガー | パラメータ |
-|-----------|---------|-----------|
-| `generate_start` | 生成開始 | source (url/manual) |
-| `generate_success` | 生成成功 | captionLength, hashtagCount, processingTime |
-| `generate_error` | 生成エラー | errorType, source |
-| `image_download` | 画像DL | bgColorIndex |
-| `copy_caption` | コピー | captionLength, hashtagCount |
-| `open_instagram` | IG起動 | platform (mobile/desktop) |
-| `post_assist_complete` | アシスト完了 | - |
-| `add_hashtag` | タグ追加 | isCustom |
-| `change_bg_color` | 背景変更 | colorIndex |
+### 8.1 連絡先
+
+- **Instagram**: https://www.instagram.com/hohoemi.rabo/
+- **ホームページ**: https://www.hohoemi-rabo.com/
+- **ポートフォリオ**: https://www.masayuki-kiwami.com/works
 
 ---
 
-## 9. Phase 2 計画機能
+## 9. Phase 3 計画機能
 
-CLAUDE.md の Future Phases より:
-
-### Phase 2: 認証・課金・履歴
-- [ ] ユーザー認証 (OAuth: Google/Twitter)
-- [ ] 有料プラン導入
-- [ ] 生成履歴保存
-- [ ] サーバーサイドレート制限
-
-### Phase 3: 機能拡張
-- [ ] 複数テンプレート
+- [ ] 複数テンプレートの追加
 - [ ] 画像編集機能
-- [ ] 絵文字トーン選択
-- [ ] マルチプラットフォーム (Twitter/Facebook)
-
-### Phase 4: エンタープライズ
-- [ ] チーム機能
-- [ ] API提供
-- [ ] エンタープライズプラン
+- [ ] 画像にテキストオーバーレイ
+- [ ] 予約投稿機能
+- [ ] マルチプラットフォーム対応 (Twitter/Facebook)
 
 ---
 
-## 10. 既知の課題・技術的負債
-
-### 10.1 リファクタリング推奨
-
-| ファイル | 問題 | 推奨対応 |
-|---------|------|---------|
-| `app/generate/result/page.tsx` | 847行と大規模 | コンポーネント分割 |
-| 定数 | 一部ハードコード | 定数ファイルに集約 |
-| エラー処理 | 重複あり | カスタムフック化 |
-
-### 10.2 テスト不足
-
-- ユニットテスト: なし
-- E2Eテスト: なし
-- 推奨: Vitest + Playwright 導入
-
-### 10.3 セキュリティ考慮事項
-
-- レート制限がクライアント側のみ
-- CORS設定が緩い
-- API認証なし (Phase 2で対応予定)
-
----
-
-## 11. 開発コマンド
-
-```bash
-# 開発サーバー起動
-npm run dev
-
-# プロダクションビルド
-npm run build
-
-# プロダクションサーバー起動
-npm start
-
-# Lint
-npm run lint
-```
-
----
-
-## 更新履歴
+## 10. 更新履歴
 
 | 日付 | 内容 |
 |------|------|
 | 2026-01-23 | 初版作成 (Phase 1完了時点) |
+| 2026-01-25 | Phase 2完了に伴い全面更新 |

@@ -3,8 +3,8 @@ import Header from '@/components/layout/header'
 import Footer from '@/components/layout/footer'
 
 export const metadata = {
-  title: 'プライバシーポリシー | Instagram Post Generator',
-  description: 'Instagram Post Generatorのプライバシーポリシー',
+  title: 'プライバシーポリシー | Post Craft',
+  description: 'Post Craftのプライバシーポリシー',
 }
 
 export default function PrivacyPage() {
@@ -49,17 +49,15 @@ export default function PrivacyPage() {
               <section>
                 <h2 className="text-xl font-semibold text-white mb-4">1. 収集する情報</h2>
                 <p className="text-sm leading-relaxed">
-                  本サービス（Instagram Post Generator）では、サービスの改善と利用状況の把握のために、以下の情報を収集します：
+                  本サービス（Post Craft）では、サービスの提供と改善のために、以下の情報を収集します：
                 </p>
                 <ul className="mt-3 ml-6 list-disc space-y-2 text-sm">
+                  <li>Googleアカウント情報（メールアドレス、表示名、プロフィール画像）</li>
+                  <li>作成した投稿データ（キャプション、ハッシュタグ、生成画像）</li>
+                  <li>登録したキャラクター画像と特徴情報</li>
                   <li>ページビュー、クリック、利用機能などの行動データ</li>
                   <li>ブラウザの種類、OS、デバイス情報</li>
-                  <li>IPアドレス（匿名化された形式）</li>
-                  <li>Cookie情報（利用制限の管理に使用）</li>
                 </ul>
-                <p className="mt-3 text-sm leading-relaxed">
-                  なお、入力されたブログ記事のURLや本文は、AI生成のために一時的に使用されますが、当社のサーバーには保存されません。
-                </p>
               </section>
 
               <section>
@@ -88,7 +86,7 @@ export default function PrivacyPage() {
                   本サービスでは、以下の目的でCookieを使用しています：
                 </p>
                 <ul className="mt-3 ml-6 list-disc space-y-2 text-sm">
-                  <li>利用回数の制限管理（1日5回まで）</li>
+                  <li>ログイン状態の維持（セッション管理）</li>
                   <li>Google Analyticsによるアクセス解析</li>
                 </ul>
                 <p className="mt-3 text-sm leading-relaxed">
@@ -104,7 +102,13 @@ export default function PrivacyPage() {
                 </p>
                 <ul className="mt-3 ml-6 list-disc space-y-2 text-sm">
                   <li>
-                    <strong>OpenAI API:</strong> キャプションとハッシュタグの生成に使用
+                    <strong>Google Gemini:</strong> キャプション、ハッシュタグ、画像の生成に使用
+                  </li>
+                  <li>
+                    <strong>Google OAuth:</strong> ログイン認証に使用
+                  </li>
+                  <li>
+                    <strong>Supabase:</strong> データベースおよびファイルストレージ
                   </li>
                   <li>
                     <strong>Vercel:</strong> ホスティングサービス
@@ -122,6 +126,7 @@ export default function PrivacyPage() {
                 <h2 className="text-xl font-semibold text-white mb-4">5. 情報の保護</h2>
                 <p className="text-sm leading-relaxed">
                   収集した情報は、適切なセキュリティ対策を講じて管理し、不正アクセス、紛失、破壊、改ざん、漏洩などから保護します。
+                  データベースへのアクセスは暗号化通信（SSL/TLS）を使用し、認証されたユーザーのみが自身のデータにアクセスできます。
                 </p>
               </section>
 
@@ -138,7 +143,15 @@ export default function PrivacyPage() {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold text-white mb-4">7. プライバシーポリシーの変更</h2>
+                <h2 className="text-xl font-semibold text-white mb-4">7. データの削除</h2>
+                <p className="text-sm leading-relaxed">
+                  ユーザーは、自身が作成した投稿データやキャラクター情報をいつでも削除することができます。
+                  アカウントの削除をご希望の場合は、お問い合わせページよりご連絡ください。
+                </p>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold text-white mb-4">8. プライバシーポリシーの変更</h2>
                 <p className="text-sm leading-relaxed">
                   本プライバシーポリシーは、法令の変更や事業内容の変更に伴い、予告なく変更することがあります。
                   変更後のプライバシーポリシーは、本ページに掲載した時点で効力を生じるものとします。
@@ -146,7 +159,7 @@ export default function PrivacyPage() {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold text-white mb-4">8. お問い合わせ</h2>
+                <h2 className="text-xl font-semibold text-white mb-4">9. お問い合わせ</h2>
                 <p className="text-sm leading-relaxed">
                   本プライバシーポリシーに関するお問い合わせは、以下のページからお願いします：
                 </p>

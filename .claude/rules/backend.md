@@ -15,7 +15,8 @@ app/api/
 │   └── analyze/route.ts      # POST (AI特徴抽出)
 ├── generate/
 │   ├── caption/route.ts      # POST (文章生成)
-│   └── image/route.ts        # POST (画像生成)
+│   ├── image/route.ts        # POST (画像生成)
+│   └── scene/route.ts        # POST (シーン候補生成)
 ├── posts/
 │   ├── route.ts              # GET (list), POST (create)
 │   └── [id]/route.ts         # GET, DELETE

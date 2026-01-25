@@ -5,10 +5,10 @@ Post Craft プロジェクトのガイドライン。
 
 ## プロジェクト概要
 
-**Post Craft** - ブログ記事URLまたはメモ書きからInstagram投稿素材（キャプション、ハッシュタグ、画像）を自動生成するWebサービス。
+**Post Craft** - メモ書きやブログ記事URLからInstagram投稿素材（キャプション、ハッシュタグ、画像）を自動生成するWebサービス。
 
 - **本番URL**: https://post-craft-rho.vercel.app/
-- **現在のフェーズ**: Phase 2 開発中
+- **現在のフェーズ**: Phase 2 完了
 
 ## 技術スタック
 
@@ -19,7 +19,8 @@ Post Craft プロジェクトのガイドライン。
 | UI | React 19.1.0, Tailwind CSS 3.4.17 |
 | Database | Supabase (PostgreSQL) |
 | Auth | NextAuth.js + Google OAuth |
-| AI | Google Gemini (文章・画像生成) |
+| AI (文章) | Google Gemini Flash (gemini-2.0-flash) |
+| AI (画像) | Google Gemini Imagen (imagen-3.0-generate-002) |
 | Hosting | Vercel |
 
 ## 開発コマンド
@@ -57,14 +58,6 @@ src/
 | `.claude/rules/nextjs.md` | Next.js 15 ベストプラクティス | 全般 |
 | `.claude/rules/ai.md` | Gemini, プロンプト | AI機能実装時 |
 
-## タスク管理
-
-チケットは `/docs` ディレクトリに配置：
-- `- [ ]` 未完了
-- `- [×]` 完了
-
-**Phase 2 チケット**: #13〜#22
-
 ## 環境変数
 
 ```bash
@@ -89,5 +82,12 @@ NEXT_PUBLIC_GA_ID=
 
 ## 仕様書
 
-- `/docs/SPEC-CURRENT.md` - 現状仕様（Phase 1完了時点）
+- `/docs/SPEC-CURRENT.md` - 現状仕様（Phase 2完了時点）
 - `/docs/SPEC-PHASE2.md` - Phase 2 要件定義
+- `/docs/SPEC-PHASE3.md` - Phase 3 計画
+
+## 運営情報
+
+- **Instagram**: https://www.instagram.com/hohoemi.rabo/
+- **ホームページ**: https://www.hohoemi-rabo.com/
+- **ポートフォリオ**: https://www.masayuki-kiwami.com/works

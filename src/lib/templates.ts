@@ -3,7 +3,7 @@ import { POST_TYPES } from '@/lib/post-types'
 
 // Template definitions
 export const TEMPLATES: Record<PostType, string> = {
-  solution: `📱 シニアからの質問
+  solution: `📱 よくある質問
 「{question}」
 
 💡 解決方法

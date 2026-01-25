@@ -6,16 +6,16 @@ Google Gemini、プロンプト、画像生成のルール。
 
 | 用途 | モデル |
 |------|--------|
-| 文章生成 | `gemini-2.5-flash` |
-| 画像生成 | `gemini-3-pro-image-preview` |
-| 画像分析 | `gemini-2.5-flash` (Vision) |
+| 文章生成 | `gemini-2.0-flash` |
+| 画像生成 | `imagen-3.0-generate-002` |
+| 画像分析 | `gemini-2.0-flash` (Vision) |
 
 ## 文章生成
 
 ### 投稿タイプ
 | ID | タイプ | ターゲット |
 |----|--------|-----------|
-| `solution` | 解決タイプ | シニア層 |
+| `solution` | 解決タイプ | 全般 |
 | `promotion` | 宣伝タイプ | ビジネス層 |
 | `tips` | Tips/知識タイプ | ビジネス層 |
 | `showcase` | 実績/事例タイプ | ビジネス層 |
@@ -24,7 +24,7 @@ Google Gemini、プロンプト、画像生成のルール。
 
 #### 解決タイプ (solution)
 ```
-📱 シニアからの質問
+📱 よくある質問
 「{question}」
 
 💡 解決方法
@@ -97,6 +97,7 @@ AIを使うと…
 - 文字数: 200〜400文字
 - 絵文字: 適度に使用
 - ハッシュタグ: 10個（内容8 + 汎用2）
+- **重要**: 入力テキストの内容のみを使用し、情報を捏造しない
 
 ## 画像生成
 
@@ -113,6 +114,14 @@ AIを使うと…
 |------|------|--------|------|
 | フィード | 1:1 | 1080×1080 | 通常投稿 |
 | リール | 9:16 | 1080×1920 | ショート動画 |
+
+### デフォルトキャラクター
+キャラクターが登録されていない場合のデフォルト:
+| スタイル | デフォルト |
+|---------|----------|
+| manga_male | 30-40代の親しみやすい男性、カジュアルビジネススタイル |
+| manga_female | 20-30代の明るい雰囲気の女性、スマートカジュアルスタイル |
+| pixel_art | かわいいちびキャラ |
 
 ### ベースプロンプト
 
@@ -197,10 +206,10 @@ AIを使うと…
 
 ### 画像生成フロー
 ```
-1. キャラクターの特徴テキストを取得
+1. キャラクターの特徴テキストを取得（未登録ならデフォルト使用）
 2. 投稿内容からシーン説明を生成
 3. スタイル別ベースプロンプトに挿入
-4. Gemini 3 Pro で画像生成
+4. Gemini Imagen で画像生成
 5. Supabase Storage に保存
 ```
 
@@ -209,13 +218,17 @@ AIを使うと…
 投稿内容からシーン説明を生成するプロンプト:
 ```
 以下の投稿内容から、画像のシーン説明を生成してください。
-説明は1-2文で、視覚的に表現可能な内容にしてください。
+30-50文字程度で、具体的なビジュアルをイメージできる説明にしてください。
+日本語で出力してください。シーンの説明のみ出力し、余計な説明は不要です。
 
 投稿タイプ: {postType}
 投稿内容:
-{inputText}
+{caption}
 
-回答形式: シーンの説明のみ（余計な説明不要）
+出力例:
+- スマートフォンを操作する手と、画面に表示されたLINEアイコン
+- ノートPCの前で笑顔で説明するビジネスパーソン
+- AIアシスタントと会話している様子
 ```
 
 ## API クライアント設定
@@ -226,10 +239,13 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!)
 
 // 文章生成
-const textModel = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
+export const geminiFlash = genAI.getGenerativeModel({
+  model: 'gemini-2.0-flash-exp'
+})
 
-// 画像生成
-const imageModel = genAI.getGenerativeModel({ model: 'gemini-3-pro-image-preview' })
+// 画像生成 (Imagen)
+// imagen-3.0-generate-002 を使用
+// generateImages API 経由で呼び出し
 ```
 
 ## パフォーマンス目標
