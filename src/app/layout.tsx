@@ -17,8 +17,8 @@ const mPlusRounded = M_PLUS_Rounded_1c({
 });
 
 export const metadata: Metadata = {
-  title: "Instagram Post Generator",
-  description: "ブログ記事からInstagram投稿素材を自動生成",
+  title: "Post Craft",
+  description: "メモ書きからInstagram投稿素材を自動生成",
 };
 
 export default function RootLayout({
