@@ -1,7 +1,12 @@
+'use client'
+
 import Link from 'next/link'
-import UsageIndicator from '@/components/usage-indicator'
+import { useSession } from 'next-auth/react'
 
 export default function Header() {
+  const { data: session, status } = useSession()
+  const isLoading = status === 'loading'
+
   return (
     <header className="border-b border-white/10 bg-gray-900/80 backdrop-blur-md relative">
       {/* グラデーションアクセント */}
@@ -27,7 +32,7 @@ export default function Header() {
             </svg>
           </div>
           <span className="hidden text-lg font-semibold bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent sm:inline">
-            Instagram Post Generator
+            Post Craft
           </span>
         </Link>
 
@@ -38,7 +43,24 @@ export default function Header() {
           >
             お問い合わせ
           </Link>
-          <UsageIndicator />
+
+          {!isLoading && (
+            session ? (
+              <Link
+                href="/dashboard"
+                className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 rounded-lg hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 transition-all"
+              >
+                ダッシュボード
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 rounded-lg hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 transition-all"
+              >
+                ログイン
+              </Link>
+            )
+          )}
         </div>
       </div>
     </header>
