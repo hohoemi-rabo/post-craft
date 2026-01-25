@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import {
   StepPostType,
   StepContentInput,
@@ -51,6 +51,25 @@ export default function CreatePage() {
   const [generationProgress, setGenerationProgress] = useState(0)
   const [isRegenerating, setIsRegenerating] = useState(false)
 
+  // Check for reuse data from history page
+  useEffect(() => {
+    const reuseData = sessionStorage.getItem('reusePost')
+    if (reuseData) {
+      try {
+        const { postType, inputText } = JSON.parse(reuseData)
+        setFormState((prev) => ({
+          ...prev,
+          postType,
+          inputText,
+        }))
+        setStep(2) // Skip to content input step
+      } catch {
+        // Ignore parse errors
+      }
+      sessionStorage.removeItem('reusePost')
+    }
+  }, [])
+
   // Step 1: Select post type
   const handleSelectPostType = (type: PostType) => {
     setFormState((prev) => ({ ...prev, postType: type }))
@@ -89,6 +108,7 @@ export default function CreatePage() {
       { id: 'caption', label: '投稿文を生成中...', status: 'pending' },
       { id: 'scene', label: 'シーン説明を生成中...', status: 'pending' },
       { id: 'image', label: '画像を生成中...', status: 'pending' },
+      { id: 'save', label: '保存中...', status: 'pending' },
     ]
     setGenerationSteps(steps)
     setGenerationProgress(0)
@@ -157,6 +177,31 @@ export default function CreatePage() {
 
       const imageData = await imageResponse.json()
       updateStepStatus('image', 'complete')
+      setGenerationProgress(75)
+
+      // Step 4: Save post
+      updateStepStatus('save', 'loading')
+      try {
+        await fetch('/api/posts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            postType: formState.postType,
+            inputText: formState.inputText,
+            sourceUrl: formState.sourceUrl || null,
+            generatedCaption: captionData.caption,
+            generatedHashtags: captionData.hashtags || [],
+            imageUrl: imageData.imageUrl,
+            imageStyle: style,
+            aspectRatio,
+          }),
+        })
+        updateStepStatus('save', 'complete')
+      } catch {
+        // Don't fail the flow if save fails, just log it
+        console.error('Failed to save post')
+        updateStepStatus('save', 'complete') // Mark as complete anyway
+      }
       setGenerationProgress(100)
 
       // Set result and move to step 5
