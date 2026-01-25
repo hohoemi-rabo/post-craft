@@ -138,11 +138,14 @@ export function StepContentInput({
           </button>
         </div>
         {error && <p className="text-xs text-red-500">{error}</p>}
-        {url && text.length < minLength && !isExtracting && (
+        {url && text.length < minLength && !isExtracting && !error && (
           <p className="text-xs text-blue-400">
             URLを入力したら「抽出」ボタンを押してください
           </p>
         )}
+        <p className="text-xs text-slate-500">
+          ※ ログインが必要なページや一部サイトでは抽出できない場合があります。その場合は記事をコピーして上のメモ欄に貼り付けてください。
+        </p>
       </div>
 
       {/* Navigation */}
