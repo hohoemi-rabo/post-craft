@@ -32,34 +32,34 @@
 ## タスク一覧
 
 ### 1. キャラクター一覧ページ
-- [ ] `/app/(dashboard)/characters/page.tsx` 作成
-- [ ] キャラクターカード表示
+- [x] `/app/(dashboard)/characters/page.tsx` 作成
+- [x] キャラクターカード表示
   - サムネイル画像
   - キャラクター名
   - 特徴テキスト（抜粋）
   - デフォルトマーク
-- [ ] 新規登録ボタン
-- [ ] 編集・削除アクション
+- [x] 新規登録ボタン
+- [x] 編集・削除アクション
 
 ### 2. キャラクター登録モーダル/ページ
-- [ ] `components/characters/character-form.tsx` 作成
-- [ ] 入力項目
+- [x] `components/characters/character-form.tsx` 作成
+- [x] 入力項目
   - キャラクター名（必須）
   - 画像アップロード（任意）
   - 特徴テキスト（必須、画像からの自動生成 or 手動入力）
   - デフォルト設定（チェックボックス）
 
 ### 3. 画像アップロード機能
-- [ ] `components/characters/image-uploader.tsx` 作成
-- [ ] ドラッグ&ドロップ対応
-- [ ] プレビュー表示
-- [ ] ファイルサイズ制限（5MB）
-- [ ] 対応形式：PNG, JPG, WEBP
-- [ ] Supabase Storage へのアップロード
+- [x] `components/characters/image-uploader.tsx` 作成
+- [x] ドラッグ&ドロップ対応
+- [x] プレビュー表示
+- [x] ファイルサイズ制限（5MB）
+- [x] 対応形式：PNG, JPG, WEBP
+- [x] Supabase Storage へのアップロード
 
 ### 4. AI 特徴抽出 API
-- [ ] `/api/characters/analyze/route.ts` 作成
-- [ ] Gemini Vision API で画像分析
+- [x] `/api/characters/analyze/route.ts` 作成
+- [x] Gemini Vision API で画像分析
   ```typescript
   const analyzePrompt = `
   この画像のキャラクター/人物の特徴を分析してください。
@@ -78,7 +78,7 @@
   `;
   ```
 
-- [ ] レスポンス形式
+- [x] レスポンス形式
   ```typescript
   interface AnalyzeResponse {
     description: string;
@@ -95,31 +95,31 @@
   ```
 
 ### 5. キャラクター CRUD API
-- [ ] `GET /api/characters` - 一覧取得
-- [ ] `POST /api/characters` - 新規登録
-- [ ] `PUT /api/characters/[id]` - 更新
-- [ ] `DELETE /api/characters/[id]` - 削除
-- [ ] 認証チェック（自分のキャラクターのみ操作可能）
+- [x] `GET /api/characters` - 一覧取得
+- [x] `POST /api/characters` - 新規登録
+- [x] `PUT /api/characters/[id]` - 更新
+- [x] `DELETE /api/characters/[id]` - 削除
+- [x] 認証チェック（自分のキャラクターのみ操作可能）
 
 ### 6. Supabase Storage 連携
-- [ ] キャラクター画像のアップロード
+- [x] キャラクター画像のアップロード
   ```typescript
   const { data, error } = await supabase.storage
     .from('characters')
     .upload(`${userId}/${fileName}`, file);
   ```
-- [ ] 公開 URL 取得
-- [ ] 画像削除（キャラクター削除時）
+- [x] 公開 URL 取得
+- [x] 画像削除（キャラクター削除時）
 
 ### 7. デフォルトキャラクター機能
-- [ ] ユーザーごとに1つデフォルト設定可能
-- [ ] デフォルト設定時、他のキャラクターの is_default を false に
-- [ ] 投稿作成時にデフォルトキャラクターを初期選択
+- [x] ユーザーごとに1つデフォルト設定可能
+- [x] デフォルト設定時、他のキャラクターの is_default を false に
+- [x] 投稿作成時にデフォルトキャラクターを初期選択
 
 ### 8. バリデーション
-- [ ] キャラクター名：1-50文字
-- [ ] 特徴テキスト：10-500文字
-- [ ] 画像：5MB以下、PNG/JPG/WEBP
+- [x] キャラクター名：1-50文字
+- [x] 特徴テキスト：10-500文字
+- [x] 画像：5MB以下、PNG/JPG/WEBP
 
 ---
 
@@ -178,13 +178,13 @@
 
 ## 完了条件
 
-- [ ] キャラクター一覧が表示される
-- [ ] キャラクターの新規登録ができる
-- [ ] 画像アップロードで特徴が自動抽出される
-- [ ] 手動で特徴テキストを入力できる
-- [ ] キャラクターの編集・削除ができる
-- [ ] デフォルトキャラクターを設定できる
-- [ ] 画像が Supabase Storage に保存される
+- [x] キャラクター一覧が表示される
+- [x] キャラクターの新規登録ができる
+- [x] 画像アップロードで特徴が自動抽出される
+- [x] 手動で特徴テキストを入力できる
+- [x] キャラクターの編集・削除ができる
+- [x] デフォルトキャラクターを設定できる
+- [x] 画像が Supabase Storage に保存される
 
 ---
 
