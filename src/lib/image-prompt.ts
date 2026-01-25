@@ -27,9 +27,20 @@ export function buildImagePrompt(options: ImagePromptOptions): string {
   // Base style prompt
   parts.push(styleConfig.basePrompt)
 
-  // Character description (if supported and provided)
-  if (options.characterDescription && styleConfig.supportsCharacter) {
-    parts.push(`メインの人物キャラクター（${options.characterDescription}）を中央に配置。`)
+  // Character description (if supported)
+  if (styleConfig.supportsCharacter) {
+    if (options.characterDescription) {
+      parts.push(`メインの人物キャラクター（${options.characterDescription}）を中央に配置。`)
+    } else {
+      // Default character based on style
+      if (options.style === 'manga_male') {
+        parts.push('メインの人物キャラクター（30-40代の親しみやすい男性、カジュアルビジネススタイル）を中央に配置。')
+      } else if (options.style === 'manga_female') {
+        parts.push('メインの人物キャラクター（20-30代の明るい雰囲気の女性、スマートカジュアルスタイル）を中央に配置。')
+      } else if (options.style === 'pixel_art') {
+        parts.push('メインのピクセルキャラクター（かわいいちびキャラ）を中央に配置。')
+      }
+    }
   }
 
   // Scene description
