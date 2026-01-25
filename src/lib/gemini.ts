@@ -10,7 +10,7 @@ const genAI = new GoogleGenerativeAI(apiKey || '')
 
 // Text generation model
 export const geminiFlash = genAI.getGenerativeModel({
-  model: 'gemini-2.5-flash-preview-05-20',
+  model: 'gemini-2.5-flash',
 })
 
 // Image generation model (for future use)
