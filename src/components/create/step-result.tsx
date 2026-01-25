@@ -44,7 +44,11 @@ export function StepResult({
 
   const handleCopyHashtags = async () => {
     const selectedArray = Array.from(selectedHashtags)
-    await navigator.clipboard.writeText(selectedArray.join(' '))
+    // Ensure each hashtag has # prefix
+    const hashtagsText = selectedArray
+      .map((tag) => (tag.startsWith('#') ? tag : `#${tag}`))
+      .join(' ')
+    await navigator.clipboard.writeText(hashtagsText)
     setCopiedHashtags(true)
     setTimeout(() => setCopiedHashtags(false), 2000)
   }
@@ -275,7 +279,7 @@ export function StepResult({
                         : 'bg-white/5 text-slate-400 border border-white/10'
                     }`}
                   >
-                    {tag}
+                    {tag.startsWith('#') ? tag : `#${tag}`}
                   </button>
                 ))}
               </div>
