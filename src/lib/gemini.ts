@@ -13,9 +13,9 @@ export const geminiFlash = genAI.getGenerativeModel({
   model: 'gemini-2.5-flash',
 })
 
-// Image generation model (for future use)
-export const geminiProImage = genAI.getGenerativeModel({
-  model: 'gemini-2.0-flash-exp',
+// Image generation model
+export const geminiImageGen = genAI.getGenerativeModel({
+  model: 'gemini-3-pro-image-preview',
 })
 
 // Generate content with retry logic

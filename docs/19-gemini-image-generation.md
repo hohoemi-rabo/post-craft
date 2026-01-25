@@ -40,17 +40,17 @@ Google Gemini 3 Pro による AI 画像生成に移行する。
 ## タスク一覧
 
 ### 1. Gemini 画像生成モデルセットアップ
-- [ ] `lib/gemini.ts` に画像生成モデル追加
+- [x] `lib/gemini.ts` に画像生成モデル追加
   ```typescript
   export const geminiImageGen = genAI.getGenerativeModel({
     model: 'gemini-3-pro-image-preview',
   });
   ```
-- [ ] 画像生成用の設定確認
+- [x] 画像生成用の設定確認
 
 ### 2. スタイル別プロンプト定義
-- [ ] `lib/image-styles.ts` 作成
-- [ ] 各スタイルのベースプロンプト定義
+- [x] `lib/image-styles.ts` 作成
+- [x] 各スタイルのベースプロンプト定義
   ```typescript
   export const IMAGE_STYLES: Record<ImageStyle, StyleConfig> = {
     manga_male: {
@@ -69,8 +69,8 @@ Google Gemini 3 Pro による AI 画像生成に移行する。
   ```
 
 ### 3. プロンプト生成関数
-- [ ] `lib/image-prompt.ts` 作成
-- [ ] キャラクター特徴の埋め込み
+- [x] `lib/image-prompt.ts` 作成
+- [x] キャラクター特徴の埋め込み
   ```typescript
   export function buildImagePrompt(options: {
     style: ImageStyle;
@@ -100,7 +100,7 @@ Google Gemini 3 Pro による AI 画像生成に移行する。
   ```
 
 ### 4. シーン説明生成
-- [ ] 投稿内容からシーン説明を生成
+- [x] 投稿内容からシーン説明を生成
   ```typescript
   export async function generateSceneDescription(
     caption: string,
@@ -123,8 +123,8 @@ ${caption}
   ```
 
 ### 5. 画像生成 API 実装
-- [ ] `/api/generate/image/route.ts` 作成
-- [ ] リクエスト形式
+- [x] `/api/generate/image/route.ts` 作成
+- [x] リクエスト形式
   ```typescript
   interface GenerateImageRequest {
     postId?: string;
@@ -143,29 +143,29 @@ ${caption}
   ```
 
 ### 6. 画像の Supabase Storage 保存
-- [ ] 生成された画像を Storage に保存
-- [ ] ファイルパス: `generated-images/{userId}/{postId}/{timestamp}.png`
-- [ ] 公開 URL を返却
+- [x] 生成された画像を Storage に保存
+- [x] ファイルパス: `generated-images/{userId}/{postId}/{timestamp}.png`
+- [x] 公開 URL を返却
 
 ### 7. 画像スタイル選択 UI
-- [ ] `components/create/style-selector.tsx` 作成
-- [ ] 4スタイルのプレビュー表示
-- [ ] 選択状態のハイライト
+- [x] `components/create/style-selector.tsx` 作成
+- [x] 4スタイルのプレビュー表示
+- [x] 選択状態のハイライト
 
 ### 8. アスペクト比選択 UI
-- [ ] `components/create/aspect-ratio-selector.tsx` 作成
-- [ ] 1:1 / 9:16 の選択
-- [ ] サイズプレビュー表示
+- [x] `components/create/aspect-ratio-selector.tsx` 作成
+- [x] 1:1 / 9:16 の選択
+- [x] サイズプレビュー表示
 
 ### 9. 画像プレビュー・再生成
-- [ ] 生成された画像のプレビュー表示
-- [ ] 再生成ボタン
-- [ ] 別スタイルで再生成
+- [x] 生成された画像のプレビュー表示
+- [x] 再生成ボタン
+- [x] 別スタイルで再生成
 
 ### 10. エラーハンドリング
-- [ ] 生成失敗時のリトライ
-- [ ] タイムアウト処理（30秒）
-- [ ] 不適切なコンテンツのフィルタリング
+- [x] 生成失敗時のリトライ
+- [x] タイムアウト処理（60秒）
+- [x] 不適切なコンテンツのフィルタリング
 
 ---
 
@@ -204,12 +204,12 @@ ${caption}
 
 ## 完了条件
 
-- [ ] 4種類の画像スタイルで生成できる
-- [ ] 2種類のアスペクト比で生成できる
-- [ ] キャラクター特徴が画像に反映される
-- [ ] 生成された画像が Storage に保存される
-- [ ] 画像の再生成ができる
-- [ ] 生成時間が30秒以内
+- [x] 4種類の画像スタイルで生成できる
+- [x] 2種類のアスペクト比で生成できる
+- [x] キャラクター特徴が画像に反映される
+- [x] 生成された画像が Storage に保存される
+- [x] 画像の再生成ができる
+- [x] 生成時間が60秒以内
 
 ---
 
