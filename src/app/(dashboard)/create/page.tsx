@@ -5,6 +5,7 @@ import {
   StepPostType,
   StepContentInput,
   StepImageSettings,
+  StepCatchphrase,
   StepGenerating,
   StepResult,
   ProgressIndicator,
@@ -19,12 +20,15 @@ interface FormState {
   imageStyle: ImageStyle
   aspectRatio: AspectRatio
   characterId: string | null
+  skipImage: boolean
+  useCharacterImage: boolean
+  catchphrase: string
 }
 
 interface GeneratedResult {
   caption: string
   hashtags: string[]
-  imageUrl: string
+  imageUrl: string | null
 }
 
 interface GenerationStep {
@@ -41,15 +45,22 @@ const INITIAL_STATE: FormState = {
   imageStyle: 'manga_male',
   aspectRatio: '9:16',
   characterId: null,
+  skipImage: false,
+  useCharacterImage: false,
+  catchphrase: '',
 }
 
 export default function CreatePage() {
   const [step, setStep] = useState(1)
   const [formState, setFormState] = useState<FormState>(INITIAL_STATE)
+  const [generatedCaption, setGeneratedCaption] = useState<string>('')
   const [generatedResult, setGeneratedResult] = useState<GeneratedResult | null>(null)
   const [generationSteps, setGenerationSteps] = useState<GenerationStep[]>([])
   const [generationProgress, setGenerationProgress] = useState(0)
   const [isRegenerating, setIsRegenerating] = useState(false)
+
+  // Calculate total steps based on skipImage
+  const totalSteps = formState.skipImage ? 5 : 6
 
   // Check for reuse data from history page
   useEffect(() => {
@@ -83,33 +94,207 @@ export default function CreatePage() {
   }
 
   // Step 3: Submit image settings
-  const handleImageSettingsSubmit = (
+  const handleImageSettingsSubmit = async (
     style: ImageStyle,
     aspectRatio: AspectRatio,
-    characterId: string | null
+    characterId: string | null,
+    skipImage: boolean,
+    useCharacterImage: boolean
   ) => {
     setFormState((prev) => ({
       ...prev,
       imageStyle: style,
       aspectRatio,
       characterId,
+      skipImage,
+      useCharacterImage,
     }))
-    setStep(4)
-    startGeneration(style, aspectRatio, characterId)
+
+    if (skipImage) {
+      // Skip catchphrase step, go directly to generation
+      setStep(4)
+      startGeneration(style, aspectRatio, characterId, skipImage, useCharacterImage, '')
+    } else {
+      // First generate caption, then show catchphrase step
+      setStep(4)
+      await generateCaptionFirst()
+    }
   }
 
-  // Step 4: Generate content
-  const startGeneration = async (
-    style: ImageStyle,
-    aspectRatio: AspectRatio,
-    characterId: string | null
-  ) => {
+  // Generate caption first (for catchphrase step)
+  const generateCaptionFirst = async () => {
+    try {
+      const captionResponse = await fetch('/api/generate/caption', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          postType: formState.postType,
+          inputText: formState.inputText,
+        }),
+      })
+
+      if (!captionResponse.ok) {
+        throw new Error('キャプション生成に失敗しました')
+      }
+
+      const captionData = await captionResponse.json()
+      setGeneratedCaption(captionData.caption)
+      // Move to catchphrase confirmation step
+      setStep(4)
+    } catch (error) {
+      console.error('Caption generation error:', error)
+      alert('キャプション生成に失敗しました。もう一度お試しください。')
+      setStep(3) // Go back to image settings
+    }
+  }
+
+  // Step 4: Submit catchphrase (only when not skipImage)
+  const handleCatchphraseSubmit = (catchphrase: string) => {
+    setFormState((prev) => ({ ...prev, catchphrase }))
+    setStep(5)
+    startGenerationWithCaption(catchphrase)
+  }
+
+  // Start generation with pre-generated caption
+  const startGenerationWithCaption = async (catchphrase: string) => {
+    const { imageStyle, aspectRatio, characterId, useCharacterImage } = formState
+
     const steps: GenerationStep[] = [
-      { id: 'caption', label: '投稿文を生成中...', status: 'pending' },
       { id: 'scene', label: 'シーン説明を生成中...', status: 'pending' },
       { id: 'image', label: '画像を生成中...', status: 'pending' },
       { id: 'save', label: '保存中...', status: 'pending' },
     ]
+    setGenerationSteps(steps)
+    setGenerationProgress(0)
+
+    try {
+      // Step 1: Generate scene description
+      updateStepStatus('scene', 'loading')
+      let sceneDescription = ''
+      try {
+        const sceneResponse = await fetch('/api/generate/scene', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            caption: generatedCaption,
+            postType: formState.postType,
+          }),
+        })
+        if (sceneResponse.ok) {
+          const sceneData = await sceneResponse.json()
+          sceneDescription = sceneData.sceneDescription
+        } else {
+          throw new Error('Scene generation failed')
+        }
+      } catch {
+        sceneDescription = '親しみやすい雰囲気でスマートフォンやパソコンを使っている様子'
+      }
+      updateStepStatus('scene', 'complete')
+      setGenerationProgress(33)
+
+      // Step 2: Generate image
+      updateStepStatus('image', 'loading')
+      const imageResponse = await fetch('/api/generate/image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          style: imageStyle,
+          aspectRatio,
+          characterId,
+          sceneDescription,
+          useCharacterImage,
+          catchphrase,
+        }),
+      })
+
+      if (!imageResponse.ok) {
+        throw new Error('画像生成に失敗しました')
+      }
+
+      const imageData = await imageResponse.json()
+      updateStepStatus('image', 'complete')
+      setGenerationProgress(66)
+
+      // Step 3: Save post
+      updateStepStatus('save', 'loading')
+      try {
+        // Fetch hashtags from caption API response (stored earlier)
+        const captionResponse = await fetch('/api/generate/caption', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            postType: formState.postType,
+            inputText: formState.inputText,
+          }),
+        })
+        const captionData = captionResponse.ok ? await captionResponse.json() : { hashtags: [] }
+
+        await fetch('/api/posts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            postType: formState.postType,
+            inputText: formState.inputText,
+            sourceUrl: formState.sourceUrl || null,
+            generatedCaption: generatedCaption,
+            generatedHashtags: captionData.hashtags || [],
+            imageUrl: imageData.imageUrl,
+            imageStyle,
+            aspectRatio,
+          }),
+        })
+        updateStepStatus('save', 'complete')
+
+        setGeneratedResult({
+          caption: generatedCaption,
+          hashtags: captionData.hashtags || [],
+          imageUrl: imageData.imageUrl,
+        })
+      } catch {
+        console.error('Failed to save post')
+        updateStepStatus('save', 'complete')
+        setGeneratedResult({
+          caption: generatedCaption,
+          hashtags: [],
+          imageUrl: imageData.imageUrl,
+        })
+      }
+      setGenerationProgress(100)
+
+      setTimeout(() => setStep(6), 500)
+    } catch (error) {
+      console.error('Generation error:', error)
+      const currentStep = generationSteps.find((s) => s.status === 'loading')
+      if (currentStep) {
+        updateStepStatus(
+          currentStep.id,
+          'error',
+          error instanceof Error ? error.message : '生成に失敗しました'
+        )
+      }
+    }
+  }
+
+  // Start generation (for skipImage case)
+  const startGeneration = async (
+    style: ImageStyle,
+    aspectRatio: AspectRatio,
+    characterId: string | null,
+    skipImage: boolean,
+    useCharacterImage: boolean,
+    catchphrase: string
+  ) => {
+    const steps: GenerationStep[] = skipImage
+      ? [
+          { id: 'caption', label: '投稿文を生成中...', status: 'pending' },
+          { id: 'save', label: '保存中...', status: 'pending' },
+        ]
+      : [
+          { id: 'caption', label: '投稿文を生成中...', status: 'pending' },
+          { id: 'scene', label: 'シーン説明を生成中...', status: 'pending' },
+          { id: 'image', label: '画像を生成中...', status: 'pending' },
+          { id: 'save', label: '保存中...', status: 'pending' },
+        ]
     setGenerationSteps(steps)
     setGenerationProgress(0)
 
@@ -132,55 +317,61 @@ export default function CreatePage() {
 
       const captionData = await captionResponse.json()
       updateStepStatus('caption', 'complete')
-      setGenerationProgress(33)
+      setGenerationProgress(skipImage ? 50 : 25)
 
-      // Step 2: Generate scene description
-      updateStepStatus('scene', 'loading')
-      let sceneDescription = ''
-      try {
-        const sceneResponse = await fetch('/api/generate/scene', {
+      let imageUrl: string | null = null
+
+      if (!skipImage) {
+        // Step 2: Generate scene description
+        updateStepStatus('scene', 'loading')
+        let sceneDescription = ''
+        try {
+          const sceneResponse = await fetch('/api/generate/scene', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              caption: captionData.caption,
+              postType: formState.postType,
+            }),
+          })
+          if (sceneResponse.ok) {
+            const sceneData = await sceneResponse.json()
+            sceneDescription = sceneData.sceneDescription
+          } else {
+            throw new Error('Scene generation failed')
+          }
+        } catch {
+          sceneDescription = '親しみやすい雰囲気でスマートフォンやパソコンを使っている様子'
+        }
+        updateStepStatus('scene', 'complete')
+        setGenerationProgress(50)
+
+        // Step 3: Generate image
+        updateStepStatus('image', 'loading')
+        const imageResponse = await fetch('/api/generate/image', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            caption: captionData.caption,
-            postType: formState.postType,
+            style,
+            aspectRatio,
+            characterId,
+            sceneDescription,
+            useCharacterImage,
+            catchphrase,
           }),
         })
-        if (sceneResponse.ok) {
-          const sceneData = await sceneResponse.json()
-          sceneDescription = sceneData.sceneDescription
-        } else {
-          throw new Error('Scene generation failed')
+
+        if (!imageResponse.ok) {
+          throw new Error('画像生成に失敗しました')
         }
-      } catch {
-        // Fallback scene description
-        sceneDescription = '親しみやすい雰囲気でスマートフォンやパソコンを使っている様子'
-      }
-      updateStepStatus('scene', 'complete')
-      setGenerationProgress(50)
 
-      // Step 3: Generate image
-      updateStepStatus('image', 'loading')
-      const imageResponse = await fetch('/api/generate/image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          style,
-          aspectRatio,
-          characterId,
-          sceneDescription,
-        }),
-      })
-
-      if (!imageResponse.ok) {
-        throw new Error('画像生成に失敗しました')
+        const imageData = await imageResponse.json()
+        imageUrl = imageData.imageUrl
+        updateStepStatus('image', 'complete')
+        setGenerationProgress(75)
       }
 
-      const imageData = await imageResponse.json()
-      updateStepStatus('image', 'complete')
-      setGenerationProgress(75)
-
-      // Step 4: Save post
+      // Final Step: Save post
       updateStepStatus('save', 'loading')
       try {
         await fetch('/api/posts', {
@@ -192,30 +383,28 @@ export default function CreatePage() {
             sourceUrl: formState.sourceUrl || null,
             generatedCaption: captionData.caption,
             generatedHashtags: captionData.hashtags || [],
-            imageUrl: imageData.imageUrl,
-            imageStyle: style,
-            aspectRatio,
+            imageUrl: imageUrl,
+            imageStyle: skipImage ? null : style,
+            aspectRatio: skipImage ? null : aspectRatio,
           }),
         })
         updateStepStatus('save', 'complete')
       } catch {
-        // Don't fail the flow if save fails, just log it
         console.error('Failed to save post')
-        updateStepStatus('save', 'complete') // Mark as complete anyway
+        updateStepStatus('save', 'complete')
       }
       setGenerationProgress(100)
 
-      // Set result and move to step 5
       setGeneratedResult({
         caption: captionData.caption,
         hashtags: captionData.hashtags || [],
-        imageUrl: imageData.imageUrl,
+        imageUrl: imageUrl,
       })
 
-      setTimeout(() => setStep(5), 500)
+      setTimeout(() => setStep(skipImage ? 5 : 6), 500)
     } catch (error) {
       console.error('Generation error:', error)
-      const currentStep = steps.find((s) => s.status === 'loading')
+      const currentStep = generationSteps.find((s) => s.status === 'loading')
       if (currentStep) {
         updateStepStatus(
           currentStep.id,
@@ -240,7 +429,7 @@ export default function CreatePage() {
 
   // Regenerate image
   const handleRegenerateImage = useCallback(async () => {
-    if (!generatedResult || !formState.postType) return
+    if (!generatedResult || !formState.postType || formState.skipImage) return
 
     setIsRegenerating(true)
 
@@ -271,6 +460,8 @@ export default function CreatePage() {
           aspectRatio: formState.aspectRatio,
           characterId: formState.characterId,
           sceneDescription,
+          useCharacterImage: formState.useCharacterImage,
+          catchphrase: formState.catchphrase,
         }),
       })
 
@@ -294,6 +485,7 @@ export default function CreatePage() {
   const handleCreateNew = () => {
     setStep(1)
     setFormState(INITIAL_STATE)
+    setGeneratedCaption('')
     setGeneratedResult(null)
     setGenerationSteps([])
     setGenerationProgress(0)
@@ -303,6 +495,128 @@ export default function CreatePage() {
   const handleBack = () => {
     if (step > 1) {
       setStep(step - 1)
+    }
+  }
+
+  // Handle back from catchphrase step
+  const handleCatchphraseBack = () => {
+    setStep(3)
+    setGeneratedCaption('')
+  }
+
+  // Determine which step to render
+  const renderStep = () => {
+    if (formState.skipImage) {
+      // skipImage flow: 1->2->3->4(generating)->5(result)
+      switch (step) {
+        case 1:
+          return <StepPostType onSelect={handleSelectPostType} />
+        case 2:
+          return formState.postType ? (
+            <StepContentInput
+              postType={formState.postType}
+              initialText={formState.inputText}
+              initialUrl={formState.sourceUrl}
+              onSubmit={handleContentSubmit}
+              onBack={handleBack}
+            />
+          ) : null
+        case 3:
+          return (
+            <StepImageSettings
+              initialStyle={formState.imageStyle}
+              initialAspectRatio={formState.aspectRatio}
+              initialCharacterId={formState.characterId}
+              initialSkipImage={formState.skipImage}
+              initialUseCharacterImage={formState.useCharacterImage}
+              onSubmit={handleImageSettingsSubmit}
+              onBack={handleBack}
+            />
+          )
+        case 4:
+          return (
+            <StepGenerating
+              steps={generationSteps}
+              progress={generationProgress}
+            />
+          )
+        case 5:
+          return generatedResult ? (
+            <StepResult
+              caption={generatedResult.caption}
+              hashtags={generatedResult.hashtags}
+              imageUrl={generatedResult.imageUrl}
+              aspectRatio={formState.aspectRatio}
+              onRegenerateImage={undefined}
+              onCreateNew={handleCreateNew}
+              isRegenerating={isRegenerating}
+            />
+          ) : null
+        default:
+          return null
+      }
+    } else {
+      // Normal flow: 1->2->3->4(catchphrase)->5(generating)->6(result)
+      switch (step) {
+        case 1:
+          return <StepPostType onSelect={handleSelectPostType} />
+        case 2:
+          return formState.postType ? (
+            <StepContentInput
+              postType={formState.postType}
+              initialText={formState.inputText}
+              initialUrl={formState.sourceUrl}
+              onSubmit={handleContentSubmit}
+              onBack={handleBack}
+            />
+          ) : null
+        case 3:
+          return (
+            <StepImageSettings
+              initialStyle={formState.imageStyle}
+              initialAspectRatio={formState.aspectRatio}
+              initialCharacterId={formState.characterId}
+              initialSkipImage={formState.skipImage}
+              initialUseCharacterImage={formState.useCharacterImage}
+              onSubmit={handleImageSettingsSubmit}
+              onBack={handleBack}
+            />
+          )
+        case 4:
+          return generatedCaption ? (
+            <StepCatchphrase
+              caption={generatedCaption}
+              onSubmit={handleCatchphraseSubmit}
+              onBack={handleCatchphraseBack}
+            />
+          ) : (
+            <StepGenerating
+              steps={[{ id: 'caption', label: '投稿文を生成中...', status: 'loading' }]}
+              progress={50}
+            />
+          )
+        case 5:
+          return (
+            <StepGenerating
+              steps={generationSteps}
+              progress={generationProgress}
+            />
+          )
+        case 6:
+          return generatedResult ? (
+            <StepResult
+              caption={generatedResult.caption}
+              hashtags={generatedResult.hashtags}
+              imageUrl={generatedResult.imageUrl}
+              aspectRatio={formState.aspectRatio}
+              onRegenerateImage={handleRegenerateImage}
+              onCreateNew={handleCreateNew}
+              isRegenerating={isRegenerating}
+            />
+          ) : null
+        default:
+          return null
+      }
     }
   }
 
@@ -316,49 +630,10 @@ export default function CreatePage() {
       </div>
 
       <div className="max-w-2xl mx-auto">
-        <ProgressIndicator currentStep={step} totalSteps={5} />
+        <ProgressIndicator currentStep={step} totalSteps={totalSteps} />
 
         <div className="p-6 bg-white/5 border border-white/10 rounded-2xl">
-          {step === 1 && <StepPostType onSelect={handleSelectPostType} />}
-
-          {step === 2 && formState.postType && (
-            <StepContentInput
-              postType={formState.postType}
-              initialText={formState.inputText}
-              initialUrl={formState.sourceUrl}
-              onSubmit={handleContentSubmit}
-              onBack={handleBack}
-            />
-          )}
-
-          {step === 3 && (
-            <StepImageSettings
-              initialStyle={formState.imageStyle}
-              initialAspectRatio={formState.aspectRatio}
-              initialCharacterId={formState.characterId}
-              onSubmit={handleImageSettingsSubmit}
-              onBack={handleBack}
-            />
-          )}
-
-          {step === 4 && (
-            <StepGenerating
-              steps={generationSteps}
-              progress={generationProgress}
-            />
-          )}
-
-          {step === 5 && generatedResult && (
-            <StepResult
-              caption={generatedResult.caption}
-              hashtags={generatedResult.hashtags}
-              imageUrl={generatedResult.imageUrl}
-              aspectRatio={formState.aspectRatio}
-              onRegenerateImage={handleRegenerateImage}
-              onCreateNew={handleCreateNew}
-              isRegenerating={isRegenerating}
-            />
-          )}
+          {renderStep()}
         </div>
       </div>
     </div>

@@ -94,7 +94,11 @@ export default function Home() {
           </div>
 
           {/* 特徴セクション */}
-          <div className="mt-20 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-20">
+            <h2 className="text-center text-xl font-bold text-white mb-8">
+              AIがまとめて生成
+            </h2>
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             <div className="group text-center rounded-2xl bg-white/10 backdrop-blur-md p-6 border border-white/20 shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg group-hover:scale-110 transition-transform duration-300">
                 <svg
@@ -173,38 +177,6 @@ export default function Home() {
               </p>
             </div>
           </div>
-
-          {/* 使い方セクション */}
-          <div className="mt-20">
-            <h2 className="text-center text-xl font-bold text-white mb-8">
-              かんたん5ステップ
-            </h2>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-center">
-              <div className="flex flex-col items-center">
-                <div className="w-12 h-12 rounded-full bg-purple-500/20 border border-purple-500/50 flex items-center justify-center text-purple-400 font-bold">1</div>
-                <p className="mt-2 text-sm text-gray-300">タイプ選択</p>
-              </div>
-              <div className="text-gray-500 hidden sm:block">→</div>
-              <div className="flex flex-col items-center">
-                <div className="w-12 h-12 rounded-full bg-pink-500/20 border border-pink-500/50 flex items-center justify-center text-pink-400 font-bold">2</div>
-                <p className="mt-2 text-sm text-gray-300">内容入力</p>
-              </div>
-              <div className="text-gray-500 hidden sm:block">→</div>
-              <div className="flex flex-col items-center">
-                <div className="w-12 h-12 rounded-full bg-orange-500/20 border border-orange-500/50 flex items-center justify-center text-orange-400 font-bold">3</div>
-                <p className="mt-2 text-sm text-gray-300">画像設定</p>
-              </div>
-              <div className="text-gray-500 hidden sm:block">→</div>
-              <div className="flex flex-col items-center">
-                <div className="w-12 h-12 rounded-full bg-yellow-500/20 border border-yellow-500/50 flex items-center justify-center text-yellow-400 font-bold">4</div>
-                <p className="mt-2 text-sm text-gray-300">AI生成</p>
-              </div>
-              <div className="text-gray-500 hidden sm:block">→</div>
-              <div className="flex flex-col items-center">
-                <div className="w-12 h-12 rounded-full bg-green-500/20 border border-green-500/50 flex items-center justify-center text-green-400 font-bold">5</div>
-                <p className="mt-2 text-sm text-gray-300">完成！</p>
-              </div>
-            </div>
           </div>
 
           {/* 最終CTA */}

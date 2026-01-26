@@ -5,9 +5,14 @@ interface ProgressIndicatorProps {
   totalSteps: number
 }
 
-const STEP_LABELS = ['タイプ選択', '内容入力', '画像設定', '生成', '完成']
+// 6 steps: with image generation (includes catchphrase step)
+const STEP_LABELS_WITH_IMAGE = ['タイプ選択', '内容入力', '画像設定', 'キャッチコピー', '生成', '完成']
+
+// 5 steps: skip image generation
+const STEP_LABELS_SKIP_IMAGE = ['タイプ選択', '内容入力', '画像設定', '生成', '完成']
 
 export function ProgressIndicator({ currentStep, totalSteps }: ProgressIndicatorProps) {
+  const stepLabels = totalSteps === 6 ? STEP_LABELS_WITH_IMAGE : STEP_LABELS_SKIP_IMAGE
   return (
     <div className="flex items-center justify-center gap-2 mb-8">
       {Array.from({ length: totalSteps }).map((_, index) => {
@@ -35,7 +40,7 @@ export function ProgressIndicator({ currentStep, totalSteps }: ProgressIndicator
                   isCurrent ? 'text-blue-400' : isComplete ? 'text-green-400' : 'text-slate-500'
                 }`}
               >
-                {STEP_LABELS[index]}
+                {stepLabels[index]}
               </span>
             </div>
 

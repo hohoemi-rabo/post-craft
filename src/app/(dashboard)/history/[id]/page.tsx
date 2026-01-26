@@ -78,16 +78,22 @@ export default function PostDetailPage({
     setTimeout(() => setCopiedCaption(false), 2000)
   }
 
+  const formatHashtag = (tag: string) => {
+    return tag.startsWith('#') ? tag : `#${tag}`
+  }
+
   const handleCopyHashtags = async () => {
     if (!post) return
-    await navigator.clipboard.writeText(post.generated_hashtags.join(' '))
+    const hashtagsText = post.generated_hashtags.map(formatHashtag).join(' ')
+    await navigator.clipboard.writeText(hashtagsText)
     setCopiedHashtags(true)
     setTimeout(() => setCopiedHashtags(false), 2000)
   }
 
   const handleCopyAll = async () => {
     if (!post) return
-    const text = `${post.generated_caption}\n\n${post.generated_hashtags.join(' ')}`
+    const hashtagsText = post.generated_hashtags.map(formatHashtag).join(' ')
+    const text = `${post.generated_caption}\n\n${hashtagsText}`
     await navigator.clipboard.writeText(text)
     setCopiedAll(true)
     setTimeout(() => setCopiedAll(false), 2000)
@@ -249,7 +255,7 @@ export default function PostDetailPage({
                   key={index}
                   className="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded-full"
                 >
-                  {tag}
+                  {formatHashtag(tag)}
                 </span>
               ))}
             </div>

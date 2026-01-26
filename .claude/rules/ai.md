@@ -7,7 +7,8 @@ Google Gemini、プロンプト、画像生成のルール。
 | 用途 | モデル |
 |------|--------|
 | 文章生成 | `gemini-2.0-flash` |
-| 画像生成 | `imagen-3.0-generate-002` |
+| 画像生成 | `gemini-3-pro-image-preview` |
+| 画像生成（マルチモーダル） | `gemini-3-pro-image-preview` |
 | 画像分析 | `gemini-2.0-flash` (Vision) |
 
 ## 文章生成
@@ -175,6 +176,30 @@ AIを使うと…
 テーマ: {theme_description}
 ```
 
+## キャッチコピー生成
+
+投稿内容から画像に表示するキャッチコピーを生成:
+```
+以下の投稿内容から、画像に入れるキャッチコピーを1つ生成してください。
+
+条件:
+- 10〜20文字程度の短いフレーズ
+- 見た人の興味を引く、インパクトのある表現
+- 疑問形や「〜しませんか？」「〜できる！」などの形式も可
+- 絵文字は使わない
+- 日本語で出力
+
+投稿内容:
+{caption}
+
+キャッチコピーのみを出力してください（説明や補足は不要）:
+```
+
+### キャッチコピー表示
+- 全ての画像スタイルでキャッチコピーを画像内に表示
+- 確認画面でユーザーが編集・再生成可能
+- 30文字以内の制限
+
 ## キャラクター機能
 
 ### 特徴抽出項目
@@ -206,12 +231,18 @@ AIを使うと…
 
 ### 画像生成フロー
 ```
-1. キャラクターの特徴テキストを取得（未登録ならデフォルト使用）
-2. 投稿内容からシーン説明を生成
-3. スタイル別ベースプロンプトに挿入
-4. Gemini Imagen で画像生成
-5. Supabase Storage に保存
+1. 投稿文を生成
+2. キャッチコピーを生成（確認画面で編集可能）
+3. キャラクターの特徴テキストを取得（未登録ならデフォルト使用）
+4. 投稿内容からシーン説明を生成
+5. スタイル別ベースプロンプト + キャッチコピーで画像生成
+6. Supabase Storage に保存
 ```
+
+### マルチモーダル画像生成
+- `useCharacterImage` オプションで有効化
+- キャラクター画像を参照して一貫性のある画像を生成
+- 同じ `gemini-3-pro-image-preview` モデルを使用
 
 ## シーン説明生成
 
@@ -240,12 +271,18 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!)
 
 // 文章生成
 export const geminiFlash = genAI.getGenerativeModel({
-  model: 'gemini-2.0-flash-exp'
+  model: 'gemini-2.0-flash'
 })
 
-// 画像生成 (Imagen)
-// imagen-3.0-generate-002 を使用
-// generateImages API 経由で呼び出し
+// 画像生成（テキストのみ）
+export const geminiImageGen = genAI.getGenerativeModel({
+  model: 'gemini-3-pro-image-preview'
+})
+
+// 画像生成（マルチモーダル - キャラクター参照）
+export const geminiImageGenMultimodal = genAI.getGenerativeModel({
+  model: 'gemini-3-pro-image-preview'
+})
 ```
 
 ## パフォーマンス目標

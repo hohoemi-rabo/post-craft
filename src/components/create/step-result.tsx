@@ -7,9 +7,9 @@ import { type AspectRatio } from '@/lib/image-styles'
 interface StepResultProps {
   caption: string
   hashtags: string[]
-  imageUrl: string
+  imageUrl: string | null
   aspectRatio: AspectRatio
-  onRegenerateImage: () => void
+  onRegenerateImage?: () => void
   onCreateNew: () => void
   isRegenerating?: boolean
 }
@@ -54,6 +54,7 @@ export function StepResult({
   }
 
   const handleDownloadImage = async () => {
+    if (!imageUrl) return
     try {
       const response = await fetch(imageUrl)
       const blob = await response.blob()
@@ -140,50 +141,52 @@ export function StepResult({
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className={`grid ${imageUrl ? 'md:grid-cols-2' : ''} gap-6`}>
         {/* Image section */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium text-slate-300">
-              生成画像
-            </label>
+        {imageUrl && onRegenerateImage && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-slate-300">
+                生成画像
+              </label>
+              <button
+                type="button"
+                onClick={onRegenerateImage}
+                disabled={isRegenerating}
+                className={`text-xs px-3 py-1 bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg transition-colors ${
+                  isRegenerating ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                {isRegenerating ? '生成中...' : '🔄 再生成'}
+              </button>
+            </div>
+            <div
+              className={`relative ${aspectClass} max-w-xs mx-auto bg-white/5 border border-white/10 rounded-xl overflow-hidden`}
+            >
+              {isRegenerating ? (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-10 h-10 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+                </div>
+              ) : (
+                <Image
+                  src={imageUrl}
+                  alt="Generated image"
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+              )}
+            </div>
             <button
               type="button"
-              onClick={onRegenerateImage}
+              onClick={handleDownloadImage}
               disabled={isRegenerating}
-              className={`text-xs px-3 py-1 bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg transition-colors ${
-                isRegenerating ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
+              className="w-full max-w-xs mx-auto block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
             >
-              {isRegenerating ? '生成中...' : '🔄 再生成'}
+              ⬇️ 画像をダウンロード
             </button>
           </div>
-          <div
-            className={`relative ${aspectClass} max-w-xs mx-auto bg-white/5 border border-white/10 rounded-xl overflow-hidden`}
-          >
-            {isRegenerating ? (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-10 h-10 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
-              </div>
-            ) : (
-              <Image
-                src={imageUrl}
-                alt="Generated image"
-                fill
-                className="object-cover"
-                unoptimized
-              />
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={handleDownloadImage}
-            disabled={isRegenerating}
-            className="w-full max-w-xs mx-auto block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
-          >
-            ⬇️ 画像をダウンロード
-          </button>
-        </div>
+        )}
 
         {/* Caption section */}
         <div className="space-y-4">

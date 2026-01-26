@@ -13,8 +13,14 @@ export const geminiFlash = genAI.getGenerativeModel({
   model: 'gemini-2.5-flash',
 })
 
-// Image generation model
+// Image generation model (text-only)
 export const geminiImageGen = genAI.getGenerativeModel({
+  model: 'gemini-3-pro-image-preview',
+})
+
+// Image generation model (multimodal - with reference image)
+// Using the same model as text-only, but with image input
+export const geminiImageGenMultimodal = genAI.getGenerativeModel({
   model: 'gemini-3-pro-image-preview',
 })
 

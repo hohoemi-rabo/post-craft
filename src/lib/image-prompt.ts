@@ -7,6 +7,20 @@ export interface ImagePromptOptions {
   aspectRatio: AspectRatio
   characterDescription?: string
   sceneDescription: string
+  catchphrase?: string
+}
+
+export interface MultimodalImagePromptOptions {
+  style: ImageStyle
+  aspectRatio: AspectRatio
+  sceneDescription: string
+  catchphrase?: string
+}
+
+export interface IllustrationPromptOptions {
+  aspectRatio: AspectRatio
+  sceneDescription: string
+  catchphrase: string
 }
 
 /**
@@ -45,6 +59,127 @@ export function buildImagePrompt(options: ImagePromptOptions): string {
 
   // Scene description
   parts.push(`シーン: ${options.sceneDescription}`)
+
+  // Catchphrase text instruction
+  if (options.catchphrase) {
+    parts.push('')
+    parts.push('【重要】以下のテキストを画像内に目立つように配置してください:')
+    parts.push(`「${options.catchphrase}」`)
+    parts.push('')
+    parts.push('テキストの条件:')
+    parts.push('- 読みやすい日本語フォント')
+    parts.push('- 画像の上部または中央に大きく配置')
+    parts.push('- 背景とコントラストがはっきりした色')
+    parts.push('- 文字が切れないように余白を確保')
+  }
+
+  return parts.join('\n')
+}
+
+/**
+ * Build image generation prompt for multimodal (with reference image)
+ */
+export function buildMultimodalImagePrompt(options: MultimodalImagePromptOptions): string {
+  const styleConfig = IMAGE_STYLES[options.style]
+
+  const parts: string[] = []
+
+  // Instruction for using reference image
+  parts.push('添付した画像のキャラクターを参考にして、同じ人物が登場する新しい画像を生成してください。')
+  parts.push('キャラクターの顔の特徴、髪型、雰囲気をできるだけ維持してください。')
+  parts.push('')
+
+  // Aspect ratio instruction
+  if (options.aspectRatio === '9:16') {
+    parts.push('縦長のショート動画用画像（9:16アスペクト比）。')
+  } else {
+    parts.push('正方形のフィード投稿用画像（1:1アスペクト比）。')
+  }
+
+  // Base style prompt
+  parts.push(styleConfig.basePrompt)
+
+  // Character placement
+  if (styleConfig.supportsCharacter) {
+    parts.push('参照画像のキャラクターを中央に配置。')
+  }
+
+  // Scene description
+  parts.push(`シーン: ${options.sceneDescription}`)
+
+  // Catchphrase text instruction
+  if (options.catchphrase) {
+    parts.push('')
+    parts.push('【重要】以下のテキストを画像内に目立つように配置してください:')
+    parts.push(`「${options.catchphrase}」`)
+    parts.push('')
+    parts.push('テキストの条件:')
+    parts.push('- 読みやすい日本語フォント')
+    parts.push('- 画像の上部または中央に大きく配置')
+    parts.push('- 背景とコントラストがはっきりした色')
+    parts.push('- 文字が切れないように余白を確保')
+  }
+
+  return parts.join('\n')
+}
+
+/**
+ * Generate catchphrase for illustration style images
+ */
+export async function generateCatchphrase(caption: string): Promise<string> {
+  const prompt = `以下の投稿内容から、画像に入れるキャッチコピーを1つ生成してください。
+
+条件:
+- 10〜20文字程度の短いフレーズ
+- 見た人の興味を引く、インパクトのある表現
+- 疑問形や「〜しませんか？」「〜できる！」などの形式も可
+- 絵文字は使わない
+- 日本語で出力
+
+投稿内容:
+${caption.slice(0, 500)}
+
+キャッチコピーのみを出力してください（説明や補足は不要）:`
+
+  const result = await geminiFlash.generateContent(prompt)
+  const text = result.response.text().trim()
+
+  // Remove quotes if present
+  return text.replace(/^[「『"']|[」』"']$/g, '')
+}
+
+/**
+ * Build image prompt for illustration style with text
+ */
+export function buildIllustrationWithTextPrompt(options: IllustrationPromptOptions): string {
+  const parts: string[] = []
+
+  // Aspect ratio instruction
+  if (options.aspectRatio === '9:16') {
+    parts.push('縦長のショート動画用画像（9:16アスペクト比）。')
+  } else {
+    parts.push('正方形のフィード投稿用画像（1:1アスペクト比）。')
+  }
+
+  // Base style
+  parts.push('フラットデザインのイラスト風、ポップで明るい色使い。')
+  parts.push('シンプルでかわいらしい雰囲気、2Dイラストスタイル。')
+  parts.push('人物、キャラクター、顔、手、体は絶対に含めないでください。')
+  parts.push('アイコン、シンボル、抽象的な図形、風景イラストのみで表現。')
+
+  // Scene description
+  parts.push(`テーマ: ${options.sceneDescription}`)
+
+  // Text instruction
+  parts.push('')
+  parts.push('【重要】以下のテキストを画像内に目立つように配置してください:')
+  parts.push(`「${options.catchphrase}」`)
+  parts.push('')
+  parts.push('テキストの条件:')
+  parts.push('- 読みやすい日本語フォント')
+  parts.push('- 画像の中央または上部に大きく配置')
+  parts.push('- 背景とコントラストがはっきりした色')
+  parts.push('- 文字が切れないように余白を確保')
 
   return parts.join('\n')
 }

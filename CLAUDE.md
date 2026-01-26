@@ -20,7 +20,7 @@ Post Craft プロジェクトのガイドライン。
 | Database | Supabase (PostgreSQL) |
 | Auth | NextAuth.js + Google OAuth |
 | AI (文章) | Google Gemini Flash (gemini-2.0-flash) |
-| AI (画像) | Google Gemini Imagen (imagen-3.0-generate-002) |
+| AI (画像) | Google Gemini (gemini-3-pro-image-preview) |
 | Hosting | Vercel |
 
 ## 開発コマンド
@@ -48,6 +48,24 @@ src/
 ├── lib/                   # ユーティリティ
 └── types/                 # 型定義
 ```
+
+## 主要機能
+
+### 投稿作成フロー
+画像生成あり（6ステップ）:
+1. タイプ選択 → 2. 内容入力 → 3. 画像設定 → 4. キャッチコピー確認 → 5. 生成 → 6. 完成
+
+画像スキップ（5ステップ）:
+1. タイプ選択 → 2. 内容入力 → 3. 画像設定 → 4. 生成 → 5. 完成
+
+### キャッチコピー機能
+- 投稿内容からAIがキャッチコピーを自動生成
+- 確認画面で編集・再生成可能（30文字以内）
+- 全ての画像スタイルで画像内にテキスト表示
+
+### マルチモーダル画像生成
+- キャラクター画像を参照して一貫性のある画像を生成
+- `useCharacterImage` オプションで有効化
 
 ## ルールファイル
 
