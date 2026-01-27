@@ -2,6 +2,18 @@
 
 export type ImageStyle = 'manga_male' | 'manga_female' | 'pixel_art' | 'illustration'
 export type AspectRatio = '1:1' | '9:16'
+export type BackgroundType = 'tech' | 'auto'
+
+export const BACKGROUND_TYPES: Record<BackgroundType, { name: string; description: string }> = {
+  tech: {
+    name: 'テクノロジー背景',
+    description: 'PC、AI、デジタル要素',
+  },
+  auto: {
+    name: '内容に合わせる',
+    description: 'シーン説明から自動判定',
+  },
+}
 
 export interface StyleConfig {
   id: ImageStyle
@@ -21,9 +33,7 @@ export const IMAGE_STYLES: Record<ImageStyle, StyleConfig> = {
     basePrompt: `日本のマンガ・アニメ調のイラストスタイル。
 テック系・ビジネス系のサムネイル画像。
 鮮やかでカラフルな配色、グラデーション背景。
-プロフェッショナルだけど親しみやすい雰囲気。
-テキストや文字は含めない、ビジュアルのみ。
-背景にはPC、コード、AI、テクノロジー要素を含める。`,
+プロフェッショナルだけど親しみやすい雰囲気。`,
     supportsCharacter: true,
   },
   manga_female: {
@@ -34,9 +44,7 @@ export const IMAGE_STYLES: Record<ImageStyle, StyleConfig> = {
     basePrompt: `日本のマンガ・アニメ調のイラストスタイル。
 クリエイティブ系・スタートアップ系のサムネイル画像。
 パステル調やソフトなグラデーション背景。
-スタイリッシュでトレンド感のある雰囲気。
-テキストや文字は含めない、ビジュアルのみ。
-背景にはPC、デザイン、SNS、クリエイティブ要素を含める。`,
+スタイリッシュでトレンド感のある雰囲気。`,
     supportsCharacter: true,
   },
   pixel_art: {
@@ -46,10 +54,8 @@ export const IMAGE_STYLES: Record<ImageStyle, StyleConfig> = {
     icon: '👾',
     basePrompt: `ピクセルアート・ドット絵スタイル。
 レトロゲーム風のかわいいちびキャラクター。
-サイバー・デジタルな背景、青いネオングリッド。
-8bit/16bitゲームの雰囲気。
-テキストや文字は含めない、ビジュアルのみ。
-背景にはデジタル空間、グリッド、テクノロジー要素を含める。`,
+サイバー・デジタルな背景。
+8bit/16bitゲームの雰囲気。`,
     supportsCharacter: true,
   },
   illustration: {

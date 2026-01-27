@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth'
 import { createServerClient } from '@/lib/supabase'
 import { geminiImageGen, geminiImageGenMultimodal } from '@/lib/gemini'
 import { buildImagePrompt, buildMultimodalImagePrompt } from '@/lib/image-prompt'
-import { IMAGE_STYLES, ASPECT_RATIOS, type ImageStyle, type AspectRatio } from '@/lib/image-styles'
+import { IMAGE_STYLES, ASPECT_RATIOS, type ImageStyle, type AspectRatio, type BackgroundType } from '@/lib/image-styles'
 
 export const maxDuration = 60 // Allow up to 60 seconds for image generation
 
@@ -15,6 +15,7 @@ interface GenerateImageRequest {
   postId?: string
   useCharacterImage?: boolean
   catchphrase?: string // Text to display on the image
+  backgroundType?: BackgroundType // Background style (tech or auto)
 }
 
 // POST /api/generate/image - Generate an image using Gemini
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
 
   try {
     const body: GenerateImageRequest = await request.json()
-    const { style, aspectRatio, characterId, sceneDescription, postId, useCharacterImage, catchphrase } = body
+    const { style, aspectRatio, characterId, sceneDescription, postId, useCharacterImage, catchphrase, backgroundType } = body
 
     // Validation
     if (!style || !IMAGE_STYLES[style]) {
@@ -76,6 +77,7 @@ export async function POST(request: Request) {
           characterDescription,
           sceneDescription,
           catchphrase,
+          backgroundType,
         })
         result = await geminiImageGen.generateContent(prompt)
       } else {
@@ -89,6 +91,7 @@ export async function POST(request: Request) {
           aspectRatio,
           sceneDescription,
           catchphrase,
+          backgroundType,
         })
 
         // Generate with multimodal model (image + text)
@@ -110,6 +113,7 @@ export async function POST(request: Request) {
         characterDescription,
         sceneDescription,
         catchphrase,
+        backgroundType,
       })
       result = await geminiImageGen.generateContent(prompt)
     }

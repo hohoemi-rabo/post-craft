@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
-import { IMAGE_STYLES, ASPECT_RATIOS, type ImageStyle, type AspectRatio } from '@/lib/image-styles'
+import { IMAGE_STYLES, ASPECT_RATIOS, BACKGROUND_TYPES, type ImageStyle, type AspectRatio, type BackgroundType } from '@/lib/image-styles'
 import type { Character } from '@/types/supabase'
 
 interface StepImageSettingsProps {
@@ -11,7 +11,8 @@ interface StepImageSettingsProps {
   initialCharacterId: string | null
   initialSkipImage?: boolean
   initialUseCharacterImage?: boolean
-  onSubmit: (style: ImageStyle, aspectRatio: AspectRatio, characterId: string | null, skipImage: boolean, useCharacterImage: boolean) => void
+  initialBackgroundType?: BackgroundType
+  onSubmit: (style: ImageStyle, aspectRatio: AspectRatio, characterId: string | null, skipImage: boolean, useCharacterImage: boolean, backgroundType: BackgroundType) => void
   onBack: () => void
 }
 
@@ -21,6 +22,7 @@ export function StepImageSettings({
   initialCharacterId,
   initialSkipImage = false,
   initialUseCharacterImage = false,
+  initialBackgroundType = 'tech',
   onSubmit,
   onBack,
 }: StepImageSettingsProps) {
@@ -29,6 +31,7 @@ export function StepImageSettings({
   const [characterId, setCharacterId] = useState<string | null>(initialCharacterId)
   const [skipImage, setSkipImage] = useState(initialSkipImage)
   const [useCharacterImage, setUseCharacterImage] = useState(initialUseCharacterImage)
+  const [backgroundType, setBackgroundType] = useState<BackgroundType>(initialBackgroundType)
   const [characters, setCharacters] = useState<Character[]>([])
   const [isLoadingCharacters, setIsLoadingCharacters] = useState(true)
 
@@ -68,8 +71,10 @@ export function StepImageSettings({
   const handleSubmit = () => {
     // Only pass useCharacterImage if character has an image
     const effectiveUseCharacterImage = canUseCharacterImage ? useCharacterImage : false
-    onSubmit(style, aspectRatio, characterId, skipImage, effectiveUseCharacterImage)
+    onSubmit(style, aspectRatio, characterId, skipImage, effectiveUseCharacterImage, backgroundType)
   }
+
+  const backgroundTypes = Object.entries(BACKGROUND_TYPES) as [BackgroundType, typeof BACKGROUND_TYPES['tech']][]
 
   return (
     <div className="space-y-6">
@@ -131,6 +136,31 @@ export function StepImageSettings({
                   <div className="text-2xl mb-2">{s.icon}</div>
                   <div className="font-medium text-white text-sm">{s.name}</div>
                   <div className="text-xs text-slate-400 mt-1">{s.description}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Background type selection */}
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-slate-300">
+              背景タイプ
+            </label>
+            <div className="flex gap-3">
+              {backgroundTypes.map(([type, config]) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => setBackgroundType(type)}
+                  className={`flex-1 p-4 rounded-xl border-2 text-center transition-all ${
+                    backgroundType === type
+                      ? 'border-blue-500 bg-blue-500/10'
+                      : 'border-white/10 bg-white/5 hover:border-white/20'
+                  }`}
+                >
+                  <div className="text-2xl mb-2">{type === 'tech' ? '💻' : '🎨'}</div>
+                  <div className="font-medium text-white text-sm">{config.name}</div>
+                  <div className="text-xs text-slate-400">{config.description}</div>
                 </button>
               ))}
             </div>

@@ -38,8 +38,10 @@ export default async function DashboardPage() {
   const postTypeLabels: Record<string, string> = {
     solution: '解決タイプ',
     promotion: '宣伝タイプ',
-    tips: 'Tipsタイプ',
+    tips: 'AI活用タイプ',
     showcase: '実績タイプ',
+    useful: 'お役立ちタイプ',
+    howto: '使い方タイプ',
   }
 
   return (

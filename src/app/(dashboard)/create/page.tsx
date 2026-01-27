@@ -11,7 +11,7 @@ import {
   ProgressIndicator,
 } from '@/components/create'
 import { type PostType } from '@/types/post'
-import { type ImageStyle, type AspectRatio } from '@/lib/image-styles'
+import { type ImageStyle, type AspectRatio, type BackgroundType } from '@/lib/image-styles'
 
 interface FormState {
   postType: PostType | null
@@ -23,6 +23,7 @@ interface FormState {
   skipImage: boolean
   useCharacterImage: boolean
   catchphrase: string
+  backgroundType: BackgroundType
 }
 
 interface GeneratedResult {
@@ -48,6 +49,7 @@ const INITIAL_STATE: FormState = {
   skipImage: false,
   useCharacterImage: false,
   catchphrase: '',
+  backgroundType: 'tech',
 }
 
 export default function CreatePage() {
@@ -99,7 +101,8 @@ export default function CreatePage() {
     aspectRatio: AspectRatio,
     characterId: string | null,
     skipImage: boolean,
-    useCharacterImage: boolean
+    useCharacterImage: boolean,
+    backgroundType: BackgroundType
   ) => {
     setFormState((prev) => ({
       ...prev,
@@ -108,6 +111,7 @@ export default function CreatePage() {
       characterId,
       skipImage,
       useCharacterImage,
+      backgroundType,
     }))
 
     if (skipImage) {
@@ -204,6 +208,7 @@ export default function CreatePage() {
           sceneDescription,
           useCharacterImage,
           catchphrase,
+          backgroundType: formState.backgroundType,
         }),
       })
 
@@ -358,6 +363,7 @@ export default function CreatePage() {
             sceneDescription,
             useCharacterImage,
             catchphrase,
+            backgroundType: formState.backgroundType,
           }),
         })
 
@@ -462,6 +468,7 @@ export default function CreatePage() {
           sceneDescription,
           useCharacterImage: formState.useCharacterImage,
           catchphrase: formState.catchphrase,
+          backgroundType: formState.backgroundType,
         }),
       })
 
@@ -529,6 +536,7 @@ export default function CreatePage() {
               initialCharacterId={formState.characterId}
               initialSkipImage={formState.skipImage}
               initialUseCharacterImage={formState.useCharacterImage}
+              initialBackgroundType={formState.backgroundType}
               onSubmit={handleImageSettingsSubmit}
               onBack={handleBack}
             />
@@ -578,6 +586,7 @@ export default function CreatePage() {
               initialCharacterId={formState.characterId}
               initialSkipImage={formState.skipImage}
               initialUseCharacterImage={formState.useCharacterImage}
+              initialBackgroundType={formState.backgroundType}
               onSubmit={handleImageSettingsSubmit}
               onBack={handleBack}
             />

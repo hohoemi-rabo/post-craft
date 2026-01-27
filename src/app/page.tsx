@@ -33,7 +33,7 @@ export default function Home() {
             <p className="mx-auto mt-6 max-w-2xl text-base text-gray-300 sm:text-lg">
               AIが投稿文・ハッシュタグ・画像をまとめて作成。
               <br className="hidden sm:inline" />
-              4つの投稿タイプから選んで、あなたのInstagramをもっと魅力的に。
+              6つの投稿タイプから選んで、あなたのInstagramをもっと魅力的に。
             </p>
 
             {/* CTAボタン */}
@@ -59,9 +59,9 @@ export default function Home() {
           {/* 投稿タイプセクション */}
           <div className="mt-20">
             <h2 className="text-center text-xl font-bold text-white mb-8">
-              4つの投稿タイプ
+              6つの投稿タイプ
             </h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <div className="text-center rounded-2xl bg-white/10 backdrop-blur-md p-6 border border-white/20">
                 <div className="text-4xl mb-3">🔧</div>
                 <h3 className="text-lg font-semibold text-white">解決タイプ</h3>
@@ -78,9 +78,9 @@ export default function Home() {
               </div>
               <div className="text-center rounded-2xl bg-white/10 backdrop-blur-md p-6 border border-white/20">
                 <div className="text-4xl mb-3">💡</div>
-                <h3 className="text-lg font-semibold text-white">Tipsタイプ</h3>
+                <h3 className="text-lg font-semibold text-white">AI活用タイプ</h3>
                 <p className="mt-2 text-sm text-gray-300">
-                  便利な使い方を紹介
+                  AIの便利な使い方を紹介
                 </p>
               </div>
               <div className="text-center rounded-2xl bg-white/10 backdrop-blur-md p-6 border border-white/20">
@@ -88,6 +88,20 @@ export default function Home() {
                 <h3 className="text-lg font-semibold text-white">実績タイプ</h3>
                 <p className="mt-2 text-sm text-gray-300">
                   制作事例・成果を紹介
+                </p>
+              </div>
+              <div className="text-center rounded-2xl bg-white/10 backdrop-blur-md p-6 border border-white/20">
+                <div className="text-4xl mb-3">📝</div>
+                <h3 className="text-lg font-semibold text-white">お役立ちタイプ</h3>
+                <p className="mt-2 text-sm text-gray-300">
+                  汎用的な便利情報
+                </p>
+              </div>
+              <div className="text-center rounded-2xl bg-white/10 backdrop-blur-md p-6 border border-white/20">
+                <div className="text-4xl mb-3">📖</div>
+                <h3 className="text-lg font-semibold text-white">使い方タイプ</h3>
+                <p className="mt-2 text-sm text-gray-300">
+                  便利情報＋手順を紹介
                 </p>
               </div>
             </div>

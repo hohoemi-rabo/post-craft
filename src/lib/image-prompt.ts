@@ -1,4 +1,4 @@
-import { IMAGE_STYLES, type ImageStyle, type AspectRatio } from './image-styles'
+import { IMAGE_STYLES, type ImageStyle, type AspectRatio, type BackgroundType } from './image-styles'
 import { geminiFlash, parseJsonResponse } from './gemini'
 import type { PostType } from '@/types/post'
 
@@ -8,6 +8,7 @@ export interface ImagePromptOptions {
   characterDescription?: string
   sceneDescription: string
   catchphrase?: string
+  backgroundType?: BackgroundType
 }
 
 export interface MultimodalImagePromptOptions {
@@ -15,6 +16,29 @@ export interface MultimodalImagePromptOptions {
   aspectRatio: AspectRatio
   sceneDescription: string
   catchphrase?: string
+  backgroundType?: BackgroundType
+}
+
+/**
+ * Get background instruction based on style and background type
+ */
+function getBackgroundInstruction(style: ImageStyle, backgroundType: BackgroundType = 'tech', sceneDescription: string): string {
+  if (backgroundType === 'auto') {
+    // 内容に合わせる場合は、シーン説明に関連した背景
+    return `背景はシーンの内容（${sceneDescription}）に合わせた要素を含める。`
+  }
+
+  // テクノロジー背景の場合
+  switch (style) {
+    case 'manga_male':
+      return '背景にはPC、コード、AI、テクノロジー要素を含める。'
+    case 'manga_female':
+      return '背景にはPC、デザイン、SNS、クリエイティブ要素を含める。'
+    case 'pixel_art':
+      return '背景にはデジタル空間、グリッド、テクノロジー要素を含める。'
+    default:
+      return ''
+  }
 }
 
 export interface IllustrationPromptOptions {
@@ -40,6 +64,12 @@ export function buildImagePrompt(options: ImagePromptOptions): string {
 
   // Base style prompt
   parts.push(styleConfig.basePrompt)
+
+  // Background instruction based on type
+  const backgroundInstruction = getBackgroundInstruction(options.style, options.backgroundType, options.sceneDescription)
+  if (backgroundInstruction) {
+    parts.push(backgroundInstruction)
+  }
 
   // Character description (if supported)
   if (styleConfig.supportsCharacter) {
@@ -98,6 +128,12 @@ export function buildMultimodalImagePrompt(options: MultimodalImagePromptOptions
 
   // Base style prompt
   parts.push(styleConfig.basePrompt)
+
+  // Background instruction based on type
+  const backgroundInstruction = getBackgroundInstruction(options.style, options.backgroundType, options.sceneDescription)
+  if (backgroundInstruction) {
+    parts.push(backgroundInstruction)
+  }
 
   // Character placement
   if (styleConfig.supportsCharacter) {
@@ -194,8 +230,10 @@ export async function generateSceneDescription(
   const postTypeNames: Record<PostType, string> = {
     solution: '解決タイプ（シニア向け）',
     promotion: '宣伝タイプ',
-    tips: 'Tips/知識タイプ',
+    tips: 'AI活用タイプ',
     showcase: '実績/事例タイプ',
+    useful: 'お役立ちタイプ',
+    howto: '使い方タイプ',
   }
 
   const prompt = `以下の投稿内容から、画像のシーン説明を生成してください。
@@ -233,8 +271,10 @@ export async function generateSceneSuggestions(
   const postTypeNames: Record<PostType, string> = {
     solution: '解決タイプ（シニア向け）',
     promotion: '宣伝タイプ',
-    tips: 'Tips/知識タイプ',
+    tips: 'AI活用タイプ',
     showcase: '実績/事例タイプ',
+    useful: 'お役立ちタイプ',
+    howto: '使い方タイプ',
   }
 
   const prompt = `以下の投稿内容から、画像生成用のシーン説明を${count}個生成してください。

@@ -61,6 +61,41 @@ AIを使うと…
 ---
 📍一緒に作りませんか？
 無料相談はプロフィールから`,
+
+  useful: `【{title}】
+
+{topic}を使うと…
+✨ {benefit1}
+✨ {benefit2}
+✨ {benefit3}
+
+例えば…
+{example}
+
+---
+📍{footer_message}`,
+
+  howto: `【{title}】
+
+{topic}を使うと…
+✨ {benefit1}
+✨ {benefit2}
+✨ {benefit3}
+
+例えば…
+{example}
+
+---
+{howto_title}
+
+1. {step1}
+
+2. {step2}
+
+3. {step3}
+
+---
+📍{footer_message}`,
 }
 
 // Field labels for UI
@@ -91,6 +126,13 @@ export const FIELD_LABELS: Record<string, string> = {
   challenge: 'お客様の課題',
   solution: '作ったもの・解決策',
   result: '結果・成果',
+
+  // Useful type
+  topic: 'トピック・主題',
+  footer_message: 'フッターメッセージ',
+
+  // Howto type
+  howto_title: '使い方の見出し',
 }
 
 // Apply template with data

@@ -40,12 +40,24 @@ const TYPE_PROMPTS: Record<PostType, string> = {
   promotion: `サービスや商品の宣伝投稿です。
 入力メモに書かれた具体的なサービス・商品情報を使ってください。
 課題や特徴は入力内容から抽出してください。`,
-  tips: `便利な使い方やTipsを紹介する投稿です。
-入力メモに書かれた具体的なTips・知識を使ってください。
+  tips: `AIの便利な使い方やTipsを紹介する投稿です。
+入力メモに書かれた具体的なAI活用法・知識を使ってください。
 メリットや例は入力内容から抽出してください。`,
   showcase: `制作実績や成功事例を紹介する投稿です。
 入力メモに書かれた具体的な実績・成果を使ってください。
 課題・解決策・結果は入力内容から抽出してください。`,
+  useful: `汎用的な便利情報やTipsを紹介する投稿です。
+入力メモに書かれた内容から、トピック（何についてか）を判断してください。
+topicには「○○」のように主題を入れてください（例：このアプリ、この方法、このサービス）。
+footer_messageには内容に合った締めの一言を入れてください（例：詳しくはプロフィールから、ぜひお試しください）。
+メリットや例は入力内容から抽出してください。`,
+  howto: `便利情報と使い方手順を紹介する投稿です。
+入力メモに書かれた内容から、トピック（何についてか）を判断してください。
+topicには主題を入れてください（例：Googleレンズ、LINE、このアプリ）。
+howto_titleには「○○の使い方」のような見出しを入れてください（例：Googleレンズの使い方）。
+step1, step2, step3には具体的な操作手順を詳しく入れてください。各ステップは「何をする」「どうやるか」を含めてください。
+footer_messageには内容に合った締めの一言を入れてください（例：ぜひお試しください）。
+メリットや例は入力内容から抽出してください。`,
 }
 
 export async function POST(request: Request) {
@@ -115,7 +127,10 @@ JSON形式で各変数の値を出力してください。
     const caption = applyTemplate(postType, templateData)
 
     // Step 3: Generate hashtags
-    const hashtagPrompt = `以下のInstagram投稿に適したハッシュタグを10個生成してください。
+    // 必須ハッシュタグ（常に含める）
+    const mandatoryHashtags = ['ほほ笑みラボ', '飯田市', 'パソコン教室', 'スマホ']
+
+    const hashtagPrompt = `以下のInstagram投稿に適したハッシュタグを6個生成してください。
 
 【投稿タイプ】
 ${typeConfig.name}
@@ -127,15 +142,19 @@ ${typeConfig.hashtagTrend.join(', ')}
 ${caption}
 
 【ルール】
-- 推奨タグから3-4個選択
+- 推奨タグから2-3個選択
 - 残りは投稿内容に基づいて生成
 - 日本語ハッシュタグを優先
 - 各ハッシュタグは#なしで出力
+- 以下のタグは含めないでください（別途追加します）: ほほ笑みラボ, 飯田市, パソコン教室, スマホ
 - JSON配列形式で出力: ["タグ1", "タグ2", ...]
 余計な説明は不要です。JSON配列のみ出力してください。`
 
     const hashtagsText = await generateWithRetry(hashtagPrompt)
-    const hashtags = parseJsonResponse<string[]>(hashtagsText)
+    const generatedHashtags = parseJsonResponse<string[]>(hashtagsText)
+
+    // 必須タグ + 生成タグを結合（計10個）
+    const hashtags = [...mandatoryHashtags, ...generatedHashtags]
 
     const response: GenerateCaptionResponse = {
       caption,
