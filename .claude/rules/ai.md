@@ -154,6 +154,7 @@ AIを使うと…
 | `manga_female` | マンガ風（女性） | クリエイティブ系、パステル調 |
 | `pixel_art` | ピクセルアート | レトロゲーム風、サイバー背景 |
 | `illustration` | イラスト（人物なし） | フラットデザイン、図形のみ |
+| `realistic` | リアル（写真風） | 写真のようなリアルな画像 |
 
 ### 背景タイプ
 | ID | タイプ | 説明 |
@@ -319,6 +320,7 @@ AIを使うと…
 
 ## API クライアント設定
 
+### Google Gemini
 ```typescript
 import { GoogleGenerativeAI } from '@google/generative-ai'
 

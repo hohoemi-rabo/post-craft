@@ -220,6 +220,41 @@ export function buildIllustrationWithTextPrompt(options: IllustrationPromptOptio
   return parts.join('\n')
 }
 
+export interface RealisticImagePromptOptions {
+  aspectRatio: AspectRatio
+  sceneDescription: string
+  catchphrase?: string
+}
+
+/**
+ * Build image generation prompt for realistic background (OpenAI)
+ */
+export function buildRealisticImagePrompt(options: RealisticImagePromptOptions): string {
+  const parts: string[] = []
+
+  // Aspect ratio instruction
+  if (options.aspectRatio === '9:16') {
+    parts.push('Create a vertical image (9:16 aspect ratio) for social media stories/reels.')
+  } else {
+    parts.push('Create a square image (1:1 aspect ratio) for social media feed post.')
+  }
+
+  parts.push('')
+  parts.push('Style: Photorealistic, high quality, professional photography style.')
+  parts.push('The image should look like a real photograph with natural lighting and realistic textures.')
+  parts.push('')
+
+  // Scene description
+  parts.push(`Scene: ${options.sceneDescription}`)
+  parts.push('')
+
+  // Important: No text in image for OpenAI (will overlay text separately if needed)
+  parts.push('Important: Do NOT include any text, letters, words, or typography in the image.')
+  parts.push('The image should be purely visual without any text elements.')
+
+  return parts.join('\n')
+}
+
 /**
  * Generate scene description from post content
  */

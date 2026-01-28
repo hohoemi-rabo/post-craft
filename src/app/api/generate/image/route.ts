@@ -61,8 +61,8 @@ export async function POST(request: Request) {
       }
     }
 
-    let result
     let prompt: string
+    let result
 
     // Use multimodal generation if character image is available
     if (useCharacterImage && characterImageUrl) {

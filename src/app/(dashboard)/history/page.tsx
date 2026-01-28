@@ -4,12 +4,13 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { POST_TYPES } from '@/lib/post-types'
+import { IMAGE_STYLES } from '@/lib/image-styles'
 import type { PostType } from '@/types/post'
 
 interface PostImage {
   id: string
   image_url: string
-  image_style: string | null
+  style: string | null
   aspect_ratio: string | null
 }
 
@@ -200,11 +201,17 @@ export default function HistoryPage() {
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
                         <span className="text-lg">{typeConfig?.icon}</span>
                         <span className="text-sm font-medium text-white">
                           {typeConfig?.name}
                         </span>
+                        {firstImage?.style && IMAGE_STYLES[firstImage.style as keyof typeof IMAGE_STYLES] && (
+                          <span className="px-2 py-0.5 bg-purple-500/20 text-purple-300 text-xs rounded-full">
+                            {IMAGE_STYLES[firstImage.style as keyof typeof IMAGE_STYLES].icon}{' '}
+                            {IMAGE_STYLES[firstImage.style as keyof typeof IMAGE_STYLES].name}
+                          </span>
+                        )}
                         <span className="text-xs text-slate-500">
                           {formatDate(post.created_at)}
                         </span>

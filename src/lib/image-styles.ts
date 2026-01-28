@@ -1,17 +1,19 @@
 // Image style definitions for AI image generation
 
-export type ImageStyle = 'manga_male' | 'manga_female' | 'pixel_art' | 'illustration'
+export type ImageStyle = 'manga_male' | 'manga_female' | 'pixel_art' | 'illustration' | 'realistic'
 export type AspectRatio = '1:1' | '9:16'
 export type BackgroundType = 'tech' | 'auto'
 
-export const BACKGROUND_TYPES: Record<BackgroundType, { name: string; description: string }> = {
+export const BACKGROUND_TYPES: Record<BackgroundType, { name: string; description: string; icon: string }> = {
   tech: {
     name: 'テクノロジー背景',
     description: 'PC、AI、デジタル要素',
+    icon: '💻',
   },
   auto: {
     name: '内容に合わせる',
     description: 'シーン説明から自動判定',
+    icon: '🎨',
   },
 }
 
@@ -68,6 +70,16 @@ export const IMAGE_STYLES: Record<ImageStyle, StyleConfig> = {
 シンプルでかわいらしい雰囲気、2Dイラストスタイル。
 人物、キャラクター、顔、手、体は絶対に含めないでください。
 アイコン、シンボル、抽象的な図形、風景イラストのみで表現。`,
+    supportsCharacter: false,
+  },
+  realistic: {
+    id: 'realistic',
+    name: 'リアル（写真風）',
+    description: '写真のようなリアルな画像',
+    icon: '📷',
+    basePrompt: `Photorealistic, high quality, professional photography style.
+Natural lighting and realistic textures.
+The image should look like a real photograph.`,
     supportsCharacter: false,
   },
 }
