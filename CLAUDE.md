@@ -21,6 +21,7 @@ Post Craft プロジェクトのガイドライン。
 | Auth | NextAuth.js + Google OAuth |
 | AI (文章) | Google Gemini Flash (gemini-2.0-flash) |
 | AI (画像) | Google Gemini (gemini-3-pro-image-preview) |
+| Instagram投稿 | Facebook Graph API v21.0 + FB JS SDK |
 | Hosting | Vercel |
 
 ## 開発コマンド
@@ -43,8 +44,11 @@ src/
 │   │   ├── history/       # 履歴
 │   │   ├── characters/    # キャラクター管理
 │   │   └── settings/      # 設定
-│   └── api/               # API Routes
+│   ├── api/               # API Routes
+│   └── publish/           # Instagram投稿（スタンドアロン）
 ├── components/            # UIコンポーネント
+│   ├── publish/           # Instagram投稿コンポーネント
+│   └── providers/         # Context Providers
 ├── lib/                   # ユーティリティ
 └── types/                 # 型定義
 ```
@@ -86,6 +90,19 @@ src/
 - 必須タグ4個: #ほほ笑みラボ #飯田市 #パソコン教室 #スマホ
 - 生成タグ6個: 投稿内容に基づいて自動生成
 - 計10個のハッシュタグ
+- コピー・投稿時は縦並び（改行区切り）で出力
+
+### Instagram投稿機能
+ダッシュボード内からInstagram Graph APIで直接投稿。
+
+- **統合箇所**: 投稿作成完了画面（StepResult）、履歴詳細ページ
+- **認証**: Facebook JS SDK → OAuth → long-lived token (60日)
+- **投稿フロー**: FBログイン → アカウント選択 → キャプション確認 → 投稿
+- **モーダル方式**: ページ遷移なしでフロー完結
+- **Context**: `InstagramPublishProvider` でFBログイン状態をダッシュボード内で共有
+- **画像**: 生成済みSupabase Storage URLをそのまま利用（再アップロード不要）
+- **スタンドアロン**: `/publish` ページも独立して利用可能
+- **制約**: Instagram Business/Creator Account 必須、画像必須（画像なし投稿は外部リンク）
 
 ## ルールファイル
 
@@ -116,6 +133,10 @@ GOOGLE_AI_API_KEY=
 
 # Analytics
 NEXT_PUBLIC_GA_ID=
+
+# Instagram投稿 (Facebook Graph API)
+NEXT_PUBLIC_FACEBOOK_APP_ID=
+FACEBOOK_APP_SECRET=
 ```
 
 ## 仕様書

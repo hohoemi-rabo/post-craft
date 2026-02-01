@@ -17,6 +17,9 @@ app/api/
 │   ├── caption/route.ts      # POST (文章生成)
 │   ├── image/route.ts        # POST (画像生成)
 │   └── scene/route.ts        # POST (シーン候補生成)
+├── instagram/
+│   ├── accounts/route.ts     # POST (FBトークン交換 + IGアカウント取得)
+│   └── publish/route.ts      # POST (Instagram投稿: JSON or FormData)
 ├── posts/
 │   ├── route.ts              # GET (list), POST (create)
 │   └── [id]/route.ts         # GET, DELETE
@@ -219,6 +222,42 @@ export const config = {
   matcher: ['/dashboard/:path*', '/create/:path*', '/history/:path*'],
 }
 ```
+
+## Instagram投稿 (Facebook Graph API)
+
+### アーキテクチャ
+```
+[ダッシュボード]
+  InstagramPublishProvider (Context)
+    → FB SDK初期化 + ログイン状態管理
+    → InstagramPublishModal (モーダル)
+      → FBログイン → アカウント選択 → 確認 → 投稿
+
+[API]
+  /api/instagram/accounts  → トークン交換 + アカウント取得
+  /api/instagram/publish   → メディアコンテナ作成 → ポーリング → 公開
+
+[ライブラリ]
+  lib/instagram.ts → Graph API v21.0 ラッパー関数
+```
+
+### Publish API のリクエスト形式
+```typescript
+// ダッシュボードから（JSON: 画像URL直接指定）
+POST /api/instagram/publish
+Content-Type: application/json
+{ imageUrl, caption, igAccountId, accessToken }
+
+// スタンドアロンページから（FormData: ファイルアップロード）
+POST /api/instagram/publish
+Content-Type: multipart/form-data
+image(File), caption, igAccountId, accessToken
+```
+
+### Facebook SDK の注意点
+- `FB.login` のコールバックに `async` 関数を渡してはいけない（"Expression is of type asyncfunction" エラー）
+- 非同期処理は `.then()` チェーンで対応
+- HTTPS 必須（localhost では `--experimental-https` オプションが必要）
 
 ## パフォーマンス
 
