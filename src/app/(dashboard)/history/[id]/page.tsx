@@ -86,7 +86,7 @@ export default function PostDetailPage({
 
   const handleCopyHashtags = async () => {
     if (!post) return
-    const hashtagsText = post.generated_hashtags.map(formatHashtag).join(' ')
+    const hashtagsText = post.generated_hashtags.map(formatHashtag).join('\n')
     await navigator.clipboard.writeText(hashtagsText)
     setCopiedHashtags(true)
     setTimeout(() => setCopiedHashtags(false), 2000)
@@ -94,7 +94,7 @@ export default function PostDetailPage({
 
   const handleCopyAll = async () => {
     if (!post) return
-    const hashtagsText = post.generated_hashtags.map(formatHashtag).join(' ')
+    const hashtagsText = post.generated_hashtags.map(formatHashtag).join('\n')
     const text = `${post.generated_caption}\n\n${hashtagsText}`
     await navigator.clipboard.writeText(text)
     setCopiedAll(true)

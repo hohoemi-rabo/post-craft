@@ -49,7 +49,7 @@ export function StepResult({
     // Ensure each hashtag has # prefix
     const hashtagsText = selectedArray
       .map((tag) => (tag.startsWith('#') ? tag : `#${tag}`))
-      .join(' ')
+      .join('\n')
     await navigator.clipboard.writeText(hashtagsText)
     setCopiedHashtags(true)
     setTimeout(() => setCopiedHashtags(false), 2000)
