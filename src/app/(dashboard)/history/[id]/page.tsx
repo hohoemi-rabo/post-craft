@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { POST_TYPES } from '@/lib/post-types'
 import type { PostType } from '@/types/post'
+import { InstagramPublishModal } from '@/components/publish/instagram-publish-modal'
 
 interface PostImage {
   id: string
@@ -38,6 +39,7 @@ export default function PostDetailPage({
   const [copiedHashtags, setCopiedHashtags] = useState(false)
   const [copiedAll, setCopiedAll] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showPublishModal, setShowPublishModal] = useState(false)
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -127,8 +129,10 @@ export default function PostDetailPage({
     }
   }
 
-  const handleOpenInstagram = () => {
-    window.open('https://www.instagram.com/', '_blank')
+  const getFullCaption = () => {
+    if (!post) return ''
+    const hashtagsText = post.generated_hashtags.map(formatHashtag).join(' ')
+    return `${post.generated_caption}\n\n${hashtagsText}`
   }
 
   const handleReuse = () => {
@@ -283,12 +287,23 @@ export default function PostDetailPage({
         >
           {copiedAll ? '✅ コピーしました' : '📋 すべてコピー'}
         </button>
-        <button
-          onClick={handleOpenInstagram}
-          className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-xl transition-colors"
-        >
-          📱 Instagram を開く
-        </button>
+        {firstImage ? (
+          <button
+            onClick={() => setShowPublishModal(true)}
+            className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-xl transition-colors"
+          >
+            📱 Instagramに投稿
+          </button>
+        ) : (
+          <a
+            href="https://www.instagram.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-xl transition-colors text-center"
+          >
+            📱 Instagram を開く
+          </a>
+        )}
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 border-t border-white/10 pt-6">
@@ -330,6 +345,16 @@ export default function PostDetailPage({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Instagram publish modal */}
+      {firstImage && (
+        <InstagramPublishModal
+          isOpen={showPublishModal}
+          onClose={() => setShowPublishModal(false)}
+          caption={getFullCaption()}
+          imageUrl={firstImage.image_url}
+        />
       )}
     </div>
   )

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { type AspectRatio } from '@/lib/image-styles'
+import { InstagramPublishModal } from '@/components/publish/instagram-publish-modal'
 
 interface StepResultProps {
   caption: string
@@ -30,6 +31,7 @@ export function StepResult({
   const [copiedCaption, setCopiedCaption] = useState(false)
   const [copiedHashtags, setCopiedHashtags] = useState(false)
   const [hashtagError, setHashtagError] = useState('')
+  const [showPublishModal, setShowPublishModal] = useState(false)
 
   const aspectClass = aspectRatio === '1:1' ? 'aspect-square' : 'aspect-[9/16]'
 
@@ -71,8 +73,12 @@ export function StepResult({
     }
   }
 
-  const handleOpenInstagram = () => {
-    window.open('https://www.instagram.com/', '_blank')
+  const getFullCaption = () => {
+    const selectedArray = Array.from(selectedHashtags)
+    const hashtagsText = selectedArray
+      .map((tag) => (tag.startsWith('#') ? tag : `#${tag}`))
+      .join(' ')
+    return `${editedCaption}\n\n${hashtagsText}`
   }
 
   const toggleHashtag = (tag: string) => {
@@ -332,13 +338,24 @@ export function StepResult({
 
       {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-3 pt-4">
-        <button
-          type="button"
-          onClick={handleOpenInstagram}
-          className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium rounded-xl transition-colors"
-        >
-          📱 Instagramを開く
-        </button>
+        {imageUrl ? (
+          <button
+            type="button"
+            onClick={() => setShowPublishModal(true)}
+            className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium rounded-xl transition-colors"
+          >
+            📱 Instagramに投稿
+          </button>
+        ) : (
+          <a
+            href="https://www.instagram.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium rounded-xl transition-colors text-center"
+          >
+            📱 Instagramを開く
+          </a>
+        )}
         <button
           type="button"
           onClick={onCreateNew}
@@ -347,6 +364,15 @@ export function StepResult({
           ✨ 新規作成
         </button>
       </div>
+
+      {imageUrl && (
+        <InstagramPublishModal
+          isOpen={showPublishModal}
+          onClose={() => setShowPublishModal(false)}
+          caption={getFullCaption()}
+          imageUrl={imageUrl}
+        />
+      )}
     </div>
   )
 }

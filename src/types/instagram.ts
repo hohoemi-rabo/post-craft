@@ -65,7 +65,7 @@ export interface ContainerStatus {
   errorMessage?: string
 }
 
-// Publish page state
+// Publish page state (standalone /publish page)
 export type PublishStep =
   | 'idle'
   | 'logging_in'
@@ -73,4 +73,14 @@ export type PublishStep =
   | 'composing'
   | 'publishing'
   | 'completed'
+  | 'error'
+
+// Publish modal state (dashboard integration)
+export type PublishModalStep =
+  | 'login'
+  | 'logging_in'
+  | 'select_account'
+  | 'confirm'
+  | 'publishing'
+  | 'success'
   | 'error'
