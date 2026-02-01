@@ -97,29 +97,32 @@ export function InstagramPublishProvider({
     setError(null)
 
     window.FB.login(
-      async (response) => {
+      (response) => {
         if (response.authResponse) {
-          try {
-            const fetchedAccounts = await fetchAccounts(
-              response.authResponse.accessToken
-            )
-            setAccounts(fetchedAccounts)
-            setIsLoggedIn(true)
+          const token = response.authResponse.accessToken
+          fetchAccounts(token)
+            .then((fetchedAccounts) => {
+              setAccounts(fetchedAccounts)
+              setIsLoggedIn(true)
 
-            if (fetchedAccounts.length === 1) {
-              setSelectedAccount(fetchedAccounts[0])
-            }
-          } catch (err) {
-            const message =
-              err instanceof Error
-                ? err.message
-                : 'アカウント情報の取得に失敗しました'
-            setError(message)
-          }
+              if (fetchedAccounts.length === 1) {
+                setSelectedAccount(fetchedAccounts[0])
+              }
+            })
+            .catch((err) => {
+              const message =
+                err instanceof Error
+                  ? err.message
+                  : 'アカウント情報の取得に失敗しました'
+              setError(message)
+            })
+            .finally(() => {
+              setIsLoggingIn(false)
+            })
         } else {
           setError('Facebookログインがキャンセルされました')
+          setIsLoggingIn(false)
         }
-        setIsLoggingIn(false)
       },
       {
         scope: 'instagram_basic,instagram_content_publish,pages_show_list',
