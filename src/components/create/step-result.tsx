@@ -77,7 +77,7 @@ export function StepResult({
     const selectedArray = Array.from(selectedHashtags)
     const hashtagsText = selectedArray
       .map((tag) => (tag.startsWith('#') ? tag : `#${tag}`))
-      .join(' ')
+      .join('\n')
     return `${editedCaption}\n\n${hashtagsText}`
   }
 

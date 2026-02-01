@@ -131,7 +131,7 @@ export default function PostDetailPage({
 
   const getFullCaption = () => {
     if (!post) return ''
-    const hashtagsText = post.generated_hashtags.map(formatHashtag).join(' ')
+    const hashtagsText = post.generated_hashtags.map(formatHashtag).join('\n')
     return `${post.generated_caption}\n\n${hashtagsText}`
   }
 
