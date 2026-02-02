@@ -11,6 +11,8 @@ interface InstagramPublishModalProps {
   onClose: () => void
   caption: string
   imageUrl: string
+  postId?: string
+  onPublishSuccess?: () => void
 }
 
 export function InstagramPublishModal({
@@ -18,6 +20,8 @@ export function InstagramPublishModal({
   onClose,
   caption,
   imageUrl,
+  postId,
+  onPublishSuccess,
 }: InstagramPublishModalProps) {
   const {
     sdkLoaded,
@@ -85,6 +89,24 @@ export function InstagramPublishModal({
 
         setMediaId(data.mediaId)
         setStep('success')
+
+        // Update publish status in database
+        if (postId) {
+          try {
+            await fetch(`/api/posts/${postId}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                instagram_published: true,
+                instagram_media_id: data.mediaId,
+              }),
+            })
+            onPublishSuccess?.()
+          } catch {
+            // Status update failure is non-critical
+            console.error('Failed to update publish status')
+          }
+        }
       } catch (err) {
         const message =
           err instanceof Error ? err.message : '投稿に失敗しました'
@@ -92,7 +114,7 @@ export function InstagramPublishModal({
         setStep('error')
       }
     },
-    [selectedAccount, imageUrl]
+    [selectedAccount, imageUrl, postId, onPublishSuccess]
   )
 
   const handleRetry = useCallback(() => {

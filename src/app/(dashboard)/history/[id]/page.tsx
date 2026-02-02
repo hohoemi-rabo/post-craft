@@ -25,6 +25,8 @@ interface Post {
   generated_hashtags: string[]
   created_at: string
   post_images: PostImage[]
+  instagram_published: boolean
+  instagram_published_at: string | null
 }
 
 export default function PostDetailPage({
@@ -186,10 +188,19 @@ export default function PostDetailPage({
       {/* Post info */}
       <div className="flex items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-xl">
         <span className="text-2xl">{typeConfig?.icon}</span>
-        <div>
+        <div className="flex-1">
           <p className="font-medium text-white">{typeConfig?.name}</p>
           <p className="text-xs text-slate-400">{formatDate(post.created_at)}</p>
         </div>
+        {post.instagram_published ? (
+          <span className="px-2.5 py-1 bg-green-500/20 text-green-400 text-xs rounded-full whitespace-nowrap">
+            ✅ 投稿済み
+          </span>
+        ) : (
+          <span className="px-2.5 py-1 bg-white/5 text-slate-400 text-xs rounded-full whitespace-nowrap">
+            ⏳ 未投稿
+          </span>
+        )}
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
@@ -373,6 +384,18 @@ export default function PostDetailPage({
           onClose={() => setShowPublishModal(false)}
           caption={getFullCaption()}
           imageUrl={firstImage.image_url}
+          postId={post.id}
+          onPublishSuccess={() => {
+            setPost((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    instagram_published: true,
+                    instagram_published_at: new Date().toISOString(),
+                  }
+                : prev
+            )
+          }}
         />
       )}
     </div>

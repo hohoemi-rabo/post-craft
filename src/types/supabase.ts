@@ -105,6 +105,9 @@ export type Database = {
           generated_hashtags: string[]
           id: string
           input_text: string
+          instagram_media_id: string | null
+          instagram_published: boolean
+          instagram_published_at: string | null
           post_type: string
           source_url: string | null
           updated_at: string | null
@@ -116,6 +119,9 @@ export type Database = {
           generated_hashtags: string[]
           id?: string
           input_text: string
+          instagram_media_id?: string | null
+          instagram_published?: boolean
+          instagram_published_at?: string | null
           post_type: string
           source_url?: string | null
           updated_at?: string | null
@@ -127,6 +133,9 @@ export type Database = {
           generated_hashtags?: string[]
           id?: string
           input_text?: string
+          instagram_media_id?: string | null
+          instagram_published?: boolean
+          instagram_published_at?: string | null
           post_type?: string
           source_url?: string | null
           updated_at?: string | null

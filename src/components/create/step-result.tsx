@@ -405,6 +405,7 @@ export function StepResult({
           onClose={() => setShowPublishModal(false)}
           caption={getFullCaption()}
           imageUrl={effectiveImageUrl}
+          postId={postId}
         />
       )}
     </div>

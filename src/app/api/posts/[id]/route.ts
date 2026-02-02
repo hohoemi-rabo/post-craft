@@ -37,6 +37,61 @@ export async function GET(
   }
 }
 
+// PATCH /api/posts/[id] - Update Instagram publish status
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { id } = await params
+  const supabase = createServerClient()
+
+  try {
+    const body = await request.json()
+    const { instagram_published, instagram_media_id } = body
+
+    // Check ownership
+    const { data: post, error: fetchError } = await supabase
+      .from('posts')
+      .select('id, user_id')
+      .eq('id', id)
+      .single()
+
+    if (fetchError || !post || post.user_id !== session.user.id) {
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 })
+    }
+
+    const { error: updateError } = await supabase
+      .from('posts')
+      .update({
+        instagram_published,
+        instagram_media_id: instagram_media_id || null,
+        instagram_published_at: instagram_published ? new Date().toISOString() : null,
+      })
+      .eq('id', id)
+
+    if (updateError) {
+      console.error('Post update error:', updateError)
+      return NextResponse.json(
+        { error: 'Failed to update post' },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Post update error:', error)
+    return NextResponse.json(
+      { error: 'Failed to update post' },
+      { status: 500 }
+    )
+  }
+}
+
 // DELETE /api/posts/[id] - Delete a post
 export async function DELETE(
   request: Request,

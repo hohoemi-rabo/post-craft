@@ -23,6 +23,7 @@ interface Post {
   generated_hashtags: string[]
   created_at: string
   post_images: PostImage[]
+  instagram_published: boolean
 }
 
 interface PostsResponse {
@@ -215,6 +216,15 @@ export default function HistoryPage() {
                         <span className="text-xs text-slate-500">
                           {formatDate(post.created_at)}
                         </span>
+                        {post.instagram_published ? (
+                          <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">
+                            ✅ 投稿済み
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 bg-white/5 text-slate-400 text-xs rounded-full">
+                            ⏳ 未投稿
+                          </span>
+                        )}
                       </div>
                       <p className="text-sm text-slate-300 line-clamp-2">
                         {truncateText(post.generated_caption, 80)}
