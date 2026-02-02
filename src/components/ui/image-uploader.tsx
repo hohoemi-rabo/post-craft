@@ -112,6 +112,7 @@ export function ImageUploader({ postId, onUploadComplete }: ImageUploaderProps) 
             <p className="text-slate-400 text-sm">アップロード中...</p>
           </div>
         ) : preview ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={preview}
             alt="Preview"

@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import type { InstagramAccount } from '@/types/instagram'
 
 interface AccountSelectorProps {
@@ -21,10 +22,13 @@ export function AccountSelector({ accounts, onSelect }: AccountSelectorProps) {
             className="w-full flex items-center gap-4 p-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl transition-all duration-200"
           >
             {account.igProfilePictureUrl ? (
-              <img
+              <Image
                 src={account.igProfilePictureUrl}
                 alt={account.igUsername}
+                width={48}
+                height={48}
                 className="w-12 h-12 rounded-full object-cover"
+                unoptimized
               />
             ) : (
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-lg font-bold">

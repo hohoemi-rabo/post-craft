@@ -28,10 +28,13 @@ export function PublishPreview({
       {/* Account info */}
       <div className="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-xl">
         {account.igProfilePictureUrl ? (
-          <img
+          <Image
             src={account.igProfilePictureUrl}
             alt={account.igUsername}
+            width={32}
+            height={32}
             className="w-8 h-8 rounded-full object-cover"
+            unoptimized
           />
         ) : (
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold">

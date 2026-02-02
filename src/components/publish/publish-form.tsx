@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
+import Image from 'next/image'
 import type { InstagramAccount } from '@/types/instagram'
 
 interface PublishFormProps {
@@ -69,10 +70,13 @@ export function PublishForm({
       {/* Account info */}
       <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg border border-white/10">
         {account.igProfilePictureUrl ? (
-          <img
+          <Image
             src={account.igProfilePictureUrl}
             alt={account.igUsername}
+            width={32}
+            height={32}
             className="w-8 h-8 rounded-full object-cover"
+            unoptimized
           />
         ) : (
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold">
@@ -115,6 +119,7 @@ export function PublishForm({
 
           {imagePreview ? (
             <div className="space-y-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={imagePreview}
                 alt="Preview"

@@ -41,31 +41,31 @@ export default function HistoryPage() {
   const [filterType, setFilterType] = useState<PostType | ''>('')
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
-  const fetchPosts = async () => {
-    setIsLoading(true)
-    try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: '10',
-      })
-      if (filterType) {
-        params.set('postType', filterType)
-      }
-
-      const response = await fetch(`/api/posts?${params}`)
-      if (response.ok) {
-        const data: PostsResponse = await response.json()
-        setPosts(data.posts)
-        setTotalPages(data.totalPages)
-      }
-    } catch (error) {
-      console.error('Failed to fetch posts:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   useEffect(() => {
+    const fetchPosts = async () => {
+      setIsLoading(true)
+      try {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: '10',
+        })
+        if (filterType) {
+          params.set('postType', filterType)
+        }
+
+        const response = await fetch(`/api/posts?${params}`)
+        if (response.ok) {
+          const data: PostsResponse = await response.json()
+          setPosts(data.posts)
+          setTotalPages(data.totalPages)
+        }
+      } catch (error) {
+        console.error('Failed to fetch posts:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
     fetchPosts()
   }, [page, filterType])
 
