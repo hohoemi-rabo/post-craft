@@ -60,6 +60,7 @@ export default function CreatePage() {
   const [generationSteps, setGenerationSteps] = useState<GenerationStep[]>([])
   const [generationProgress, setGenerationProgress] = useState(0)
   const [isRegenerating, setIsRegenerating] = useState(false)
+  const [savedPostId, setSavedPostId] = useState<string | null>(null)
 
   // Calculate total steps based on skipImage
   const totalSteps = formState.skipImage ? 5 : 6
@@ -234,7 +235,7 @@ export default function CreatePage() {
         })
         const captionData = captionResponse.ok ? await captionResponse.json() : { hashtags: [] }
 
-        await fetch('/api/posts', {
+        const saveRes = await fetch('/api/posts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -248,6 +249,10 @@ export default function CreatePage() {
             aspectRatio,
           }),
         })
+        if (saveRes.ok) {
+          const savedPost = await saveRes.json()
+          setSavedPostId(savedPost.id)
+        }
         updateStepStatus('save', 'complete')
 
         setGeneratedResult({
@@ -380,7 +385,7 @@ export default function CreatePage() {
       // Final Step: Save post
       updateStepStatus('save', 'loading')
       try {
-        await fetch('/api/posts', {
+        const saveRes = await fetch('/api/posts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -394,6 +399,10 @@ export default function CreatePage() {
             aspectRatio: skipImage ? null : aspectRatio,
           }),
         })
+        if (saveRes.ok) {
+          const savedPost = await saveRes.json()
+          setSavedPostId(savedPost.id)
+        }
         updateStepStatus('save', 'complete')
       } catch {
         console.error('Failed to save post')
@@ -496,6 +505,7 @@ export default function CreatePage() {
     setGeneratedResult(null)
     setGenerationSteps([])
     setGenerationProgress(0)
+    setSavedPostId(null)
   }
 
   // Go back
@@ -557,6 +567,7 @@ export default function CreatePage() {
               aspectRatio={formState.aspectRatio}
               onRegenerateImage={undefined}
               onCreateNew={handleCreateNew}
+              postId={savedPostId ?? undefined}
               isRegenerating={isRegenerating}
             />
           ) : null
@@ -621,6 +632,7 @@ export default function CreatePage() {
               onRegenerateImage={handleRegenerateImage}
               onCreateNew={handleCreateNew}
               isRegenerating={isRegenerating}
+              postId={savedPostId ?? undefined}
             />
           ) : null
         default:

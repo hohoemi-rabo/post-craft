@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { POST_TYPES } from '@/lib/post-types'
 import type { PostType } from '@/types/post'
 import { InstagramPublishModal } from '@/components/publish/instagram-publish-modal'
+import { ImageUploader } from '@/components/ui/image-uploader'
 
 interface PostImage {
   id: string
@@ -216,9 +217,27 @@ export default function PostDetailPage({
               </button>
             </>
           ) : (
-            <div className="aspect-square max-w-sm mx-auto bg-white/5 border border-white/10 rounded-xl flex items-center justify-center">
-              <p className="text-slate-500">画像なし</p>
-            </div>
+            <ImageUploader
+              postId={post.id}
+              onUploadComplete={(url) => {
+                setPost((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        post_images: [
+                          ...prev.post_images,
+                          {
+                            id: crypto.randomUUID(),
+                            image_url: url,
+                            image_style: 'uploaded',
+                            aspect_ratio: '1:1',
+                          },
+                        ],
+                      }
+                    : prev
+                )
+              }}
+            />
           )}
         </div>
 

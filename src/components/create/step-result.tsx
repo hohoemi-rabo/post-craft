@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { type AspectRatio } from '@/lib/image-styles'
 import { InstagramPublishModal } from '@/components/publish/instagram-publish-modal'
+import { ImageUploader } from '@/components/ui/image-uploader'
 
 interface StepResultProps {
   caption: string
@@ -13,6 +14,7 @@ interface StepResultProps {
   onRegenerateImage?: () => void
   onCreateNew: () => void
   isRegenerating?: boolean
+  postId?: string
 }
 
 export function StepResult({
@@ -23,6 +25,7 @@ export function StepResult({
   onRegenerateImage,
   onCreateNew,
   isRegenerating,
+  postId,
 }: StepResultProps) {
   const [editedCaption, setEditedCaption] = useState(caption)
   const [selectedHashtags, setSelectedHashtags] = useState<Set<string>>(new Set(hashtags))
@@ -32,7 +35,9 @@ export function StepResult({
   const [copiedHashtags, setCopiedHashtags] = useState(false)
   const [hashtagError, setHashtagError] = useState('')
   const [showPublishModal, setShowPublishModal] = useState(false)
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null)
 
+  const effectiveImageUrl = uploadedImageUrl || imageUrl
   const aspectClass = aspectRatio === '1:1' ? 'aspect-square' : 'aspect-[9/16]'
 
   // All hashtags (AI generated + custom)
@@ -147,8 +152,37 @@ export function StepResult({
         </p>
       </div>
 
-      <div className={`grid ${imageUrl ? 'md:grid-cols-2' : ''} gap-6`}>
+      <div className={`grid ${effectiveImageUrl ? 'md:grid-cols-2' : ''} gap-6`}>
         {/* Image section */}
+        {!imageUrl && !uploadedImageUrl && postId && (
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-slate-300">
+              画像をアップロード
+            </label>
+            <ImageUploader
+              postId={postId}
+              onUploadComplete={(url) => setUploadedImageUrl(url)}
+            />
+          </div>
+        )}
+
+        {uploadedImageUrl && !imageUrl && (
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-slate-300">
+              アップロード画像
+            </label>
+            <div className="relative aspect-square max-w-xs mx-auto bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+              <Image
+                src={uploadedImageUrl}
+                alt="Uploaded image"
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            </div>
+          </div>
+        )}
+
         {imageUrl && onRegenerateImage && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -338,7 +372,7 @@ export function StepResult({
 
       {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-3 pt-4">
-        {imageUrl ? (
+        {effectiveImageUrl ? (
           <button
             type="button"
             onClick={() => setShowPublishModal(true)}
@@ -365,12 +399,12 @@ export function StepResult({
         </button>
       </div>
 
-      {imageUrl && (
+      {effectiveImageUrl && (
         <InstagramPublishModal
           isOpen={showPublishModal}
           onClose={() => setShowPublishModal(false)}
           caption={getFullCaption()}
-          imageUrl={imageUrl}
+          imageUrl={effectiveImageUrl}
         />
       )}
     </div>
