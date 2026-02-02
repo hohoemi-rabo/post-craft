@@ -102,7 +102,9 @@ src/
 - **Context**: `InstagramPublishProvider` でFBログイン状態をダッシュボード内で共有
 - **画像**: 生成済みSupabase Storage URLをそのまま利用（再アップロード不要）
 - **スタンドアロン**: `/publish` ページも独立して利用可能
-- **制約**: Instagram Business/Creator Account 必須、画像必須（画像なし投稿は外部リンク）
+- **画像アップロード**: 画像なし投稿でも手動アップロード → 直接投稿可能（完了画面・履歴詳細の両方対応）
+- **投稿ステータス**: 履歴一覧・詳細に「✅ 投稿済み」/「⏳ 未投稿」バッジ表示。投稿成功時に自動更新
+- **制約**: Instagram Business/Creator Account 必須
 
 ## ルールファイル
 

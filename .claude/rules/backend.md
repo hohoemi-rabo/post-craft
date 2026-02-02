@@ -22,7 +22,8 @@ app/api/
 │   └── publish/route.ts      # POST (Instagram投稿: JSON or FormData)
 ├── posts/
 │   ├── route.ts              # GET (list), POST (create)
-│   └── [id]/route.ts         # GET, DELETE
+│   ├── [id]/route.ts         # GET, PATCH (投稿ステータス更新), DELETE
+│   └── [id]/image/route.ts   # POST (画像アップロード)
 └── extract/route.ts          # POST (記事抽出)
 ```
 
@@ -253,6 +254,26 @@ POST /api/instagram/publish
 Content-Type: multipart/form-data
 image(File), caption, igAccountId, accessToken
 ```
+
+### 投稿ステータス管理
+```
+posts テーブル:
+  instagram_published      boolean  DEFAULT false
+  instagram_media_id       text     NULL
+  instagram_published_at   timestamptz NULL
+```
+- 投稿成功時に InstagramPublishModal → PATCH `/api/posts/[id]` でステータス更新
+- 履歴一覧・詳細に「✅ 投稿済み」/「⏳ 未投稿」バッジ表示
+
+### 画像アップロード（画像なし投稿用）
+```typescript
+// POST /api/posts/[id]/image (FormData: image)
+// → Supabase Storage generated-images/{userId}/uploaded/{timestamp}.{ext}
+// → post_images レコード作成 (style: 'uploaded')
+// → レスポンス: { imageUrl: string }
+```
+- StepResult・履歴詳細のImageUploaderコンポーネントから呼び出し
+- アップロード後は通常のInstagram投稿フローが利用可能
 
 ### Facebook SDK の注意点
 - `FB.login` のコールバックに `async` 関数を渡してはいけない（"Expression is of type asyncfunction" エラー）
