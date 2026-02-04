@@ -5,9 +5,10 @@ import { useCallback, useRef, useState } from 'react'
 interface ImageUploaderProps {
   postId: string
   onUploadComplete: (imageUrl: string) => void
+  replace?: boolean
 }
 
-export function ImageUploader({ postId, onUploadComplete }: ImageUploaderProps) {
+export function ImageUploader({ postId, onUploadComplete, replace = false }: ImageUploaderProps) {
   const [preview, setPreview] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -38,6 +39,9 @@ export function ImageUploader({ postId, onUploadComplete }: ImageUploaderProps) 
       try {
         const formData = new FormData()
         formData.append('image', file)
+        if (replace) {
+          formData.append('replace', 'true')
+        }
 
         const res = await fetch(`/api/posts/${postId}/image`, {
           method: 'POST',
@@ -58,7 +62,7 @@ export function ImageUploader({ postId, onUploadComplete }: ImageUploaderProps) 
         setIsUploading(false)
       }
     },
-    [postId, onUploadComplete]
+    [postId, onUploadComplete, replace]
   )
 
   const handleDrop = useCallback(

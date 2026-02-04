@@ -37,7 +37,7 @@ export async function GET(
   }
 }
 
-// PATCH /api/posts/[id] - Update Instagram publish status
+// PATCH /api/posts/[id] - Update post fields
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -52,7 +52,6 @@ export async function PATCH(
 
   try {
     const body = await request.json()
-    const { instagram_published, instagram_media_id } = body
 
     // Check ownership
     const { data: post, error: fetchError } = await supabase
@@ -65,13 +64,38 @@ export async function PATCH(
       return NextResponse.json({ error: 'Post not found' }, { status: 404 })
     }
 
+    // Whitelist of updatable fields
+    const allowedFields = [
+      'post_type',
+      'input_text',
+      'generated_caption',
+      'generated_hashtags',
+      'instagram_published',
+      'instagram_media_id',
+    ]
+
+    const updateData: Record<string, unknown> = {}
+    for (const field of allowedFields) {
+      if (body[field] !== undefined) {
+        updateData[field] = body[field]
+      }
+    }
+
+    // Auto-set instagram_published_at based on instagram_published
+    if (updateData.instagram_published === true) {
+      updateData.instagram_published_at = new Date().toISOString()
+    } else if (updateData.instagram_published === false) {
+      updateData.instagram_published_at = null
+      updateData.instagram_media_id = null
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
+    }
+
     const { error: updateError } = await supabase
       .from('posts')
-      .update({
-        instagram_published,
-        instagram_media_id: instagram_media_id || null,
-        instagram_published_at: instagram_published ? new Date().toISOString() : null,
-      })
+      .update(updateData)
       .eq('id', id)
 
     if (updateError) {
@@ -82,7 +106,14 @@ export async function PATCH(
       )
     }
 
-    return NextResponse.json({ success: true })
+    // Return complete updated post with images
+    const { data: updatedPost } = await supabase
+      .from('posts')
+      .select('*, post_images(*)')
+      .eq('id', id)
+      .single()
+
+    return NextResponse.json(updatedPost)
   } catch (error) {
     console.error('Post update error:', error)
     return NextResponse.json(
