@@ -8,8 +8,13 @@ if (!apiKey) {
 
 const genAI = new GoogleGenerativeAI(apiKey || '')
 
-// Text generation model
+// Text generation model (main)
 export const geminiFlash = genAI.getGenerativeModel({
+  model: 'gemini-3-pro-preview',
+})
+
+// Lightweight text generation model (for short tasks like catchphrase)
+export const geminiFlashLite = genAI.getGenerativeModel({
   model: 'gemini-2.5-flash',
 })
 

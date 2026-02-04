@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 interface StepCatchphraseProps {
   caption: string
@@ -18,8 +18,12 @@ export function StepCatchphrase({
   const [catchphrase, setCatchphrase] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const hasGenerated = useRef(false)
 
   useEffect(() => {
+    if (hasGenerated.current) return
+    hasGenerated.current = true
+
     const generateCatchphrase = async () => {
       setIsLoading(true)
       setError('')

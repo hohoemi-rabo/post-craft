@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     const base64 = Buffer.from(bytes).toString('base64')
 
     // Call Gemini Vision API
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
+    const model = genAI.getGenerativeModel({ model: 'gemini-3-pro-preview' })
 
     const result = await model.generateContent([
       analyzePrompt,

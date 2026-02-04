@@ -144,8 +144,6 @@ export default function CreatePage() {
 
       const captionData = await captionResponse.json()
       setGeneratedCaption(captionData.caption)
-      // Move to catchphrase confirmation step
-      setStep(4)
     } catch (error) {
       console.error('Caption generation error:', error)
       alert('キャプション生成に失敗しました。もう一度お試しください。')
