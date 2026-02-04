@@ -22,8 +22,8 @@ app/api/
 │   └── publish/route.ts      # POST (Instagram投稿: JSON or FormData)
 ├── posts/
 │   ├── route.ts              # GET (list), POST (create)
-│   ├── [id]/route.ts         # GET, PATCH (投稿ステータス更新), DELETE
-│   └── [id]/image/route.ts   # POST (画像アップロード)
+│   ├── [id]/route.ts         # GET, PATCH (汎用更新: ホワイトリスト方式), DELETE
+│   └── [id]/image/route.ts   # POST (画像アップロード/差し替え), PUT (画像レコード更新)
 └── extract/route.ts          # POST (記事抽出)
 ```
 
@@ -265,15 +265,34 @@ posts テーブル:
 - 投稿成功時に InstagramPublishModal → PATCH `/api/posts/[id]` でステータス更新
 - 履歴一覧・詳細に「✅ 投稿済み」/「⏳ 未投稿」バッジ表示
 
-### 画像アップロード（画像なし投稿用）
+### 画像アップロード・差し替え・再生成
 ```typescript
-// POST /api/posts/[id]/image (FormData: image)
+// POST /api/posts/[id]/image (FormData: image, replace?)
+// → replace=true: 既存画像を Storage + post_images から削除してから新規作成
+// → replace=false (デフォルト): 新規作成のみ
 // → Supabase Storage generated-images/{userId}/uploaded/{timestamp}.{ext}
 // → post_images レコード作成 (style: 'uploaded')
+// → レスポンス: { imageUrl: string }
+
+// PUT /api/posts/[id]/image (JSON: imageUrl, style, aspectRatio, prompt)
+// → 既存 post_images レコードを検索
+// → 古い画像を Storage から削除
+// → post_images レコードを UPDATE（なければ INSERT）
 // → レスポンス: { imageUrl: string }
 ```
 - StepResult・履歴詳細のImageUploaderコンポーネントから呼び出し
 - アップロード後は通常のInstagram投稿フローが利用可能
+- PUT は画像再生成モーダル（ImageRegenerateModal）から呼び出し
+
+### 投稿の汎用更新 (PATCH)
+```typescript
+// PATCH /api/posts/[id] (JSON)
+// ホワイトリスト方式で更新可能フィールドを制限:
+// - post_type, input_text, generated_caption, generated_hashtags
+// - instagram_published, instagram_media_id (Instagram投稿ステータス)
+// instagram_published=true の場合 instagram_published_at を自動設定
+// 更新後は *, post_images(*) を含む完全なデータを返す
+```
 
 ### Facebook SDK の注意点
 - `FB.login` のコールバックに `async` 関数を渡してはいけない（"Expression is of type asyncfunction" エラー）

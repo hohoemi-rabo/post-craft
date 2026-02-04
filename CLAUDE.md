@@ -19,7 +19,8 @@ Post Craft プロジェクトのガイドライン。
 | UI | React 19.1.0, Tailwind CSS 3.4.17 |
 | Database | Supabase (PostgreSQL) |
 | Auth | NextAuth.js + Google OAuth |
-| AI (文章) | Google Gemini Flash (gemini-2.0-flash) |
+| AI (文章) | Google Gemini Pro (gemini-3-pro-preview) |
+| AI (軽量タスク) | Google Gemini Flash (gemini-2.5-flash) |
 | AI (画像) | Google Gemini (gemini-3-pro-image-preview) |
 | Instagram投稿 | Facebook Graph API v21.0 + FB JS SDK |
 | Hosting | Vercel |
@@ -47,6 +48,7 @@ src/
 │   ├── api/               # API Routes
 │   └── publish/           # Instagram投稿（スタンドアロン）
 ├── components/            # UIコンポーネント
+│   ├── history/           # 履歴編集モーダル
 │   ├── publish/           # Instagram投稿コンポーネント
 │   └── providers/         # Context Providers
 ├── lib/                   # ユーティリティ
@@ -91,6 +93,18 @@ src/
 - 生成タグ6個: 投稿内容に基づいて自動生成
 - 計10個のハッシュタグ
 - コピー・投稿時は縦並び（改行区切り）で出力
+
+### 投稿履歴の編集機能
+履歴詳細ページ (`/history/[id]`) でインライン編集が可能。
+
+- **編集モード**: ヘッダーの「編集」ボタンで切り替え
+- **キャプション**: textarea で直接編集 + AIで再生成ボタン
+- **ハッシュタグ**: 追加/削除UI（入力フィールド + x ボタン）
+- **入力メモ**: textarea で直接編集
+- **投稿タイプ**: モーダルで変更（タイプのみ or キャプション再生成も選択可）
+- **画像差し替え**: ImageUploader で手動アップロード（既存画像を自動削除）
+- **画像再生成**: モーダルでスタイル/アスペクト比/背景タイプを選択 → AI再生成
+- **保存**: PATCH `/api/posts/[id]` で一括更新
 
 ### Instagram投稿機能
 ダッシュボード内からInstagram Graph APIで直接投稿。

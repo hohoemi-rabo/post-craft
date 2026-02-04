@@ -4,12 +4,13 @@ Google Gemini、プロンプト、画像生成のルール。
 
 ## AI モデル
 
-| 用途 | モデル |
-|------|--------|
-| 文章生成 | `gemini-2.0-flash` |
-| 画像生成 | `gemini-3-pro-image-preview` |
-| 画像生成（マルチモーダル） | `gemini-3-pro-image-preview` |
-| 画像分析 | `gemini-2.0-flash` (Vision) |
+| 用途 | モデル | 変数名 |
+|------|--------|--------|
+| 文章生成（メイン） | `gemini-3-pro-preview` | `geminiFlash` |
+| 軽量タスク（キャッチコピー等） | `gemini-2.5-flash` | `geminiFlashLite` |
+| 画像生成 | `gemini-3-pro-image-preview` | `geminiImageGen` |
+| 画像生成（マルチモーダル） | `gemini-3-pro-image-preview` | `geminiImageGenMultimodal` |
+| 画像分析 | `gemini-3-pro-preview` (Vision) | `geminiFlash` |
 
 ## 文章生成
 
@@ -326,9 +327,14 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!)
 
-// 文章生成
+// 文章生成（メイン: キャプション、シーン説明、特徴抽出等）
 export const geminiFlash = genAI.getGenerativeModel({
-  model: 'gemini-2.0-flash'
+  model: 'gemini-3-pro-preview'
+})
+
+// 軽量タスク（キャッチコピー生成等、高速レスポンス優先）
+export const geminiFlashLite = genAI.getGenerativeModel({
+  model: 'gemini-2.5-flash'
 })
 
 // 画像生成（テキストのみ）

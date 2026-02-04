@@ -11,6 +11,7 @@ components/
 ├── layout/       # レイアウト (header, footer, sidebar)
 ├── dashboard/    # ダッシュボード専用
 ├── create/       # 投稿作成専用
+├── history/      # 履歴編集モーダル (post-edit-modal, image-regenerate-modal)
 ├── characters/   # キャラクター管理専用
 └── providers/    # Context Providers
 ```
