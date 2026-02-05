@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { ASPECT_RATIOS, getAspectClass, type AspectRatio } from '@/lib/image-styles'
+import { AspectRatioSelector } from '@/components/ui/aspect-ratio-selector'
 
 interface AspectRatioCropModalProps {
   open: boolean
@@ -153,28 +154,13 @@ export function AspectRatioCropModal({
         <canvas ref={canvasRef} className="hidden" />
 
         {/* Aspect ratio selector */}
-        <div className="space-y-3 mb-4">
-          <label className="block text-sm font-medium text-slate-300">アスペクト比</label>
-          <div className="grid grid-cols-4 gap-2">
-            {(Object.entries(ASPECT_RATIOS) as [AspectRatio, typeof ASPECT_RATIOS[AspectRatio]][]).map(
-              ([ratio, config]) => (
-                <button
-                  key={ratio}
-                  type="button"
-                  onClick={() => setAspectRatio(ratio)}
-                  disabled={isProcessing || isSaving}
-                  className={`p-2 rounded-lg border text-center transition-all ${
-                    aspectRatio === ratio
-                      ? 'border-blue-500 bg-blue-500/10'
-                      : 'border-white/10 bg-white/5 hover:border-white/20'
-                  } disabled:opacity-50`}
-                >
-                  <div className="text-xs font-medium text-white">{config.name}</div>
-                  <div className="text-[10px] text-slate-500">{ratio}</div>
-                </button>
-              )
-            )}
-          </div>
+        <div className="mb-4">
+          <AspectRatioSelector
+            value={aspectRatio}
+            onChange={setAspectRatio}
+            disabled={isProcessing || isSaving}
+            compact
+          />
         </div>
 
         {/* Preview */}

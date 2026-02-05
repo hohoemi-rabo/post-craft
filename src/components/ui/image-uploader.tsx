@@ -1,7 +1,8 @@
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
-import { ASPECT_RATIOS, type AspectRatio } from '@/lib/image-styles'
+import { ASPECT_RATIOS, getAspectClass, type AspectRatio } from '@/lib/image-styles'
+import { AspectRatioSelector } from '@/components/ui/aspect-ratio-selector'
 
 interface ImageUploaderProps {
   postId: string
@@ -226,17 +227,6 @@ export function ImageUploader({
     setIsDragging(false)
   }, [])
 
-  // Get aspect class for preview
-  const getAspectClass = (ratio: AspectRatio) => {
-    switch (ratio) {
-      case '1:1': return 'aspect-square'
-      case '4:5': return 'aspect-[4/5]'
-      case '9:16': return 'aspect-[9/16]'
-      case '16:9': return 'aspect-[16/9]'
-      default: return 'aspect-square'
-    }
-  }
-
   return (
     <div className="space-y-3">
       {/* Hidden canvas for cropping */}
@@ -244,29 +234,12 @@ export function ImageUploader({
 
       {/* Aspect ratio selector */}
       {showAspectRatioSelector && (
-        <div className="space-y-2">
-          <label className="block text-xs font-medium text-slate-400">アスペクト比</label>
-          <div className="grid grid-cols-4 gap-1.5 max-w-sm mx-auto">
-            {(Object.entries(ASPECT_RATIOS) as [AspectRatio, typeof ASPECT_RATIOS[AspectRatio]][]).map(
-              ([ratio, config]) => (
-                <button
-                  key={ratio}
-                  type="button"
-                  onClick={() => handleAspectRatioChange(ratio)}
-                  disabled={isUploading || isProcessing}
-                  className={`p-2 rounded-lg border text-center transition-all ${
-                    aspectRatio === ratio
-                      ? 'border-blue-500 bg-blue-500/10'
-                      : 'border-white/10 bg-white/5 hover:border-white/20'
-                  } disabled:opacity-50`}
-                >
-                  <div className="text-xs font-medium text-white">{config.name}</div>
-                  <div className="text-[10px] text-slate-500">{ratio}</div>
-                </button>
-              )
-            )}
-          </div>
-        </div>
+        <AspectRatioSelector
+          value={aspectRatio}
+          onChange={handleAspectRatioChange}
+          disabled={isUploading || isProcessing}
+          compact
+        />
       )}
 
       {/* Upload area */}

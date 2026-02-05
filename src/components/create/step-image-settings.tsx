@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
-import { IMAGE_STYLES, ASPECT_RATIOS, BACKGROUND_TYPES, type ImageStyle, type AspectRatio, type BackgroundType } from '@/lib/image-styles'
+import { IMAGE_STYLES, BACKGROUND_TYPES, type ImageStyle, type AspectRatio, type BackgroundType } from '@/lib/image-styles'
+import { AspectRatioSelector } from '@/components/ui/aspect-ratio-selector'
 import type { Character } from '@/types/supabase'
 
 interface StepImageSettingsProps {
@@ -36,7 +37,6 @@ export function StepImageSettings({
   const [isLoadingCharacters, setIsLoadingCharacters] = useState(true)
 
   const styles = Object.values(IMAGE_STYLES)
-  const ratios = Object.entries(ASPECT_RATIOS) as [AspectRatio, typeof ASPECT_RATIOS['1:1']][]
   const selectedStyle = IMAGE_STYLES[style]
 
   // Reset character selection when switching to a style that doesn't support characters
@@ -175,38 +175,10 @@ export function StepImageSettings({
           </div>
 
           {/* Aspect ratio selection */}
-          <div className="space-y-3">
-            <label className="block text-sm font-medium text-slate-300">
-              アスペクト比
-            </label>
-            <div className="flex gap-3">
-              {ratios.map(([ratio, config]) => (
-                <button
-                  key={ratio}
-                  type="button"
-                  onClick={() => setAspectRatio(ratio)}
-                  className={`flex-1 p-4 rounded-xl border-2 text-center transition-all ${
-                    aspectRatio === ratio
-                      ? 'border-blue-500 bg-blue-500/10'
-                      : 'border-white/10 bg-white/5 hover:border-white/20'
-                  }`}
-                >
-                  <div className="flex justify-center mb-2">
-                    <div
-                      className={`bg-white/20 rounded ${
-                        ratio === '1:1' ? 'w-10 h-10' :
-                        ratio === '4:5' ? 'w-8 h-10' :
-                        ratio === '9:16' ? 'w-6 h-10' :
-                        'w-10 h-6' // 16:9
-                      }`}
-                    />
-                  </div>
-                  <div className="font-medium text-white text-sm">{config.name}</div>
-                  <div className="text-xs text-slate-400">{config.description}</div>
-                </button>
-              ))}
-            </div>
-          </div>
+          <AspectRatioSelector
+            value={aspectRatio}
+            onChange={setAspectRatio}
+          />
 
           {/* Character selection (only if style supports it) */}
           {selectedStyle.supportsCharacter && (
