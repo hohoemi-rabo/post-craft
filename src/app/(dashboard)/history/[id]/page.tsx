@@ -5,12 +5,14 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { POST_TYPES } from '@/lib/post-types'
+import { type AspectRatio } from '@/lib/image-styles'
 import type { PostType } from '@/types/post'
 import { InstagramPublishModal } from '@/components/publish/instagram-publish-modal'
 import { ImageUploader } from '@/components/ui/image-uploader'
 import { useToast } from '@/components/ui/toast'
 import { PostTypeChangeModal } from '@/components/history/post-edit-modal'
 import { ImageRegenerateModal } from '@/components/history/image-regenerate-modal'
+import { AspectRatioCropModal } from '@/components/history/aspect-ratio-crop-modal'
 
 interface PostImage {
   id: string
@@ -60,6 +62,7 @@ export default function PostDetailPage({
   const [showTypeChangeModal, setShowTypeChangeModal] = useState(false)
   const [showRegenerateModal, setShowRegenerateModal] = useState(false)
   const [showImageReplace, setShowImageReplace] = useState(false)
+  const [showAspectRatioModal, setShowAspectRatioModal] = useState(false)
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -302,7 +305,7 @@ export default function PostDetailPage({
   }
 
   // --- Image handlers ---
-  const handleImageReplaceComplete = (url: string) => {
+  const handleImageReplaceComplete = (url: string, aspectRatio: AspectRatio) => {
     setPost((prev) =>
       prev
         ? {
@@ -312,7 +315,7 @@ export default function PostDetailPage({
                 id: crypto.randomUUID(),
                 image_url: url,
                 image_style: 'uploaded',
-                aspect_ratio: '1:1',
+                aspect_ratio: aspectRatio,
               },
             ],
           }
@@ -333,6 +336,19 @@ export default function PostDetailPage({
       return { ...prev, post_images: updatedImages }
     })
     showToast('画像を再生成しました', 'success')
+  }
+
+  const handleAspectRatioCropComplete = (newImageUrl: string, newAspectRatio: AspectRatio) => {
+    setPost((prev) => {
+      if (!prev) return prev
+      const updatedImages = prev.post_images.length > 0
+        ? prev.post_images.map((img, i) =>
+            i === 0 ? { ...img, image_url: newImageUrl, aspect_ratio: newAspectRatio } : img
+          )
+        : [{ id: crypto.randomUUID(), image_url: newImageUrl, image_style: 'uploaded', aspect_ratio: newAspectRatio }]
+      return { ...prev, post_images: updatedImages }
+    })
+    showToast('アスペクト比を変更しました', 'success')
   }
 
   if (isLoading) {
@@ -454,19 +470,30 @@ export default function PostDetailPage({
                 ⬇️ 画像をダウンロード
               </button>
               {isEditing && (
-                <div className="flex gap-2 max-w-sm mx-auto">
-                  <button
-                    onClick={() => setShowImageReplace(true)}
-                    className="flex-1 px-3 py-2 bg-white/5 hover:bg-white/10 text-slate-300 text-xs rounded-lg transition-colors"
-                  >
-                    📷 画像を差し替え
-                  </button>
-                  <button
-                    onClick={() => setShowRegenerateModal(true)}
-                    className="flex-1 px-3 py-2 bg-white/5 hover:bg-white/10 text-slate-300 text-xs rounded-lg transition-colors"
-                  >
-                    🔄 AI画像再生成
-                  </button>
+                <div className="space-y-2 max-w-sm mx-auto">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setShowImageReplace(true)}
+                      className="flex-1 px-3 py-2 bg-white/5 hover:bg-white/10 text-slate-300 text-xs rounded-lg transition-colors"
+                    >
+                      📷 差し替え
+                    </button>
+                    <button
+                      onClick={() => setShowAspectRatioModal(true)}
+                      className="flex-1 px-3 py-2 bg-white/5 hover:bg-white/10 text-slate-300 text-xs rounded-lg transition-colors"
+                    >
+                      📐 比率変更
+                    </button>
+                    <button
+                      onClick={() => setShowRegenerateModal(true)}
+                      className="flex-1 px-3 py-2 bg-white/5 hover:bg-white/10 text-slate-300 text-xs rounded-lg transition-colors"
+                    >
+                      🔄 AI再生成
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-slate-500 text-center">
+                    現在: {firstImage?.aspect_ratio || '1:1'}
+                  </p>
                 </div>
               )}
             </>
@@ -476,6 +503,7 @@ export default function PostDetailPage({
                 postId={post.id}
                 onUploadComplete={handleImageReplaceComplete}
                 replace
+                initialAspectRatio={(firstImage?.aspect_ratio as AspectRatio) || '1:1'}
               />
               <button
                 onClick={() => setShowImageReplace(false)}
@@ -488,7 +516,7 @@ export default function PostDetailPage({
             <div className="space-y-2">
               <ImageUploader
                 postId={post.id}
-                onUploadComplete={(url) => {
+                onUploadComplete={(url, ratio) => {
                   setPost((prev) =>
                     prev
                       ? {
@@ -499,7 +527,7 @@ export default function PostDetailPage({
                               id: crypto.randomUUID(),
                               image_url: url,
                               image_style: 'uploaded',
-                              aspect_ratio: '1:1',
+                              aspect_ratio: ratio,
                             },
                           ],
                         }
@@ -763,6 +791,18 @@ export default function PostDetailPage({
         currentAspectRatio={firstImage?.aspect_ratio || null}
         onRegenerated={handleImageRegenerated}
       />
+
+      {/* Aspect ratio crop modal */}
+      {firstImage && (
+        <AspectRatioCropModal
+          open={showAspectRatioModal}
+          onClose={() => setShowAspectRatioModal(false)}
+          postId={post.id}
+          currentImageUrl={firstImage.image_url}
+          currentAspectRatio={(firstImage.aspect_ratio as AspectRatio) || '1:1'}
+          onCropComplete={handleAspectRatioCropComplete}
+        />
+      )}
     </div>
   )
 }

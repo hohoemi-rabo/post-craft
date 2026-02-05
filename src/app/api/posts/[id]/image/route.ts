@@ -44,6 +44,7 @@ export async function POST(
   const formData = await request.formData()
   const file = formData.get('image') as File | null
   const replace = formData.get('replace') === 'true'
+  const aspectRatio = (formData.get('aspectRatio') as string) || '1:1'
 
   if (!file) {
     return NextResponse.json({ error: 'Image file is required' }, { status: 400 })
@@ -112,7 +113,7 @@ export async function POST(
         post_id: postId,
         image_url: imageUrl,
         style: 'uploaded',
-        aspect_ratio: '1:1',
+        aspect_ratio: aspectRatio,
         prompt: '',
       })
 

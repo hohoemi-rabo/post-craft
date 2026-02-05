@@ -172,6 +172,7 @@ export function StepResult({
             <ImageUploader
               postId={postId}
               onUploadComplete={(url) => setUploadedImageUrl(url)}
+              showAspectRatioSelector={true}
             />
           </div>
         )}
