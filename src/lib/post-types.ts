@@ -1,4 +1,5 @@
-import type { PostType, PostTypeConfig, ImageStyle, ImageStyleConfig, AspectRatio, AspectRatioConfig } from '@/types/post'
+import type { PostType, PostTypeConfig } from '@/types/post'
+import { type ImageStyle, IMAGE_STYLES as IMAGE_STYLE_CONFIGS } from '@/lib/image-styles'
 
 export const POST_TYPES: Record<PostType, PostTypeConfig> = {
   solution: {
@@ -143,59 +144,15 @@ export const POST_TYPES: Record<PostType, PostTypeConfig> = {
   },
 }
 
-export const IMAGE_STYLES: Record<ImageStyle, ImageStyleConfig> = {
-  manga_male: {
-    id: 'manga_male',
-    name: 'マンガ風（男性）',
-    description: 'テック・ビジネス系、鮮やかな配色',
-    hasCharacter: true,
-  },
-  manga_female: {
-    id: 'manga_female',
-    name: 'マンガ風（女性）',
-    description: 'クリエイティブ系、パステル調',
-    hasCharacter: true,
-  },
-  pixel_art: {
-    id: 'pixel_art',
-    name: 'ピクセルアート',
-    description: 'レトロゲーム風、サイバー背景',
-    hasCharacter: true,
-  },
-  illustration: {
-    id: 'illustration',
-    name: 'イラスト（人物なし）',
-    description: 'フラットデザイン、図形のみ',
-    hasCharacter: false,
-  },
-}
-
-export const ASPECT_RATIOS: Record<AspectRatio, AspectRatioConfig> = {
-  '1:1': {
-    id: '1:1',
-    name: 'フィード（1:1）',
-    width: 1080,
-    height: 1080,
-    use: '通常投稿',
-  },
-  '9:16': {
-    id: '9:16',
-    name: 'リール（9:16）',
-    width: 1080,
-    height: 1920,
-    use: 'ショート動画',
-  },
-}
+// Re-export IMAGE_STYLES from image-styles.ts for backwards compatibility
+// Note: For image-related constants, prefer importing directly from @/lib/image-styles
+export { IMAGE_STYLES as IMAGE_STYLE_DETAILS } from '@/lib/image-styles'
 
 // Helper functions
 export function getPostTypeConfig(type: PostType): PostTypeConfig {
   return POST_TYPES[type]
 }
 
-export function getImageStyleConfig(style: ImageStyle): ImageStyleConfig {
-  return IMAGE_STYLES[style]
-}
-
-export function getAspectRatioConfig(ratio: AspectRatio): AspectRatioConfig {
-  return ASPECT_RATIOS[ratio]
+export function getImageStyleConfig(style: ImageStyle) {
+  return IMAGE_STYLE_CONFIGS[style]
 }

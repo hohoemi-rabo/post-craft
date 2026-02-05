@@ -4,12 +4,13 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { InstagramPublishModal } from '@/components/publish/instagram-publish-modal'
 import { ImageUploader } from '@/components/ui/image-uploader'
+import { getAspectClass, type AspectRatio } from '@/lib/image-styles'
 
 interface StepResultProps {
   caption: string
   hashtags: string[]
   imageUrl: string | null
-  aspectRatio: string // '1:1' | '9:16' | '4:5' | '16:9'
+  aspectRatio: AspectRatio
   onRegenerateImage?: () => void
   onCreateNew: () => void
   isRegenerating?: boolean
@@ -37,17 +38,6 @@ export function StepResult({
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null)
 
   const effectiveImageUrl = uploadedImageUrl || imageUrl
-
-  // アスペクト比に応じたCSSクラスを取得
-  const getAspectClass = (ratio: string) => {
-    switch (ratio) {
-      case '1:1': return 'aspect-square'
-      case '4:5': return 'aspect-[4/5]'
-      case '16:9': return 'aspect-[16/9]'
-      case '9:16': return 'aspect-[9/16]'
-      default: return 'aspect-square'
-    }
-  }
   const aspectClass = getAspectClass(aspectRatio)
 
   // All hashtags (AI generated + custom)

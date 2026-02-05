@@ -110,3 +110,23 @@ export const ASPECT_RATIOS: Record<AspectRatio, { name: string; width: number; h
     description: '横長フィード',
   },
 }
+
+/**
+ * AspectRatio を Tailwind CSS クラスに変換
+ * @param ratio アスペクト比 ('1:1' | '4:5' | '9:16' | '16:9')
+ * @returns Tailwind CSS の aspect-* クラス
+ */
+export function getAspectClass(ratio: AspectRatio): string {
+  switch (ratio) {
+    case '1:1':
+      return 'aspect-square'
+    case '4:5':
+      return 'aspect-[4/5]'
+    case '9:16':
+      return 'aspect-[9/16]'
+    case '16:9':
+      return 'aspect-[16/9]'
+    default:
+      return 'aspect-square'
+  }
+}

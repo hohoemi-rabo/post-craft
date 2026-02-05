@@ -757,7 +757,7 @@ export default function PostDetailPage({
           caption={getFullCaption()}
           imageUrl={firstImage.image_url}
           postId={post.id}
-          aspectRatio={firstImage.aspect_ratio || '1:1'}
+          aspectRatio={(firstImage.aspect_ratio || '1:1') as AspectRatio}
           onPublishSuccess={() => {
             setPost((prev) =>
               prev

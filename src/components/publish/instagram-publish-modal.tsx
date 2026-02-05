@@ -5,6 +5,7 @@ import { useInstagram } from '@/components/providers/instagram-provider'
 import { AccountSelector } from '@/components/publish/account-selector'
 import { PublishPreview } from '@/components/publish/publish-preview'
 import type { PublishModalStep } from '@/types/instagram'
+import { type AspectRatio } from '@/lib/image-styles'
 
 interface InstagramPublishModalProps {
   isOpen: boolean
@@ -13,7 +14,7 @@ interface InstagramPublishModalProps {
   imageUrl: string
   postId?: string
   onPublishSuccess?: () => void
-  aspectRatio?: string
+  aspectRatio?: AspectRatio
 }
 
 export function InstagramPublishModal({

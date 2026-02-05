@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { type AspectRatio } from '@/lib/image-styles'
+import { type AspectRatio, getAspectClass } from '@/lib/image-styles'
 
 interface ImagePreviewProps {
   imageUrl?: string
@@ -20,15 +20,6 @@ export function ImagePreview({
   onDownload,
   disabled,
 }: ImagePreviewProps) {
-  const getAspectClass = (ratio: AspectRatio) => {
-    switch (ratio) {
-      case '1:1': return 'aspect-square'
-      case '4:5': return 'aspect-[4/5]'
-      case '9:16': return 'aspect-[9/16]'
-      case '16:9': return 'aspect-[16/9]'
-      default: return 'aspect-square'
-    }
-  }
   const aspectClass = getAspectClass(aspectRatio)
 
   return (

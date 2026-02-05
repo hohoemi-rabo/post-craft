@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect } from 'react'
-import { ASPECT_RATIOS, type AspectRatio } from '@/lib/image-styles'
+import { ASPECT_RATIOS, getAspectClass, type AspectRatio } from '@/lib/image-styles'
 
 interface AspectRatioCropModalProps {
   open: boolean
@@ -143,16 +143,6 @@ export function AspectRatioCropModal({
   }
 
   if (!open) return null
-
-  const getAspectClass = (ratio: AspectRatio) => {
-    switch (ratio) {
-      case '1:1': return 'aspect-square'
-      case '4:5': return 'aspect-[4/5]'
-      case '9:16': return 'aspect-[9/16]'
-      case '16:9': return 'aspect-[16/9]'
-      default: return 'aspect-square'
-    }
-  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">

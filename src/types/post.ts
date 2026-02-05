@@ -22,23 +22,4 @@ export interface ValidationResult {
   errors: string[]
 }
 
-// Image Styles
-export type ImageStyle = 'manga_male' | 'manga_female' | 'pixel_art' | 'illustration'
-
-export interface ImageStyleConfig {
-  id: ImageStyle
-  name: string
-  description: string
-  hasCharacter: boolean
-}
-
-// Aspect Ratio
-export type AspectRatio = '1:1' | '9:16'
-
-export interface AspectRatioConfig {
-  id: AspectRatio
-  name: string
-  width: number
-  height: number
-  use: string
-}
+// Note: ImageStyle and AspectRatio types are defined in @/lib/image-styles.ts
