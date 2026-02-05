@@ -13,6 +13,7 @@ interface InstagramPublishModalProps {
   imageUrl: string
   postId?: string
   onPublishSuccess?: () => void
+  aspectRatio?: string
 }
 
 export function InstagramPublishModal({
@@ -22,6 +23,7 @@ export function InstagramPublishModal({
   imageUrl,
   postId,
   onPublishSuccess,
+  aspectRatio = '1:1',
 }: InstagramPublishModalProps) {
   const {
     sdkLoaded,
@@ -243,6 +245,7 @@ export function InstagramPublishModal({
               }
             }}
             isPublishing={false}
+            aspectRatio={aspectRatio}
           />
         )}
 

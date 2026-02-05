@@ -417,6 +417,7 @@ export function StepResult({
           caption={getFullCaption()}
           imageUrl={effectiveImageUrl}
           postId={postId}
+          aspectRatio={aspectRatio}
         />
       )}
     </div>

@@ -11,6 +11,7 @@ interface PublishPreviewProps {
   onPublish: (editedCaption: string) => void
   onBack: () => void
   isPublishing: boolean
+  aspectRatio?: string
 }
 
 export function PublishPreview({
@@ -20,8 +21,20 @@ export function PublishPreview({
   onPublish,
   onBack,
   isPublishing,
+  aspectRatio = '1:1',
 }: PublishPreviewProps) {
   const [editedCaption, setEditedCaption] = useState(caption)
+
+  // Get aspect class from ratio
+  const getAspectClass = (ratio: string) => {
+    switch (ratio) {
+      case '1:1': return 'aspect-square'
+      case '4:5': return 'aspect-[4/5]'
+      case '9:16': return 'aspect-[9/16]'
+      case '16:9': return 'aspect-[16/9]'
+      default: return 'aspect-square'
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -50,7 +63,7 @@ export function PublishPreview({
       </div>
 
       {/* Image preview */}
-      <div className="relative aspect-square max-w-[200px] mx-auto bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+      <div className={`relative ${getAspectClass(aspectRatio)} max-w-[200px] mx-auto bg-white/5 border border-white/10 rounded-xl overflow-hidden`}>
         <Image
           src={imageUrl}
           alt="投稿画像"
