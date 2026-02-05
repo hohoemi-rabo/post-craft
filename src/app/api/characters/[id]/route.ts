@@ -1,31 +1,24 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { createServerClient } from '@/lib/supabase'
+import { requireAuth, requireCharacterOwnership } from '@/lib/api-utils'
 
 // PUT /api/characters/[id] - Update a character
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const { error: authError, userId } = await requireAuth()
+  if (authError) return authError
 
   const { id } = await params
+
+  // Check ownership
+  const { error: ownershipError, character: existing } = await requireCharacterOwnership(id, userId!)
+  if (ownershipError) return ownershipError
+
   const supabase = createServerClient()
 
   try {
-    // Check ownership
-    const { data: existing } = await supabase
-      .from('characters')
-      .select('id, user_id, image_url')
-      .eq('id', id)
-      .single()
-
-    if (!existing || existing.user_id !== session.user.id) {
-      return NextResponse.json({ error: 'Not found' }, { status: 404 })
-    }
 
     const formData = await request.formData()
     const name = formData.get('name') as string
@@ -53,7 +46,7 @@ export async function PUT(
     if (imageFile && imageFile.size > 0) {
       const timestamp = Date.now()
       const ext = imageFile.name.split('.').pop()
-      const fileName = `${session.user.id}/${timestamp}.${ext}`
+      const fileName = `${userId}/${timestamp}.${ext}`
 
       const { error: uploadError } = await supabase.storage
         .from('characters')
@@ -87,7 +80,7 @@ export async function PUT(
       await supabase
         .from('characters')
         .update({ is_default: false })
-        .eq('user_id', session.user.id)
+        .eq('user_id', userId)
         .neq('id', id)
     }
 
@@ -128,28 +121,20 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const { error: authError, userId } = await requireAuth()
+  if (authError) return authError
 
   const { id } = await params
+
+  // Check ownership and get image URL
+  const { error: ownershipError, character: existing } = await requireCharacterOwnership(id, userId!)
+  if (ownershipError) return ownershipError
+
   const supabase = createServerClient()
 
   try {
-    // Check ownership and get image URL
-    const { data: existing } = await supabase
-      .from('characters')
-      .select('id, user_id, image_url')
-      .eq('id', id)
-      .single()
-
-    if (!existing || existing.user_id !== session.user.id) {
-      return NextResponse.json({ error: 'Not found' }, { status: 404 })
-    }
-
     // Delete image from storage
-    if (existing.image_url) {
+    if (existing?.image_url) {
       const path = existing.image_url.split('/').slice(-2).join('/')
       await supabase.storage.from('characters').remove([path])
     }

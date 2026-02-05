@@ -1,14 +1,12 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { createServerClient } from '@/lib/supabase'
+import { requireAuth } from '@/lib/api-utils'
 import type { PostType } from '@/types/post'
 
 // GET /api/posts - List posts with pagination
 export async function GET(request: Request) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const { error, userId } = await requireAuth()
+  if (error) return error
 
   const { searchParams } = new URL(request.url)
   const page = parseInt(searchParams.get('page') || '1')
@@ -21,7 +19,7 @@ export async function GET(request: Request) {
     let query = supabase
       .from('posts')
       .select('*, post_images(*)', { count: 'exact' })
-      .eq('user_id', session.user.id)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false })
 
     if (postType) {
@@ -58,10 +56,8 @@ export async function GET(request: Request) {
 
 // POST /api/posts - Create a new post
 export async function POST(request: Request) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const { error, userId } = await requireAuth()
+  if (error) return error
 
   try {
     const body = await request.json()
@@ -90,7 +86,7 @@ export async function POST(request: Request) {
     const { data: post, error: postError } = await supabase
       .from('posts')
       .insert({
-        user_id: session.user.id,
+        user_id: userId,
         post_type: postType,
         input_text: inputText,
         source_url: sourceUrl || null,

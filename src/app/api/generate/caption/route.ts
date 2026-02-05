@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import { auth } from '@/lib/auth'
 import { generateWithRetry, parseJsonResponse } from '@/lib/gemini'
+import { requireAuth } from '@/lib/api-utils'
 import { POST_TYPES } from '@/lib/post-types'
 import { TEMPLATES, applyTemplate } from '@/lib/templates'
 import type { PostType, TemplateData } from '@/types/post'
@@ -109,11 +109,8 @@ ITに詳しくない人でも「なるほど、便利！」「保存して後で
 }
 
 export async function POST(request: Request) {
-  // Auth check
-  const session = await auth()
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const { error } = await requireAuth()
+  if (error) return error
 
   try {
     const body: GenerateCaptionRequest = await request.json()

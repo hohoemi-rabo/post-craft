@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { generateCatchphrase } from '@/lib/image-prompt'
+import { requireAuth } from '@/lib/api-utils'
 
 interface GenerateCatchphraseRequest {
   caption: string
@@ -8,10 +8,8 @@ interface GenerateCatchphraseRequest {
 
 // POST /api/generate/catchphrase - Generate a catchphrase for image text
 export async function POST(request: Request) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const { error } = await requireAuth()
+  if (error) return error
 
   try {
     const body: GenerateCatchphraseRequest = await request.json()

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { requireAuth } from '@/lib/api-utils'
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '')
 
@@ -21,11 +21,8 @@ const analyzePrompt = `この画像のキャラクター/人物の特徴を分�
 日本語で出力してください。JSONのみ出力し、余計な説明は不要です。`
 
 export async function POST(request: Request) {
-  // Auth check
-  const session = await auth()
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const { error } = await requireAuth()
+  if (error) return error
 
   try {
     const formData = await request.formData()

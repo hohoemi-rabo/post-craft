@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { createServerClient } from '@/lib/supabase'
+import { requireAuth, requirePostOwnership } from '@/lib/api-utils'
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_SIZE = 8 * 1024 * 1024 // 8MB
@@ -21,24 +21,16 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const { error: authError, userId } = await requireAuth()
+  if (authError) return authError
 
   const { id: postId } = await params
-  const supabase = createServerClient()
 
   // Check post ownership
-  const { data: post, error: fetchError } = await supabase
-    .from('posts')
-    .select('id, user_id')
-    .eq('id', postId)
-    .single()
+  const { error: ownershipError } = await requirePostOwnership(postId, userId!)
+  if (ownershipError) return ownershipError
 
-  if (fetchError || !post || post.user_id !== session.user.id) {
-    return NextResponse.json({ error: 'Post not found' }, { status: 404 })
-  }
+  const supabase = createServerClient()
 
   // Parse FormData
   const formData = await request.formData()
@@ -83,7 +75,7 @@ export async function POST(
 
     const buffer = Buffer.from(await file.arrayBuffer())
     const ext = file.type.split('/')[1] === 'jpeg' ? 'jpg' : file.type.split('/')[1]
-    const fileName = `${session.user.id}/uploaded/${Date.now()}.${ext}`
+    const fileName = `${userId}/uploaded/${Date.now()}.${ext}`
 
     const { error: uploadError } = await supabase.storage
       .from('generated-images')
@@ -141,24 +133,16 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const { error: authError, userId } = await requireAuth()
+  if (authError) return authError
 
   const { id: postId } = await params
-  const supabase = createServerClient()
 
   // Check post ownership
-  const { data: post, error: fetchError } = await supabase
-    .from('posts')
-    .select('id, user_id')
-    .eq('id', postId)
-    .single()
+  const { error: ownershipError } = await requirePostOwnership(postId, userId!)
+  if (ownershipError) return ownershipError
 
-  if (fetchError || !post || post.user_id !== session.user.id) {
-    return NextResponse.json({ error: 'Post not found' }, { status: 404 })
-  }
+  const supabase = createServerClient()
 
   try {
     const body = await request.json()

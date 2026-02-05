@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { createServerClient } from '@/lib/supabase'
+import { requireAuth } from '@/lib/api-utils'
 import { geminiImageGen, geminiImageGenMultimodal } from '@/lib/gemini'
 import { buildImagePrompt, buildMultimodalImagePrompt } from '@/lib/image-prompt'
 import { IMAGE_STYLES, ASPECT_RATIOS, type ImageStyle, type AspectRatio, type BackgroundType } from '@/lib/image-styles'
@@ -20,10 +20,8 @@ interface GenerateImageRequest {
 
 // POST /api/generate/image - Generate an image using Gemini
 export async function POST(request: Request) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const { error, userId } = await requireAuth()
+  if (error) return error
 
   try {
     const body: GenerateImageRequest = await request.json()
@@ -50,7 +48,7 @@ export async function POST(request: Request) {
         .from('characters')
         .select('description, image_url')
         .eq('id', characterId)
-        .eq('user_id', session.user.id)
+        .eq('user_id', userId)
         .single()
 
       if (character) {
@@ -151,8 +149,8 @@ export async function POST(request: Request) {
     // Generate file path
     const timestamp = Date.now()
     const fileName = postId
-      ? `${session.user.id}/${postId}/${timestamp}.${ext}`
-      : `${session.user.id}/temp/${timestamp}.${ext}`
+      ? `${userId}/${postId}/${timestamp}.${ext}`
+      : `${userId}/temp/${timestamp}.${ext}`
 
     // Upload to Supabase Storage
     const { error: uploadError } = await supabase.storage

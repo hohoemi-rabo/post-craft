@@ -1,24 +1,22 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { createServerClient } from '@/lib/supabase'
+import { requireAuth } from '@/lib/api-utils'
 
 // GET /api/characters - List all characters for current user
 export async function GET() {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const { error, userId } = await requireAuth()
+  if (error) return error
 
   const supabase = createServerClient()
 
-  const { data, error } = await supabase
+  const { data, error: fetchError } = await supabase
     .from('characters')
     .select('*')
-    .eq('user_id', session.user.id)
+    .eq('user_id', userId)
     .order('created_at', { ascending: false })
 
-  if (error) {
-    console.error('Error fetching characters:', error)
+  if (fetchError) {
+    console.error('Error fetching characters:', fetchError)
     return NextResponse.json({ error: 'Failed to fetch characters' }, { status: 500 })
   }
 
@@ -27,10 +25,8 @@ export async function GET() {
 
 // POST /api/characters - Create a new character
 export async function POST(request: Request) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const { error, userId } = await requireAuth()
+  if (error) return error
 
   const supabase = createServerClient()
 
@@ -61,7 +57,7 @@ export async function POST(request: Request) {
     if (imageFile && imageFile.size > 0) {
       const timestamp = Date.now()
       const ext = imageFile.name.split('.').pop()
-      const fileName = `${session.user.id}/${timestamp}.${ext}`
+      const fileName = `${userId}/${timestamp}.${ext}`
 
       const { error: uploadError } = await supabase.storage
         .from('characters')
@@ -89,14 +85,14 @@ export async function POST(request: Request) {
       await supabase
         .from('characters')
         .update({ is_default: false })
-        .eq('user_id', session.user.id)
+        .eq('user_id', userId)
     }
 
     // Create character
     const { data, error } = await supabase
       .from('characters')
       .insert({
-        user_id: session.user.id,
+        user_id: userId,
         name,
         description,
         image_url: imageUrl,

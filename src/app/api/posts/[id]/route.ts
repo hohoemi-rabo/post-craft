@@ -1,29 +1,27 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { createServerClient } from '@/lib/supabase'
+import { requireAuth, requirePostOwnership } from '@/lib/api-utils'
 
 // GET /api/posts/[id] - Get post details
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const { error, userId } = await requireAuth()
+  if (error) return error
 
   const { id } = await params
   const supabase = createServerClient()
 
   try {
-    const { data: post, error } = await supabase
+    const { data: post, error: fetchError } = await supabase
       .from('posts')
       .select('*, post_images(*)')
       .eq('id', id)
-      .eq('user_id', session.user.id)
+      .eq('user_id', userId)
       .single()
 
-    if (error || !post) {
+    if (fetchError || !post) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 })
     }
 
@@ -42,27 +40,19 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const { error: authError, userId } = await requireAuth()
+  if (authError) return authError
 
   const { id } = await params
+
+  // Check ownership
+  const { error: ownershipError } = await requirePostOwnership(id, userId!)
+  if (ownershipError) return ownershipError
+
   const supabase = createServerClient()
 
   try {
     const body = await request.json()
-
-    // Check ownership
-    const { data: post, error: fetchError } = await supabase
-      .from('posts')
-      .select('id, user_id')
-      .eq('id', id)
-      .single()
-
-    if (fetchError || !post || post.user_id !== session.user.id) {
-      return NextResponse.json({ error: 'Post not found' }, { status: 404 })
-    }
 
     // Whitelist of updatable fields
     const allowedFields = [
@@ -128,10 +118,8 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const { error: authError, userId } = await requireAuth()
+  if (authError) return authError
 
   const { id } = await params
   const supabase = createServerClient()
@@ -144,7 +132,7 @@ export async function DELETE(
       .eq('id', id)
       .single()
 
-    if (fetchError || !post || post.user_id !== session.user.id) {
+    if (fetchError || !post || post.user_id !== userId) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 })
     }
 

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { generateSceneDescription } from '@/lib/image-prompt'
+import { requireAuth } from '@/lib/api-utils'
 import type { PostType } from '@/types/post'
 
 interface GenerateSceneRequest {
@@ -10,10 +10,8 @@ interface GenerateSceneRequest {
 
 // POST /api/generate/scene - Generate scene description from caption
 export async function POST(request: Request) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const { error } = await requireAuth()
+  if (error) return error
 
   try {
     const body: GenerateSceneRequest = await request.json()
