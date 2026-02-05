@@ -1,7 +1,7 @@
 // Image style definitions for AI image generation
 
 export type ImageStyle = 'manga_male' | 'manga_female' | 'pixel_art' | 'illustration' | 'realistic'
-export type AspectRatio = '1:1' | '9:16'
+export type AspectRatio = '1:1' | '4:5' | '9:16' | '16:9'
 export type BackgroundType = 'tech' | 'auto'
 
 export const BACKGROUND_TYPES: Record<BackgroundType, { name: string; description: string; icon: string }> = {
@@ -91,10 +91,22 @@ export const ASPECT_RATIOS: Record<AspectRatio, { name: string; width: number; h
     height: 1080,
     description: 'フィード投稿用',
   },
-  '9:16': {
+  '4:5': {
     name: '縦長',
+    width: 1080,
+    height: 1350,
+    description: 'フィード縦長',
+  },
+  '9:16': {
+    name: 'リール',
     width: 1080,
     height: 1920,
     description: 'リール/ショート用',
+  },
+  '16:9': {
+    name: '横長',
+    width: 1080,
+    height: 608,
+    description: '横長フィード',
   },
 }

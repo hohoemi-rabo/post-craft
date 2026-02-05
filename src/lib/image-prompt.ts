@@ -20,6 +20,24 @@ export interface MultimodalImagePromptOptions {
 }
 
 /**
+ * Get aspect ratio instruction for image prompt
+ */
+function getAspectRatioInstruction(aspectRatio: AspectRatio): string {
+  switch (aspectRatio) {
+    case '1:1':
+      return '正方形のフィード投稿用画像（1:1アスペクト比）。'
+    case '4:5':
+      return '縦長のフィード投稿用画像（4:5アスペクト比）。'
+    case '9:16':
+      return '縦長のショート動画用画像（9:16アスペクト比）。'
+    case '16:9':
+      return '横長のフィード投稿用画像（16:9アスペクト比）。'
+    default:
+      return '正方形のフィード投稿用画像（1:1アスペクト比）。'
+  }
+}
+
+/**
  * Get background instruction based on style and background type
  */
 function getBackgroundInstruction(style: ImageStyle, backgroundType: BackgroundType = 'tech', sceneDescription: string): string {
@@ -56,11 +74,7 @@ export function buildImagePrompt(options: ImagePromptOptions): string {
   const parts: string[] = []
 
   // Aspect ratio instruction
-  if (options.aspectRatio === '9:16') {
-    parts.push('縦長のショート動画用画像（9:16アスペクト比）。')
-  } else {
-    parts.push('正方形のフィード投稿用画像（1:1アスペクト比）。')
-  }
+  parts.push(getAspectRatioInstruction(options.aspectRatio))
 
   // Base style prompt
   parts.push(styleConfig.basePrompt)
@@ -120,11 +134,7 @@ export function buildMultimodalImagePrompt(options: MultimodalImagePromptOptions
   parts.push('')
 
   // Aspect ratio instruction
-  if (options.aspectRatio === '9:16') {
-    parts.push('縦長のショート動画用画像（9:16アスペクト比）。')
-  } else {
-    parts.push('正方形のフィード投稿用画像（1:1アスペクト比）。')
-  }
+  parts.push(getAspectRatioInstruction(options.aspectRatio))
 
   // Base style prompt
   parts.push(styleConfig.basePrompt)
@@ -191,11 +201,7 @@ export function buildIllustrationWithTextPrompt(options: IllustrationPromptOptio
   const parts: string[] = []
 
   // Aspect ratio instruction
-  if (options.aspectRatio === '9:16') {
-    parts.push('縦長のショート動画用画像（9:16アスペクト比）。')
-  } else {
-    parts.push('正方形のフィード投稿用画像（1:1アスペクト比）。')
-  }
+  parts.push(getAspectRatioInstruction(options.aspectRatio))
 
   // Base style
   parts.push('フラットデザインのイラスト風、ポップで明るい色使い。')
@@ -233,10 +239,21 @@ export function buildRealisticImagePrompt(options: RealisticImagePromptOptions):
   const parts: string[] = []
 
   // Aspect ratio instruction
-  if (options.aspectRatio === '9:16') {
-    parts.push('Create a vertical image (9:16 aspect ratio) for social media stories/reels.')
-  } else {
-    parts.push('Create a square image (1:1 aspect ratio) for social media feed post.')
+  switch (options.aspectRatio) {
+    case '1:1':
+      parts.push('Create a square image (1:1 aspect ratio) for social media feed post.')
+      break
+    case '4:5':
+      parts.push('Create a vertical image (4:5 aspect ratio) for social media feed post.')
+      break
+    case '9:16':
+      parts.push('Create a vertical image (9:16 aspect ratio) for social media stories/reels.')
+      break
+    case '16:9':
+      parts.push('Create a horizontal image (16:9 aspect ratio) for social media feed post.')
+      break
+    default:
+      parts.push('Create a square image (1:1 aspect ratio) for social media feed post.')
   }
 
   parts.push('')

@@ -194,7 +194,10 @@ export function StepImageSettings({
                   <div className="flex justify-center mb-2">
                     <div
                       className={`bg-white/20 rounded ${
-                        ratio === '1:1' ? 'w-10 h-10' : 'w-6 h-10'
+                        ratio === '1:1' ? 'w-10 h-10' :
+                        ratio === '4:5' ? 'w-8 h-10' :
+                        ratio === '9:16' ? 'w-6 h-10' :
+                        'w-10 h-6' // 16:9
                       }`}
                     />
                   </div>
