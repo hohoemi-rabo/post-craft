@@ -29,6 +29,7 @@ interface FormState {
   uploadedImageFile: File | null
   uploadedImageBase64: string
   uploadedImageMimeType: string
+  imageReadAspectRatio: '1:1' | '4:5' | '16:9'
 }
 
 interface GeneratedResult {
@@ -59,6 +60,7 @@ const INITIAL_STATE: FormState = {
   uploadedImageFile: null,
   uploadedImageBase64: '',
   uploadedImageMimeType: '',
+  imageReadAspectRatio: '1:1',
 }
 
 export default function CreatePage() {
@@ -533,7 +535,8 @@ export default function CreatePage() {
     imageBase64: string,
     imageMimeType: string,
     text: string,
-    file: File
+    file: File,
+    selectedAspectRatio: '1:1' | '4:5' | '16:9'
   ) => {
     setFormState((prev) => ({
       ...prev,
@@ -541,9 +544,10 @@ export default function CreatePage() {
       uploadedImageFile: file,
       uploadedImageBase64: imageBase64,
       uploadedImageMimeType: imageMimeType,
+      imageReadAspectRatio: selectedAspectRatio,
     }))
     setStep(3)
-    startImageReadGeneration(imageBase64, imageMimeType, text, file)
+    startImageReadGeneration(imageBase64, imageMimeType, text, file, selectedAspectRatio)
   }
 
   // image_read タイプ用: 生成処理
@@ -551,7 +555,8 @@ export default function CreatePage() {
     imageBase64: string,
     imageMimeType: string,
     text: string,
-    file: File
+    file: File,
+    selectedAspectRatio: '1:1' | '4:5' | '16:9'
   ) => {
     const steps: GenerationStep[] = [
       { id: 'analyze', label: '画像を分析中...', status: 'pending' },
@@ -602,7 +607,7 @@ export default function CreatePage() {
           generatedHashtags: captionData.hashtags || [],
           imageUrl: null,
           imageStyle: 'uploaded',
-          aspectRatio: '1:1',
+          aspectRatio: selectedAspectRatio,
         }),
       })
 
@@ -682,7 +687,7 @@ export default function CreatePage() {
               caption={generatedResult.caption}
               hashtags={generatedResult.hashtags}
               imageUrl={generatedResult.imageUrl}
-              aspectRatio="1:1"
+              aspectRatio={formState.imageReadAspectRatio}
               onRegenerateImage={undefined}
               onCreateNew={handleCreateNew}
               postId={savedPostId ?? undefined}

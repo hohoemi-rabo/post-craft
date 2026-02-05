@@ -1,20 +1,122 @@
 'use client'
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
+
+type ImageReadAspectRatio = '1:1' | '4:5' | '16:9'
+
+interface AspectRatioOption {
+  id: ImageReadAspectRatio
+  name: string
+  ratio: number // width / height
+}
+
+const ASPECT_RATIO_OPTIONS: AspectRatioOption[] = [
+  { id: '1:1', name: '1:1（正方形）', ratio: 1 },
+  { id: '4:5', name: '4:5（縦長）', ratio: 4 / 5 },
+  { id: '16:9', name: '16:9（横長）', ratio: 16 / 9 },
+]
 
 interface StepImageReadInputProps {
-  onSubmit: (imageBase64: string, imageMimeType: string, text: string, file: File) => void
+  onSubmit: (imageBase64: string, imageMimeType: string, text: string, file: File, aspectRatio: ImageReadAspectRatio) => void
   onBack: () => void
 }
 
 export function StepImageReadInput({ onSubmit, onBack }: StepImageReadInputProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [preview, setPreview] = useState<string | null>(null)
-  const [imageBase64, setImageBase64] = useState<string>('')
+  const [originalPreview, setOriginalPreview] = useState<string | null>(null)
+  const [croppedPreview, setCroppedPreview] = useState<string | null>(null)
+  const [croppedBase64, setCroppedBase64] = useState<string>('')
+  const [aspectRatio, setAspectRatio] = useState<ImageReadAspectRatio>('1:1')
   const [text, setText] = useState('')
   const [isDragging, setIsDragging] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  // Canvas API で画像をクロップ
+  const cropImage = useCallback((imageSrc: string, ratio: ImageReadAspectRatio) => {
+    setIsProcessing(true)
+    const img = new Image()
+    img.onload = () => {
+      const canvas = canvasRef.current
+      if (!canvas) {
+        setIsProcessing(false)
+        return
+      }
+
+      const ctx = canvas.getContext('2d')
+      if (!ctx) {
+        setIsProcessing(false)
+        return
+      }
+
+      const targetRatio = ASPECT_RATIO_OPTIONS.find(o => o.id === ratio)?.ratio || 1
+
+      let srcX = 0
+      let srcY = 0
+      let srcWidth = img.width
+      let srcHeight = img.height
+
+      const imgRatio = img.width / img.height
+
+      if (imgRatio > targetRatio) {
+        // 画像が目標より横長 → 左右をクロップ
+        srcWidth = img.height * targetRatio
+        srcX = (img.width - srcWidth) / 2
+      } else {
+        // 画像が目標より縦長 → 上下をクロップ
+        srcHeight = img.width / targetRatio
+        srcY = (img.height - srcHeight) / 2
+      }
+
+      // 出力サイズ（Instagram推奨サイズに合わせる）
+      let outputWidth: number
+      let outputHeight: number
+
+      if (ratio === '1:1') {
+        outputWidth = 1080
+        outputHeight = 1080
+      } else if (ratio === '4:5') {
+        outputWidth = 1080
+        outputHeight = 1350
+      } else {
+        // 16:9
+        outputWidth = 1080
+        outputHeight = 608
+      }
+
+      canvas.width = outputWidth
+      canvas.height = outputHeight
+
+      ctx.drawImage(
+        img,
+        srcX, srcY, srcWidth, srcHeight,
+        0, 0, outputWidth, outputHeight
+      )
+
+      // クロップ後の画像をData URLに変換
+      const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.9)
+      setCroppedPreview(croppedDataUrl)
+
+      // Base64データを抽出
+      const base64 = croppedDataUrl.split(',')[1]
+      setCroppedBase64(base64)
+      setIsProcessing(false)
+    }
+    img.onerror = () => {
+      setError('画像の読み込みに失敗しました')
+      setIsProcessing(false)
+    }
+    img.src = imageSrc
+  }, [])
+
+  // アスペクト比が変更されたときに画像をクロップ
+  useEffect(() => {
+    if (originalPreview && selectedFile) {
+      cropImage(originalPreview, aspectRatio)
+    }
+  }, [aspectRatio, originalPreview, selectedFile, cropImage])
 
   const handleFileSelect = useCallback((file: File) => {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
@@ -30,14 +132,12 @@ export function StepImageReadInput({ onSubmit, onBack }: StepImageReadInputProps
     setError(null)
     setSelectedFile(file)
 
-    // プレビュー表示とBase64変換
+    // オリジナル画像を読み込み
     const reader = new FileReader()
     reader.onload = (e) => {
       const result = e.target?.result as string
-      setPreview(result)
-      // data:image/xxx;base64, を除去してBase64データのみ抽出
-      const base64 = result.split(',')[1]
-      setImageBase64(base64)
+      setOriginalPreview(result)
+      // クロップ処理は useEffect で実行される
     }
     reader.readAsDataURL(file)
   }, [])
@@ -71,8 +171,9 @@ export function StepImageReadInput({ onSubmit, onBack }: StepImageReadInputProps
 
   const handleRemoveImage = useCallback(() => {
     setSelectedFile(null)
-    setPreview(null)
-    setImageBase64('')
+    setOriginalPreview(null)
+    setCroppedPreview(null)
+    setCroppedBase64('')
     setError(null)
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
@@ -80,17 +181,21 @@ export function StepImageReadInput({ onSubmit, onBack }: StepImageReadInputProps
   }, [])
 
   const handleSubmit = () => {
-    if (!selectedFile || !imageBase64) {
+    if (!selectedFile || !croppedBase64) {
       setError('画像を選択してください')
       return
     }
-    onSubmit(imageBase64, selectedFile.type, text, selectedFile)
+    // クロップ済み画像のBase64とMIMEタイプを送信
+    onSubmit(croppedBase64, 'image/jpeg', text, selectedFile, aspectRatio)
   }
 
-  const isValid = selectedFile !== null && imageBase64 !== ''
+  const isValid = selectedFile !== null && croppedBase64 !== '' && !isProcessing
 
   return (
     <div className="space-y-6">
+      {/* 非表示のCanvas */}
+      <canvas ref={canvasRef} className="hidden" />
+
       {/* ヘッダー */}
       <div>
         <div className="flex items-center gap-2 mb-2">
@@ -109,16 +214,21 @@ export function StepImageReadInput({ onSubmit, onBack }: StepImageReadInputProps
           画像をアップロード <span className="text-red-400">*</span>
         </label>
 
-        {preview ? (
+        {croppedPreview ? (
           // プレビュー表示
           <div className="relative">
             <div className="relative rounded-xl overflow-hidden border-2 border-white/10">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={preview}
+                src={croppedPreview}
                 alt="プレビュー"
                 className="w-full max-h-[400px] object-contain bg-black/20"
               />
+              {isProcessing && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                  <div className="text-white text-sm">処理中...</div>
+                </div>
+              )}
               <button
                 type="button"
                 onClick={handleRemoveImage}
@@ -142,7 +252,7 @@ export function StepImageReadInput({ onSubmit, onBack }: StepImageReadInputProps
               </button>
             </div>
             <p className="text-xs text-slate-500 mt-2">
-              {selectedFile?.name} ({(selectedFile?.size ?? 0 / 1024 / 1024).toFixed(2)} MB)
+              {selectedFile?.name}
             </p>
           </div>
         ) : (
@@ -199,6 +309,35 @@ export function StepImageReadInput({ onSubmit, onBack }: StepImageReadInputProps
           <p className="text-red-400 text-sm">{error}</p>
         )}
       </div>
+
+      {/* アスペクト比選択（画像選択後に表示） */}
+      {selectedFile && (
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-slate-300">
+            アスペクト比
+          </label>
+          <div className="flex gap-2">
+            {ASPECT_RATIO_OPTIONS.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                onClick={() => setAspectRatio(option.id)}
+                disabled={isProcessing}
+                className={`
+                  flex-1 px-4 py-3 rounded-xl text-sm font-medium transition-all
+                  ${aspectRatio === option.id
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/10'
+                  }
+                  ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}
+                `}
+              >
+                {option.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* メモ入力 */}
       <div className="space-y-2">
