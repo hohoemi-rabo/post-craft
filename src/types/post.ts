@@ -1,5 +1,5 @@
 // Post Types
-export type PostType = 'solution' | 'promotion' | 'tips' | 'showcase' | 'useful' | 'howto'
+export type PostType = 'solution' | 'promotion' | 'tips' | 'showcase' | 'useful' | 'howto' | 'image_read'
 
 export interface PostTypeConfig {
   id: PostType

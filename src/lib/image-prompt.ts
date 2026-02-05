@@ -269,6 +269,7 @@ export async function generateSceneDescription(
     showcase: '実績/事例タイプ',
     useful: 'お役立ちタイプ',
     howto: '使い方タイプ',
+    image_read: '画像読み取りタイプ',
   }
 
   const prompt = `以下の投稿内容から、画像のシーン説明を生成してください。
@@ -310,6 +311,7 @@ export async function generateSceneSuggestions(
     showcase: '実績/事例タイプ',
     useful: 'お役立ちタイプ',
     howto: '使い方タイプ',
+    image_read: '画像読み取りタイプ',
   }
 
   const prompt = `以下の投稿内容から、画像生成用のシーン説明を${count}個生成してください。

@@ -96,6 +96,15 @@ AIを使うと…
 
 ---
 📍{footer_message}`,
+
+  image_read: `{main_content}
+
+{key_points}
+
+{call_to_action}
+
+---
+📍パソコン・スマホ ほほ笑みラボ（飯田市）`,
 }
 
 // Field labels for UI
@@ -133,6 +142,10 @@ export const FIELD_LABELS: Record<string, string> = {
 
   // Howto type
   howto_title: '使い方の見出し',
+
+  // Image read type
+  main_content: '本文',
+  key_points: 'キーポイント',
 }
 
 // Apply template with data

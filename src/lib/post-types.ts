@@ -121,6 +121,26 @@ export const POST_TYPES: Record<PostType, PostTypeConfig> = {
       '#飯田市',
     ],
   },
+  image_read: {
+    id: 'image_read',
+    name: '画像読み取りタイプ',
+    icon: '📷',
+    description: '画像をAIで読み取り、投稿文を自動生成',
+    target: '全般',
+    charRange: { min: 200, max: 400 },
+    requiredFields: ['main_content', 'key_points', 'call_to_action'],
+    optionalFields: [],
+    hashtagTrend: [
+      '#お知らせ',
+      '#告知',
+      '#イベント',
+      '#無料',
+      '#勉強会',
+      '#セミナー',
+      '#飯田市',
+      '#ほほ笑みラボ',
+    ],
+  },
 }
 
 export const IMAGE_STYLES: Record<ImageStyle, ImageStyleConfig> = {

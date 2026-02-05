@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 import { auth } from '@/lib/auth'
 import { generateWithRetry, parseJsonResponse } from '@/lib/gemini'
 import { POST_TYPES } from '@/lib/post-types'
@@ -9,6 +10,8 @@ interface GenerateCaptionRequest {
   postType: PostType
   inputText: string
   sourceUrl?: string
+  imageBase64?: string
+  imageMimeType?: string
 }
 
 interface GenerateCaptionResponse {
@@ -91,6 +94,18 @@ ITに詳しくない人でも「なるほど、便利！」「保存して後で
 - step1, step2, step3: 入力メモに手順がなくても、世の中の一般的な操作手順を調べて「3ステップ」で詳しく記述してください。各ステップは40文字程度で具体的に。
 - benefit/example: その機能を使うことでユーザーがどう楽になるか、具体的なシーンを想像して作成してください。
 - footer_message: 内容に合った締めの一言（例：ぜひお試しください）。`,
+
+  image_read: `画像の内容を読み取り、ユーザーのメモを参考にしてInstagram投稿文を作成します。
+
+【生成のルール】
+- main_content: 画像から読み取った情報とユーザーのメモを組み合わせて、読者を惹きつける本文を作成。150-300文字程度。絵文字を効果的に使用。見出しは【】で囲む。
+- key_points: 投稿の核となるポイントを箇条書き（✅や✨で装飾）で3-5個。
+- call_to_action: 読者に次のアクションを促す一言。「詳細はプロフィールのリンクから」など。
+
+【重要】
+- 画像の内容を正確に反映すること
+- ユーザーのメモで指定された方向性・トーンに従うこと
+- 読者が「行ってみたい」「参加したい」と思える文章にすること`,
 }
 
 export async function POST(request: Request) {
@@ -102,12 +117,28 @@ export async function POST(request: Request) {
 
   try {
     const body: GenerateCaptionRequest = await request.json()
-    const { postType, inputText, sourceUrl } = body
+    const { postType, inputText, sourceUrl, imageBase64, imageMimeType } = body
 
     // Validate request
-    if (!postType || !inputText) {
+    // image_read タイプの場合は inputText は任意（メモなしでもOK）
+    if (!postType) {
       return NextResponse.json(
-        { error: 'postType and inputText are required' },
+        { error: 'postType is required' },
+        { status: 400 }
+      )
+    }
+
+    if (postType !== 'image_read' && !inputText) {
+      return NextResponse.json(
+        { error: 'inputText is required for this post type' },
+        { status: 400 }
+      )
+    }
+
+    // image_read タイプの場合は画像が必須
+    if (postType === 'image_read' && (!imageBase64 || !imageMimeType)) {
+      return NextResponse.json(
+        { error: 'imageBase64 and imageMimeType are required for image_read type' },
         { status: 400 }
       )
     }
@@ -121,6 +152,29 @@ export async function POST(request: Request) {
 
     const typeConfig = POST_TYPES[postType]
     const template = TEMPLATES[postType]
+
+    // image_read タイプの場合、まず画像を分析
+    let imageAnalysis = ''
+    if (postType === 'image_read' && imageBase64 && imageMimeType) {
+      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!)
+      const model = genAI.getGenerativeModel({ model: 'gemini-3-pro-preview' })
+
+      const analysisResult = await model.generateContent([
+        `この画像の内容を詳しく説明してください:
+- 何が写っているか（文字、イラスト、写真など）
+- 文字が含まれていれば、その内容をすべて書き起こす
+- イベント・告知であれば、日時・場所・内容・料金など
+- 全体のメッセージや目的
+日本語で詳細に説明してください。`,
+        {
+          inlineData: {
+            mimeType: imageMimeType,
+            data: imageBase64,
+          },
+        },
+      ])
+      imageAnalysis = analysisResult.response.text()
+    }
 
     // Step 1: Generate template data
     const templateDataPrompt = `${SYSTEM_PROMPT}
@@ -139,8 +193,9 @@ ${typeConfig.requiredFields.join(', ')}
 ${typeConfig.optionalFields.length > 0 ? typeConfig.optionalFields.join(', ') : 'なし'}
 
 【入力メモ】
-${inputText}
+${inputText || '（メモなし - 画像の内容に基づいて作成）'}
 ${sourceUrl ? `\n【参照URL】\n${sourceUrl}` : ''}
+${imageAnalysis ? `\n【画像から読み取った内容】\n${imageAnalysis}` : ''}
 
 【重要な注意】
 - 入力メモの主題（何についての話か）を正確に反映してください

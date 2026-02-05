@@ -23,6 +23,7 @@ Google Gemini、プロンプト、画像生成のルール。
 | `showcase` | 実績/事例タイプ | ビジネス層 |
 | `useful` | お役立ちタイプ | 全般 |
 | `howto` | 使い方タイプ | 全般 |
+| `image_read` | 画像読み取りタイプ | 全般 |
 
 ### テンプレート構造
 
@@ -136,6 +137,18 @@ AIを使うと…
 
 ---
 📍{footer_message}
+```
+
+#### 画像読み取りタイプ (image_read)
+```
+{main_content}
+
+{key_points}
+
+{call_to_action}
+
+---
+📍パソコン・スマホ ほほ笑みラボ（飯田市）
 ```
 
 ### 生成ルール

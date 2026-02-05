@@ -10,6 +10,7 @@ import {
   StepResult,
   ProgressIndicator,
 } from '@/components/create'
+import { StepImageReadInput } from '@/components/create/step-image-read-input'
 import { type PostType } from '@/types/post'
 import { type ImageStyle, type AspectRatio, type BackgroundType } from '@/lib/image-styles'
 
@@ -24,6 +25,10 @@ interface FormState {
   useCharacterImage: boolean
   catchphrase: string
   backgroundType: BackgroundType
+  // image_read タイプ用
+  uploadedImageFile: File | null
+  uploadedImageBase64: string
+  uploadedImageMimeType: string
 }
 
 interface GeneratedResult {
@@ -50,6 +55,10 @@ const INITIAL_STATE: FormState = {
   useCharacterImage: false,
   catchphrase: '',
   backgroundType: 'tech',
+  // image_read タイプ用
+  uploadedImageFile: null,
+  uploadedImageBase64: '',
+  uploadedImageMimeType: '',
 }
 
 export default function CreatePage() {
@@ -62,8 +71,8 @@ export default function CreatePage() {
   const [isRegenerating, setIsRegenerating] = useState(false)
   const [savedPostId, setSavedPostId] = useState<string | null>(null)
 
-  // Calculate total steps based on skipImage
-  const totalSteps = formState.skipImage ? 5 : 6
+  // Calculate total steps based on postType and skipImage
+  const totalSteps = formState.postType === 'image_read' ? 4 : formState.skipImage ? 5 : 6
 
   // Check for reuse data from history page
   useEffect(() => {
@@ -519,8 +528,172 @@ export default function CreatePage() {
     setGeneratedCaption('')
   }
 
+  // image_read タイプ用: 画像アップロード + メモ入力後の処理
+  const handleImageReadSubmit = async (
+    imageBase64: string,
+    imageMimeType: string,
+    text: string,
+    file: File
+  ) => {
+    setFormState((prev) => ({
+      ...prev,
+      inputText: text,
+      uploadedImageFile: file,
+      uploadedImageBase64: imageBase64,
+      uploadedImageMimeType: imageMimeType,
+    }))
+    setStep(3)
+    startImageReadGeneration(imageBase64, imageMimeType, text, file)
+  }
+
+  // image_read タイプ用: 生成処理
+  const startImageReadGeneration = async (
+    imageBase64: string,
+    imageMimeType: string,
+    text: string,
+    file: File
+  ) => {
+    const steps: GenerationStep[] = [
+      { id: 'analyze', label: '画像を分析中...', status: 'pending' },
+      { id: 'caption', label: '投稿文を生成中...', status: 'pending' },
+      { id: 'upload', label: '画像をアップロード中...', status: 'pending' },
+      { id: 'save', label: '保存中...', status: 'pending' },
+    ]
+    setGenerationSteps(steps)
+    setGenerationProgress(0)
+
+    try {
+      // Step 1 & 2: 画像分析 + キャプション生成（API内で同時実行）
+      updateStepStatus('analyze', 'loading')
+      updateStepStatus('caption', 'loading')
+
+      const captionResponse = await fetch('/api/generate/caption', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          postType: 'image_read',
+          inputText: text,
+          imageBase64,
+          imageMimeType,
+        }),
+      })
+
+      if (!captionResponse.ok) {
+        const errorData = await captionResponse.json().catch(() => ({}))
+        throw new Error(errorData.error || 'キャプション生成に失敗しました')
+      }
+
+      const captionData = await captionResponse.json()
+      updateStepStatus('analyze', 'complete')
+      updateStepStatus('caption', 'complete')
+      setGenerationProgress(50)
+
+      // Step 3: 投稿を保存（画像URLはまだnull）
+      updateStepStatus('upload', 'loading')
+
+      const saveRes = await fetch('/api/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          postType: 'image_read',
+          inputText: text,
+          sourceUrl: null,
+          generatedCaption: captionData.caption,
+          generatedHashtags: captionData.hashtags || [],
+          imageUrl: null,
+          imageStyle: 'uploaded',
+          aspectRatio: '1:1',
+        }),
+      })
+
+      if (!saveRes.ok) {
+        throw new Error('投稿の保存に失敗しました')
+      }
+
+      const savedPost = await saveRes.json()
+      setSavedPostId(savedPost.id)
+      setGenerationProgress(70)
+
+      // Step 4: 画像をアップロード
+      const uploadFormData = new FormData()
+      uploadFormData.append('image', file)
+
+      const uploadRes = await fetch(`/api/posts/${savedPost.id}/image`, {
+        method: 'POST',
+        body: uploadFormData,
+      })
+
+      if (!uploadRes.ok) {
+        throw new Error('画像のアップロードに失敗しました')
+      }
+
+      const { imageUrl } = await uploadRes.json()
+      updateStepStatus('upload', 'complete')
+      setGenerationProgress(90)
+
+      // Step 5: 完了
+      updateStepStatus('save', 'complete')
+      setGenerationProgress(100)
+
+      setGeneratedResult({
+        caption: captionData.caption,
+        hashtags: captionData.hashtags || [],
+        imageUrl,
+      })
+
+      setTimeout(() => setStep(4), 500)
+    } catch (error) {
+      console.error('Generation error:', error)
+      const currentStep = generationSteps.find((s) => s.status === 'loading')
+      if (currentStep) {
+        updateStepStatus(
+          currentStep.id,
+          'error',
+          error instanceof Error ? error.message : '生成に失敗しました'
+        )
+      }
+    }
+  }
+
   // Determine which step to render
   const renderStep = () => {
+    // image_read タイプ専用フロー: 1->2(画像+メモ)->3(生成)->4(結果)
+    if (formState.postType === 'image_read') {
+      switch (step) {
+        case 1:
+          return <StepPostType onSelect={handleSelectPostType} />
+        case 2:
+          return (
+            <StepImageReadInput
+              onSubmit={handleImageReadSubmit}
+              onBack={handleBack}
+            />
+          )
+        case 3:
+          return (
+            <StepGenerating
+              steps={generationSteps}
+              progress={generationProgress}
+            />
+          )
+        case 4:
+          return generatedResult ? (
+            <StepResult
+              caption={generatedResult.caption}
+              hashtags={generatedResult.hashtags}
+              imageUrl={generatedResult.imageUrl}
+              aspectRatio="1:1"
+              onRegenerateImage={undefined}
+              onCreateNew={handleCreateNew}
+              postId={savedPostId ?? undefined}
+              isRegenerating={false}
+            />
+          ) : null
+        default:
+          return null
+      }
+    }
+
     if (formState.skipImage) {
       // skipImage flow: 1->2->3->4(generating)->5(result)
       switch (step) {
