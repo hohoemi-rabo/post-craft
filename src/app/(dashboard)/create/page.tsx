@@ -13,63 +13,27 @@ import {
 import { StepImageReadInput } from '@/components/create/step-image-read-input'
 import { type PostType } from '@/types/post'
 import { type ImageStyle, type AspectRatio, type BackgroundType } from '@/lib/image-styles'
-
-interface FormState {
-  postType: PostType | null
-  inputText: string
-  sourceUrl: string
-  imageStyle: ImageStyle
-  aspectRatio: AspectRatio
-  characterId: string | null
-  skipImage: boolean
-  useCharacterImage: boolean
-  catchphrase: string
-  backgroundType: BackgroundType
-  // image_read タイプ用
-  uploadedImageFile: File | null
-  uploadedImageBase64: string
-  uploadedImageMimeType: string
-  imageReadAspectRatio: '1:1' | '4:5' | '16:9'
-}
-
-interface GeneratedResult {
-  caption: string
-  hashtags: string[]
-  imageUrl: string | null
-}
-
-interface GenerationStep {
-  id: string
-  label: string
-  status: 'pending' | 'loading' | 'complete' | 'error'
-  error?: string
-}
-
-const INITIAL_STATE: FormState = {
-  postType: null,
-  inputText: '',
-  sourceUrl: '',
-  imageStyle: 'manga_male',
-  aspectRatio: '9:16',
-  characterId: null,
-  skipImage: false,
-  useCharacterImage: false,
-  catchphrase: '',
-  backgroundType: 'tech',
-  // image_read タイプ用
-  uploadedImageFile: null,
-  uploadedImageBase64: '',
-  uploadedImageMimeType: '',
-  imageReadAspectRatio: '1:1',
-}
+import {
+  type CreateFormState,
+  type GeneratedResult,
+  type GenerationStep,
+  INITIAL_FORM_STATE,
+} from '@/types/create-flow'
+import { useGenerationSteps } from '@/hooks/useGenerationSteps'
 
 export default function CreatePage() {
   const [step, setStep] = useState(1)
-  const [formState, setFormState] = useState<FormState>(INITIAL_STATE)
+  const [formState, setFormState] = useState<CreateFormState>(INITIAL_FORM_STATE)
   const [generatedCaption, setGeneratedCaption] = useState<string>('')
   const [generatedResult, setGeneratedResult] = useState<GeneratedResult | null>(null)
-  const [generationSteps, setGenerationSteps] = useState<GenerationStep[]>([])
-  const [generationProgress, setGenerationProgress] = useState(0)
+  const {
+    generationSteps,
+    generationProgress,
+    setGenerationProgress,
+    updateStepStatus,
+    initSteps,
+    resetSteps,
+  } = useGenerationSteps()
   const [isRegenerating, setIsRegenerating] = useState(false)
   const [savedPostId, setSavedPostId] = useState<string | null>(null)
 
@@ -178,8 +142,7 @@ export default function CreatePage() {
       { id: 'image', label: '画像を生成中...', status: 'pending' },
       { id: 'save', label: '保存中...', status: 'pending' },
     ]
-    setGenerationSteps(steps)
-    setGenerationProgress(0)
+    initSteps(steps)
 
     try {
       // Step 1: Generate scene description
@@ -314,8 +277,7 @@ export default function CreatePage() {
           { id: 'image', label: '画像を生成中...', status: 'pending' },
           { id: 'save', label: '保存中...', status: 'pending' },
         ]
-    setGenerationSteps(steps)
-    setGenerationProgress(0)
+    initSteps(steps)
 
     try {
       // Step 1: Generate caption
@@ -439,18 +401,6 @@ export default function CreatePage() {
     }
   }
 
-  const updateStepStatus = (
-    id: string,
-    status: GenerationStep['status'],
-    error?: string
-  ) => {
-    setGenerationSteps((prev) =>
-      prev.map((step) =>
-        step.id === id ? { ...step, status, error } : step
-      )
-    )
-  }
-
   // Regenerate image
   const handleRegenerateImage = useCallback(async () => {
     if (!generatedResult || !formState.postType || formState.skipImage) return
@@ -509,11 +459,10 @@ export default function CreatePage() {
   // Create new post
   const handleCreateNew = () => {
     setStep(1)
-    setFormState(INITIAL_STATE)
+    setFormState(INITIAL_FORM_STATE)
     setGeneratedCaption('')
     setGeneratedResult(null)
-    setGenerationSteps([])
-    setGenerationProgress(0)
+    resetSteps()
     setSavedPostId(null)
   }
 
@@ -564,8 +513,7 @@ export default function CreatePage() {
       { id: 'upload', label: '画像をアップロード中...', status: 'pending' },
       { id: 'save', label: '保存中...', status: 'pending' },
     ]
-    setGenerationSteps(steps)
-    setGenerationProgress(0)
+    initSteps(steps)
 
     try {
       // Step 1 & 2: 画像分析 + キャプション生成（API内で同時実行）
