@@ -141,6 +141,42 @@ export function Providers({ children }: { children: React.ReactNode }) {
 }
 ```
 
+## カスタムフック
+
+### ディレクトリ構造
+```
+hooks/
+├── useContentGeneration.ts   # 投稿作成の生成ロジック
+├── useGenerationSteps.ts     # 生成ステップ進捗管理
+├── usePostEdit.ts            # 履歴詳細の編集モード
+├── useCopyActions.ts         # コピー機能
+├── usePostActions.ts         # 投稿アクション
+└── usePostImageHandlers.ts   # 画像ハンドラ
+```
+
+### 命名規則
+- ファイル: `use[機能名].ts` (例: `usePostEdit.ts`)
+- フック: `use[機能名]` (例: `usePostEdit`)
+- 戻り値の型を明示する
+
+### 使用例
+```tsx
+// 履歴詳細ページでの使用
+const editHook = usePostEdit(id, post, setPost)
+const copyActions = useCopyActions(copyTarget)
+const postActions = usePostActions(id, post)
+const imageHandlers = usePostImageHandlers(setPost, editHook.setShowImageReplace)
+
+// フックからの値・関数を使用
+{editHook.isEditing && <EditMode />}
+<button onClick={copyActions.copyCaption}>コピー</button>
+```
+
+### 設計原則
+- 1つのフックは1つの責務に集中
+- ページコンポーネントは500行以下を目標
+- 複雑なロジックはフックに抽出して再利用可能に
+
 ## アニメーション
 
 最小限に抑える（Framer Motion は使わない）:

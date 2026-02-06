@@ -51,9 +51,29 @@ src/
 │   ├── history/           # 履歴編集モーダル
 │   ├── publish/           # Instagram投稿コンポーネント
 │   └── providers/         # Context Providers
+├── hooks/                 # カスタムフック
 ├── lib/                   # ユーティリティ
 └── types/                 # 型定義
 ```
+
+### カスタムフック (`src/hooks/`)
+
+| フック | 用途 |
+|--------|------|
+| `useContentGeneration` | 投稿作成の生成ロジック全般 |
+| `useGenerationSteps` | 生成ステップの進捗管理 |
+| `usePostEdit` | 履歴詳細の編集モード管理 |
+| `useCopyActions` | コピー機能（キャプション、ハッシュタグ） |
+| `usePostActions` | 投稿アクション（削除、再利用、ダウンロード） |
+| `usePostImageHandlers` | 画像関連のハンドラ |
+
+### 型定義 (`src/types/`)
+
+| ファイル | 内容 |
+|---------|------|
+| `post.ts` | 投稿タイプ定義 |
+| `create-flow.ts` | 投稿作成フローの状態・型 |
+| `history-detail.ts` | 履歴詳細ページの型・ユーティリティ |
 
 ## 主要機能
 

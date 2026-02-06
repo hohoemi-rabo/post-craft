@@ -192,7 +192,72 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 })
 ```
 
-### API での認証チェック
+### API での認証チェック（ヘルパー関数使用）
+```typescript
+import { requireAuth, requirePostOwnership, requireCharacterOwnership } from '@/lib/api-utils'
+
+// 認証のみ
+export async function GET() {
+  const { error, userId } = await requireAuth()
+  if (error) return error
+  // userId を使って処理続行
+}
+
+// 認証 + 投稿の所有権チェック
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id: postId } = await params
+  const { error: authError, userId } = await requireAuth()
+  if (authError) return authError
+
+  const { error: ownerError } = await requirePostOwnership(postId, userId)
+  if (ownerError) return ownerError
+  // 処理続行
+}
+
+// 認証 + キャラクターの所有権チェック
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id: characterId } = await params
+  const { error: authError, userId } = await requireAuth()
+  if (authError) return authError
+
+  const { error: ownerError, character } = await requireCharacterOwnership(characterId, userId)
+  if (ownerError) return ownerError
+  // character.image_url を使って Storage から削除など
+}
+```
+
+### ヘルパー関数 (`lib/api-utils.ts`)
+```typescript
+// 認証チェック
+export async function requireAuth(): Promise<{
+  error?: NextResponse
+  session?: Session
+  userId?: string
+}>
+
+// 投稿の所有権チェック
+export async function requirePostOwnership(
+  postId: string,
+  userId: string
+): Promise<{ error?: NextResponse }>
+
+// キャラクターの所有権チェック（image_url も返す）
+export async function requireCharacterOwnership(
+  characterId: string,
+  userId: string
+): Promise<{
+  error?: NextResponse
+  character?: { id: string; user_id: string; image_url: string | null }
+}>
+```
+
+### レガシーパターン（直接チェック）
 ```typescript
 import { auth } from '@/lib/auth'
 
