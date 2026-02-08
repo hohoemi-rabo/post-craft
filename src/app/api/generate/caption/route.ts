@@ -12,6 +12,8 @@ interface GenerateCaptionRequest {
   sourceUrl?: string
   imageBase64?: string
   imageMimeType?: string
+  relatedPostCaption?: string
+  relatedPostHashtags?: string[]
 }
 
 interface GenerateCaptionResponse {
@@ -114,7 +116,7 @@ export async function POST(request: Request) {
 
   try {
     const body: GenerateCaptionRequest = await request.json()
-    const { postType, inputText, sourceUrl, imageBase64, imageMimeType } = body
+    const { postType, inputText, sourceUrl, imageBase64, imageMimeType, relatedPostCaption, relatedPostHashtags } = body
 
     // Validate request
     // image_read タイプの場合は inputText は任意（メモなしでもOK）
@@ -189,7 +191,17 @@ ${typeConfig.requiredFields.join(', ')}
 【任意変数】
 ${typeConfig.optionalFields.length > 0 ? typeConfig.optionalFields.join(', ') : 'なし'}
 
-【入力メモ】
+${relatedPostCaption ? `【関連する前回の投稿】
+${relatedPostCaption}
+
+【関連投稿の参照ルール】
+- 投稿の冒頭に、前回の投稿内容を1文で軽く触れる導入文を追加してください
+- 例: 「前回、○○についてお伝えしましたが、今回は...」
+- 導入文は1文のみで簡潔にまとめること
+- 「Part 2」「第2弾」「続き」「シリーズ」のような表現は使わないこと
+- あくまで今回の投稿がメインであり、前回の投稿はきっかけとして触れるだけ
+
+` : ''}【入力メモ】
 ${inputText || '（メモなし - 画像の内容に基づいて作成）'}
 ${sourceUrl ? `\n【参照URL】\n${sourceUrl}` : ''}
 ${imageAnalysis ? `\n【画像から読み取った内容】\n${imageAnalysis}` : ''}
@@ -215,6 +227,11 @@ JSON形式で各変数の値を出力してください。
     // 必須ハッシュタグ（常に含める）
     const mandatoryHashtags = ['ほほ笑みラボ', '飯田市', 'パソコン教室', 'スマホ']
 
+    // 前回のハッシュタグから必須タグを除外
+    const filteredRelatedHashtags = relatedPostHashtags?.filter(
+      tag => !mandatoryHashtags.includes(tag.replace(/^#/, ''))
+    ) || []
+
     const hashtagPrompt = `以下のInstagram投稿に適したハッシュタグを6個生成してください。
 
 【投稿タイプ】
@@ -222,6 +239,12 @@ ${typeConfig.name}
 
 【推奨ハッシュタグ】
 ${typeConfig.hashtagTrend.join(', ')}
+${filteredRelatedHashtags.length > 0 ? `
+【前回の投稿のハッシュタグ】
+${filteredRelatedHashtags.map(t => t.replace(/^#/, '')).join(', ')}
+
+前回のハッシュタグのうち今回の投稿にも関連するものは優先的に再利用してください。
+ただし生成するハッシュタグは計6個で、すべてを引き継ぐ必要はありません。` : ''}
 
 【投稿内容】
 ${caption}

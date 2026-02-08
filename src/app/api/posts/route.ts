@@ -70,6 +70,7 @@ export async function POST(request: Request) {
       imageUrl,
       imageStyle,
       aspectRatio,
+      relatedPostId,
     } = body
 
     // Validation
@@ -92,6 +93,7 @@ export async function POST(request: Request) {
         source_url: sourceUrl || null,
         generated_caption: generatedCaption,
         generated_hashtags: generatedHashtags || [],
+        related_post_id: relatedPostId || null,
       })
       .select()
       .single()

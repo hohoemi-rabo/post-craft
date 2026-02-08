@@ -62,6 +62,7 @@ export async function PATCH(
       'generated_hashtags',
       'instagram_published',
       'instagram_media_id',
+      'related_post_id',
     ]
 
     const updateData: Record<string, unknown> = {}
