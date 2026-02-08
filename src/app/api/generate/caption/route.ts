@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { GoogleGenerativeAI } from '@google/generative-ai'
-import { generateWithRetry, parseJsonResponse } from '@/lib/gemini'
+import { geminiVision, generateWithRetry, parseJsonResponse } from '@/lib/gemini'
 import { requireAuth } from '@/lib/api-utils'
 import { POST_TYPES } from '@/lib/post-types'
 import { TEMPLATES, applyTemplate } from '@/lib/templates'
@@ -155,10 +154,7 @@ export async function POST(request: Request) {
     // image_read タイプの場合、まず画像を分析
     let imageAnalysis = ''
     if (postType === 'image_read' && imageBase64 && imageMimeType) {
-      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!)
-      const model = genAI.getGenerativeModel({ model: 'gemini-3-pro-preview' })
-
-      const analysisResult = await model.generateContent([
+      const analysisResult = await geminiVision.generateContent([
         `この画像の内容を詳しく説明してください:
 - 何が写っているか（文字、イラスト、写真など）
 - 文字が含まれていれば、その内容をすべて書き起こす

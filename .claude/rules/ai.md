@@ -6,11 +6,10 @@ Google Gemini、プロンプト、画像生成のルール。
 
 | 用途 | モデル | 変数名 |
 |------|--------|--------|
-| 文章生成（メイン） | `gemini-3-pro-preview` | `geminiFlash` |
-| 軽量タスク（キャッチコピー等） | `gemini-2.5-flash` | `geminiFlashLite` |
+| 文章生成（キャプション、シーン説明、キャッチコピー等） | `gemini-3-flash-preview` | `geminiFlash` |
+| 画像分析（画像読み取り、キャラクター特徴抽出） | `gemini-3-pro-preview` | `geminiVision` |
 | 画像生成 | `gemini-3-pro-image-preview` | `geminiImageGen` |
 | 画像生成（マルチモーダル） | `gemini-3-pro-image-preview` | `geminiImageGenMultimodal` |
-| 画像分析 | `gemini-3-pro-preview` (Vision) | `geminiFlash` |
 
 ## 文章生成
 
@@ -355,14 +354,14 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!)
 
-// 文章生成（メイン: キャプション、シーン説明、特徴抽出等）
+// 文章生成（キャプション、シーン説明、キャッチコピー等）
 export const geminiFlash = genAI.getGenerativeModel({
-  model: 'gemini-3-pro-preview'
+  model: 'gemini-3-flash-preview'
 })
 
-// 軽量タスク（キャッチコピー生成等、高速レスポンス優先）
-export const geminiFlashLite = genAI.getGenerativeModel({
-  model: 'gemini-2.5-flash'
+// 画像分析（画像読み取り、キャラクター特徴抽出）
+export const geminiVision = genAI.getGenerativeModel({
+  model: 'gemini-3-pro-preview'
 })
 
 // 画像生成（テキストのみ）

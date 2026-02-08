@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { geminiVision } from '@/lib/gemini'
 import { requireAuth } from '@/lib/api-utils'
-
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '')
 
 const analyzePrompt = `この画像のキャラクター/人物の特徴を分析してください。
 
@@ -37,9 +35,7 @@ export async function POST(request: Request) {
     const base64 = Buffer.from(bytes).toString('base64')
 
     // Call Gemini Vision API
-    const model = genAI.getGenerativeModel({ model: 'gemini-3-pro-preview' })
-
-    const result = await model.generateContent([
+    const result = await geminiVision.generateContent([
       analyzePrompt,
       {
         inlineData: {

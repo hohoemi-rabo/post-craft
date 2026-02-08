@@ -19,8 +19,8 @@ Post Craft プロジェクトのガイドライン。
 | UI | React 19.1.0, Tailwind CSS 3.4.17 |
 | Database | Supabase (PostgreSQL) |
 | Auth | NextAuth.js + Google OAuth |
-| AI (文章) | Google Gemini Pro (gemini-3-pro-preview) |
-| AI (軽量タスク) | Google Gemini Flash (gemini-2.5-flash) |
+| AI (文章) | Google Gemini Flash (gemini-3-flash-preview) |
+| AI (画像分析) | Google Gemini Pro (gemini-3-pro-preview) |
 | AI (画像) | Google Gemini (gemini-3-pro-image-preview) |
 | Instagram投稿 | Facebook Graph API v21.0 + FB JS SDK |
 | Hosting | Vercel |

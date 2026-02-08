@@ -1,5 +1,5 @@
 import { IMAGE_STYLES, type ImageStyle, type AspectRatio, type BackgroundType } from './image-styles'
-import { geminiFlash, geminiFlashLite, parseJsonResponse } from './gemini'
+import { geminiFlash, parseJsonResponse } from './gemini'
 import type { PostType } from '@/types/post'
 
 export interface ImagePromptOptions {
@@ -187,7 +187,7 @@ ${caption.slice(0, 500)}
 
 キャッチコピーのみを出力してください（説明や補足は不要）:`
 
-  const result = await geminiFlashLite.generateContent(prompt)
+  const result = await geminiFlash.generateContent(prompt)
   const text = result.response.text().trim()
 
   // Remove quotes if present
