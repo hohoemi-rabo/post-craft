@@ -20,6 +20,13 @@ export interface CreateFormState {
   uploadedImageBase64: string
   uploadedImageMimeType: string
   imageReadAspectRatio: '1:1' | '4:5' | '16:9'
+  // 関連投稿参照
+  relatedPostId: string | null
+  relatedPostCaption: string | null
+  relatedPostHashtags: string[] | null
+  relatedPostImageStyle: string | null
+  relatedPostAspectRatio: string | null
+  relatedPostBackgroundType: string | null
 }
 
 /**
@@ -60,4 +67,11 @@ export const INITIAL_FORM_STATE: CreateFormState = {
   uploadedImageBase64: '',
   uploadedImageMimeType: '',
   imageReadAspectRatio: '1:1',
+  // 関連投稿参照
+  relatedPostId: null,
+  relatedPostCaption: null,
+  relatedPostHashtags: null,
+  relatedPostImageStyle: null,
+  relatedPostAspectRatio: null,
+  relatedPostBackgroundType: null,
 }

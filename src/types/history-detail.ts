@@ -24,6 +24,7 @@ export interface Post {
   post_images: PostImage[]
   instagram_published: boolean
   instagram_published_at: string | null
+  related_post_id: string | null
 }
 
 /**
