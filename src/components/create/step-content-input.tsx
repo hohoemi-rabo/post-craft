@@ -3,12 +3,14 @@
 import { useState } from 'react'
 import { POST_TYPES } from '@/lib/post-types'
 import type { PostType } from '@/types/post'
+import { RelatedPostSelector, type RelatedPostData } from './related-post-selector'
 
 interface StepContentInputProps {
   postType: PostType
   initialText: string
   initialUrl: string
-  onSubmit: (text: string, url: string) => void
+  initialRelatedPostId?: string | null
+  onSubmit: (text: string, url: string, relatedPost?: RelatedPostData | null) => void
   onBack: () => void
 }
 
@@ -40,6 +42,7 @@ export function StepContentInput({
   postType,
   initialText,
   initialUrl,
+  initialRelatedPostId,
   onSubmit,
   onBack,
 }: StepContentInputProps) {
@@ -47,6 +50,11 @@ export function StepContentInput({
   const [url, setUrl] = useState(initialUrl)
   const [isExtracting, setIsExtracting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // 関連投稿参照の状態
+  const [relatedEnabled, setRelatedEnabled] = useState(!!initialRelatedPostId)
+  const [relatedPost, setRelatedPost] = useState<RelatedPostData | null>(null)
+  const [selectedRelatedPostId, setSelectedRelatedPostId] = useState<string | null>(initialRelatedPostId || null)
 
   const typeConfig = POST_TYPES[postType]
   const minLength = 20
@@ -80,9 +88,19 @@ export function StepContentInput({
     }
   }
 
+  const handleRelatedSelect = (post: RelatedPostData) => {
+    setRelatedPost(post)
+    setSelectedRelatedPostId(post.id)
+  }
+
+  const handleRelatedDeselect = () => {
+    setRelatedPost(null)
+    setSelectedRelatedPostId(null)
+  }
+
   const handleSubmit = () => {
     if (!isValid) return
-    onSubmit(text, url)
+    onSubmit(text, url, relatedEnabled ? relatedPost : null)
   }
 
   return (
@@ -156,6 +174,17 @@ export function StepContentInput({
           ※ ログインが必要なページや一部サイトでは抽出できない場合があります。その場合は記事をコピーして上のメモ欄に貼り付けてください。
         </p>
       </div>
+
+      {/* Related post selector (not for image_read) */}
+      {postType !== 'image_read' && (
+        <RelatedPostSelector
+          enabled={relatedEnabled}
+          onToggle={setRelatedEnabled}
+          selectedPostId={selectedRelatedPostId}
+          onSelect={handleRelatedSelect}
+          onDeselect={handleRelatedDeselect}
+        />
+      )}
 
       {/* Navigation */}
       <div className="flex justify-between pt-4">

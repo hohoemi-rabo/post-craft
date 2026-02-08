@@ -13,6 +13,9 @@ interface StepImageSettingsProps {
   initialSkipImage?: boolean
   initialUseCharacterImage?: boolean
   initialBackgroundType?: BackgroundType
+  relatedPostImageStyle?: string | null
+  relatedPostAspectRatio?: string | null
+  relatedPostBackgroundType?: string | null
   onSubmit: (style: ImageStyle, aspectRatio: AspectRatio, characterId: string | null, skipImage: boolean, useCharacterImage: boolean, backgroundType: BackgroundType) => void
   onBack: () => void
 }
@@ -24,9 +27,16 @@ export function StepImageSettings({
   initialSkipImage = false,
   initialUseCharacterImage = false,
   initialBackgroundType = 'tech',
+  relatedPostImageStyle,
+  relatedPostAspectRatio,
+  relatedPostBackgroundType,
   onSubmit,
   onBack,
 }: StepImageSettingsProps) {
+  const hasRelatedImageSettings = !!(relatedPostImageStyle && relatedPostAspectRatio)
+  // 'inherit' | 'new' | 'skip' | null
+  const [inheritMode, setInheritMode] = useState<string | null>(null)
+
   const [style, setStyle] = useState<ImageStyle>(initialStyle)
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>(initialAspectRatio)
   const [characterId, setCharacterId] = useState<string | null>(initialCharacterId)
@@ -35,6 +45,22 @@ export function StepImageSettings({
   const [backgroundType, setBackgroundType] = useState<BackgroundType>(initialBackgroundType)
   const [characters, setCharacters] = useState<Character[]>([])
   const [isLoadingCharacters, setIsLoadingCharacters] = useState(true)
+
+  const handleInheritModeChange = (mode: string) => {
+    setInheritMode(mode)
+    if (mode === 'inherit' && relatedPostImageStyle && relatedPostAspectRatio) {
+      setStyle(relatedPostImageStyle as ImageStyle)
+      setAspectRatio(relatedPostAspectRatio as AspectRatio)
+      setBackgroundType((relatedPostBackgroundType as BackgroundType) || 'tech')
+      setSkipImage(false)
+    } else if (mode === 'skip') {
+      setSkipImage(true)
+    } else if (mode === 'new') {
+      setSkipImage(false)
+    }
+  }
+
+  const isInheritMode = inheritMode === 'inherit'
 
   const styles = Object.values(IMAGE_STYLES)
   const selectedStyle = IMAGE_STYLES[style]
@@ -93,7 +119,60 @@ export function StepImageSettings({
         </p>
       </div>
 
-      {/* Skip image toggle */}
+      {/* Related post image inheritance selector */}
+      {hasRelatedImageSettings && (
+        <div className="space-y-3">
+          <label className="block text-sm font-medium text-slate-300">
+            関連投稿の画像設定
+          </label>
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={() => handleInheritModeChange('inherit')}
+              className={`p-3 rounded-xl border-2 text-center transition-all ${
+                inheritMode === 'inherit'
+                  ? 'border-blue-500 bg-blue-500/10'
+                  : 'border-white/10 bg-white/5 hover:border-white/20'
+              }`}
+            >
+              <div className="text-lg mb-1">🔄</div>
+              <div className="text-xs font-medium text-white">前回を引き継ぐ</div>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleInheritModeChange('new')}
+              className={`p-3 rounded-xl border-2 text-center transition-all ${
+                inheritMode === 'new'
+                  ? 'border-blue-500 bg-blue-500/10'
+                  : 'border-white/10 bg-white/5 hover:border-white/20'
+              }`}
+            >
+              <div className="text-lg mb-1">🆕</div>
+              <div className="text-xs font-medium text-white">新しく設定</div>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleInheritModeChange('skip')}
+              className={`p-3 rounded-xl border-2 text-center transition-all ${
+                inheritMode === 'skip'
+                  ? 'border-blue-500 bg-blue-500/10'
+                  : 'border-white/10 bg-white/5 hover:border-white/20'
+              }`}
+            >
+              <div className="text-lg mb-1">⏭️</div>
+              <div className="text-xs font-medium text-white">画像なし</div>
+            </button>
+          </div>
+          {isInheritMode && (
+            <p className="text-xs text-blue-400">
+              前回の設定: {IMAGE_STYLES[style]?.name} / {aspectRatio}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Skip image toggle (hidden when related post inheritance is active) */}
+      {!hasRelatedImageSettings && (
       <div className="p-4 rounded-xl border-2 border-white/10 bg-white/5">
         <label className="flex items-center justify-between cursor-pointer">
           <div className="flex items-center gap-3">
@@ -120,9 +199,10 @@ export function StepImageSettings({
           </button>
         </label>
       </div>
+      )}
 
-      {/* Image settings (hidden when skipImage is true) */}
-      {!skipImage && (
+      {/* Image settings (hidden when skipImage is true or inherit mode) */}
+      {!skipImage && !isInheritMode && (
         <>
           {/* Style selection */}
           <div className="space-y-3">
@@ -278,7 +358,10 @@ export function StepImageSettings({
         <button
           type="button"
           onClick={handleSubmit}
-          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors"
+          disabled={hasRelatedImageSettings && !inheritMode}
+          className={`px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors ${
+            hasRelatedImageSettings && !inheritMode ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
         >
           {skipImage ? '生成する（文章のみ）→' : '生成する →'}
         </button>

@@ -15,6 +15,7 @@ import { type PostType } from '@/types/post'
 import { type ImageStyle, type AspectRatio, type BackgroundType } from '@/lib/image-styles'
 import { type CreateFormState, INITIAL_FORM_STATE } from '@/types/create-flow'
 import { useContentGeneration } from '@/hooks/useContentGeneration'
+import type { RelatedPostData } from '@/components/create/related-post-selector'
 
 export default function CreatePage() {
   const [step, setStep] = useState(1)
@@ -65,8 +66,18 @@ export default function CreatePage() {
   }
 
   // Step 2: Submit content
-  const handleContentSubmit = (text: string, url: string) => {
-    setFormState((prev) => ({ ...prev, inputText: text, sourceUrl: url }))
+  const handleContentSubmit = (text: string, url: string, relatedPost?: RelatedPostData | null) => {
+    setFormState((prev) => ({
+      ...prev,
+      inputText: text,
+      sourceUrl: url,
+      relatedPostId: relatedPost?.id || null,
+      relatedPostCaption: relatedPost?.caption || null,
+      relatedPostHashtags: relatedPost?.hashtags || null,
+      relatedPostImageStyle: relatedPost?.imageStyle || null,
+      relatedPostAspectRatio: relatedPost?.aspectRatio || null,
+      relatedPostBackgroundType: null, // Not stored in DB
+    }))
     setStep(3)
   }
 
@@ -204,6 +215,7 @@ export default function CreatePage() {
               postType={formState.postType}
               initialText={formState.inputText}
               initialUrl={formState.sourceUrl}
+              initialRelatedPostId={formState.relatedPostId}
               onSubmit={handleContentSubmit}
               onBack={handleBack}
             />
@@ -217,6 +229,9 @@ export default function CreatePage() {
               initialSkipImage={formState.skipImage}
               initialUseCharacterImage={formState.useCharacterImage}
               initialBackgroundType={formState.backgroundType}
+              relatedPostImageStyle={formState.relatedPostImageStyle}
+              relatedPostAspectRatio={formState.relatedPostAspectRatio}
+              relatedPostBackgroundType={formState.relatedPostBackgroundType}
               onSubmit={handleImageSettingsSubmit}
               onBack={handleBack}
             />
@@ -255,6 +270,7 @@ export default function CreatePage() {
               postType={formState.postType}
               initialText={formState.inputText}
               initialUrl={formState.sourceUrl}
+              initialRelatedPostId={formState.relatedPostId}
               onSubmit={handleContentSubmit}
               onBack={handleBack}
             />
@@ -268,6 +284,9 @@ export default function CreatePage() {
               initialSkipImage={formState.skipImage}
               initialUseCharacterImage={formState.useCharacterImage}
               initialBackgroundType={formState.backgroundType}
+              relatedPostImageStyle={formState.relatedPostImageStyle}
+              relatedPostAspectRatio={formState.relatedPostAspectRatio}
+              relatedPostBackgroundType={formState.relatedPostBackgroundType}
               onSubmit={handleImageSettingsSubmit}
               onBack={handleBack}
             />

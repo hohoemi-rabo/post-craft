@@ -39,6 +39,8 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
           body: JSON.stringify({
             postType: formState.postType,
             inputText: formState.inputText,
+            relatedPostCaption: formState.relatedPostCaption || undefined,
+            relatedPostHashtags: formState.relatedPostHashtags || undefined,
           }),
         })
 
@@ -130,6 +132,8 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
             body: JSON.stringify({
               postType: formState.postType,
               inputText: formState.inputText,
+              relatedPostCaption: formState.relatedPostCaption || undefined,
+              relatedPostHashtags: formState.relatedPostHashtags || undefined,
             }),
           })
           const captionData = captionResponse.ok
@@ -148,6 +152,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
               imageUrl: imageData.imageUrl,
               imageStyle,
               aspectRatio,
+              relatedPostId: formState.relatedPostId || null,
             }),
           })
           if (saveRes.ok) {
@@ -230,6 +235,8 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
           body: JSON.stringify({
             postType: formState.postType,
             inputText: formState.inputText,
+            relatedPostCaption: formState.relatedPostCaption || undefined,
+            relatedPostHashtags: formState.relatedPostHashtags || undefined,
           }),
         })
 
@@ -310,6 +317,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
               imageUrl: imageUrl,
               imageStyle: skipImage ? null : style,
               aspectRatio: skipImage ? null : aspectRatio,
+              relatedPostId: formState.relatedPostId || null,
             }),
           })
           if (saveRes.ok) {
