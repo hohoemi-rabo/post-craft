@@ -50,6 +50,84 @@ export type Database = {
           },
         ]
       }
+      post_types: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          slug: string
+          description: string | null
+          icon: string
+          template_structure: string
+          placeholders: Json
+          min_length: number | null
+          max_length: number | null
+          sort_order: number
+          is_active: boolean
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          name: string
+          slug: string
+          description?: string | null
+          icon?: string
+          template_structure: string
+          placeholders?: Json
+          min_length?: number | null
+          max_length?: number | null
+          sort_order?: number
+          is_active?: boolean
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          slug?: string
+          description?: string | null
+          icon?: string
+          template_structure?: string
+          placeholders?: Json
+          min_length?: number | null
+          max_length?: number | null
+          sort_order?: number
+          is_active?: boolean
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          id: string
+          user_id: string
+          required_hashtags: string[]
+          settings: Json
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          required_hashtags?: string[]
+          settings?: Json
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          required_hashtags?: string[]
+          settings?: Json
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       post_images: {
         Row: {
           aspect_ratio: string
@@ -109,6 +187,7 @@ export type Database = {
           instagram_published: boolean
           instagram_published_at: string | null
           post_type: string
+          post_type_id: string | null
           source_url: string | null
           updated_at: string | null
           user_id: string | null
@@ -123,6 +202,7 @@ export type Database = {
           instagram_published?: boolean
           instagram_published_at?: string | null
           post_type: string
+          post_type_id?: string | null
           source_url?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -137,6 +217,7 @@ export type Database = {
           instagram_published?: boolean
           instagram_published_at?: string | null
           post_type?: string
+          post_type_id?: string | null
           source_url?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -207,3 +288,5 @@ export type User = Tables<'users'>
 export type Character = Tables<'characters'>
 export type Post = Tables<'posts'>
 export type PostImage = Tables<'post_images'>
+export type PostTypeRow = Tables<'post_types'>
+export type UserSettingsRow = Tables<'user_settings'>

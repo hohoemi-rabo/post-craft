@@ -1,13 +1,22 @@
-import type { PostType } from '@/types/post'
-
 /**
  * 投稿画像
  */
 export interface PostImage {
   id: string
   image_url: string
-  image_style: string | null
+  style: string | null
   aspect_ratio: string | null
+}
+
+/**
+ * 投稿タイプ参照データ（JOINデータ）
+ */
+export interface PostTypeRef {
+  id: string
+  name: string
+  slug: string
+  icon: string
+  description: string
 }
 
 /**
@@ -15,7 +24,9 @@ export interface PostImage {
  */
 export interface Post {
   id: string
-  post_type: PostType
+  post_type: string
+  post_type_id: string | null
+  post_type_ref: PostTypeRef | null
   input_text: string
   source_url: string | null
   generated_caption: string
@@ -35,7 +46,7 @@ export interface EditState {
   editedCaption: string
   editedHashtags: string[]
   editedInputText: string
-  editedPostType: PostType
+  editedPostType: string
   newHashtagInput: string
   isSaving: boolean
   isRegeneratingCaption: boolean

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase'
+import { createServerClient, POST_SELECT_QUERY } from '@/lib/supabase'
 import { requireAuth, requirePostOwnership } from '@/lib/api-utils'
 
 // GET /api/posts/[id] - Get post details
@@ -16,7 +16,7 @@ export async function GET(
   try {
     const { data: post, error: fetchError } = await supabase
       .from('posts')
-      .select('*, post_images(*)')
+      .select(POST_SELECT_QUERY)
       .eq('id', id)
       .eq('user_id', userId)
       .single()
@@ -57,6 +57,7 @@ export async function PATCH(
     // Whitelist of updatable fields
     const allowedFields = [
       'post_type',
+      'post_type_id',
       'input_text',
       'generated_caption',
       'generated_hashtags',
@@ -97,10 +98,10 @@ export async function PATCH(
       )
     }
 
-    // Return complete updated post with images
+    // Return complete updated post with images and type ref
     const { data: updatedPost } = await supabase
       .from('posts')
-      .select('*, post_images(*)')
+      .select(POST_SELECT_QUERY)
       .eq('id', id)
       .single()
 

@@ -22,7 +22,7 @@ export function usePostImageHandlers(
                 {
                   id: crypto.randomUUID(),
                   image_url: url,
-                  image_style: 'uploaded',
+                  style: 'uploaded',
                   aspect_ratio: aspectRatio,
                 },
               ],
@@ -50,7 +50,7 @@ export function usePostImageHandlers(
                 {
                   id: crypto.randomUUID(),
                   image_url: newImageUrl,
-                  image_style: null,
+                  style: null,
                   aspect_ratio: '1:1',
                 },
               ]
@@ -78,7 +78,7 @@ export function usePostImageHandlers(
                 {
                   id: crypto.randomUUID(),
                   image_url: newImageUrl,
-                  image_style: 'uploaded',
+                  style: 'uploaded',
                   aspect_ratio: newAspectRatio,
                 },
               ]
@@ -102,7 +102,7 @@ export function usePostImageHandlers(
                 {
                   id: crypto.randomUUID(),
                   image_url: url,
-                  image_style: 'uploaded',
+                  style: 'uploaded',
                   aspect_ratio: ratio,
                 },
               ],

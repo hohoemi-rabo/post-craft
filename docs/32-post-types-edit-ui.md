@@ -87,23 +87,23 @@ SPEC-PHASE3.md セクション 8.4 に準拠。
 
 ## TODO
 
-- [ ] `src/app/(dashboard)/settings/post-types/new/page.tsx` を作成
-- [ ] `src/app/(dashboard)/settings/post-types/[id]/page.tsx` を作成
-- [ ] `src/components/settings/post-type-form.tsx` を作成
-  - [ ] 基本情報セクション（アイコン、タイプ名、説明、文字数）
-  - [ ] バリデーション表示
-  - [ ] 保存・キャンセルボタン
-  - [ ] 新規/編集モードの切り替え
-- [ ] `src/components/settings/placeholder-editor.tsx` を作成
-  - [ ] 変数リスト表示
-  - [ ] 変数の追加・編集・削除
-  - [ ] ドラッグ&ドロップ並び替え
-  - [ ] 変数名の重複チェック
-  - [ ] 最大10個制限
-- [ ] `src/components/settings/template-editor.tsx` を作成
-  - [ ] テキストエリア編集
-  - [ ] 利用可能変数一覧表示
-  - [ ] クリックで変数挿入
-  - [ ] 未定義変数の警告
-- [ ] プレビュー機能を実装
-- [ ] モバイル対応の確認
+- [x] `src/app/(dashboard)/settings/post-types/new/page.tsx` を作成
+- [x] `src/app/(dashboard)/settings/post-types/[id]/page.tsx` を作成
+- [x] `src/components/settings/post-type-form.tsx` を作成
+  - [x] 基本情報セクション（アイコン、タイプ名、説明、文字数）
+  - [x] バリデーション表示
+  - [x] 保存・キャンセルボタン
+  - [x] 新規/編集モードの切り替え
+- [x] `src/components/settings/placeholder-editor.tsx` を作成
+  - [x] 変数リスト表示
+  - [x] 変数の追加・編集・削除
+  - [x] ドラッグ&ドロップ並び替え
+  - [x] 変数名の重複チェック
+  - [x] 最大10個制限
+- [x] `src/components/settings/template-editor.tsx` を作成
+  - [x] テキストエリア編集
+  - [x] 利用可能変数一覧表示
+  - [x] クリックで変数挿入
+  - [x] 未定義変数の警告
+- [x] プレビュー機能を実装
+- [x] モバイル対応の確認

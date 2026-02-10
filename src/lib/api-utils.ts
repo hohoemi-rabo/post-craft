@@ -85,3 +85,35 @@ export async function requireCharacterOwnership(characterId: string, userId: str
     character,
   }
 }
+
+/**
+ * 投稿タイプの所有権チェック
+ * 投稿タイプが存在しないか、所有者でない場合はエラーレスポンスを返す
+ */
+export async function requirePostTypeOwnership(postTypeId: string, userId: string) {
+  const supabase = createServerClient()
+  const { data: postType, error: dbError } = await supabase
+    .from('post_types')
+    .select('*')
+    .eq('id', postTypeId)
+    .single()
+
+  if (dbError || !postType) {
+    return {
+      error: NextResponse.json({ error: 'Post type not found' }, { status: 404 }),
+      postType: null,
+    }
+  }
+
+  if (postType.user_id !== userId) {
+    return {
+      error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }),
+      postType: null,
+    }
+  }
+
+  return {
+    error: null,
+    postType,
+  }
+}

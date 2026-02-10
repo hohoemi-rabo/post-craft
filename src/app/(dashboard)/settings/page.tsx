@@ -2,6 +2,7 @@
 
 import { signOut, useSession } from 'next-auth/react'
 import Image from 'next/image'
+import Link from 'next/link'
 
 export default function SettingsPage() {
   const { data: session } = useSession()
@@ -15,6 +16,34 @@ export default function SettingsPage() {
       <div>
         <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">設定</h1>
         <p className="text-slate-400">アカウント情報の確認</p>
+      </div>
+
+      {/* Settings Navigation Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Link
+          href="/settings/post-types"
+          className="p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors group"
+        >
+          <div className="flex items-center gap-4">
+            <span className="text-3xl">📝</span>
+            <div>
+              <h2 className="text-lg font-bold text-white group-hover:text-blue-400 transition-colors">投稿タイプ管理</h2>
+              <p className="text-sm text-slate-400">投稿テンプレートの追加・編集・並び替え</p>
+            </div>
+          </div>
+        </Link>
+        <Link
+          href="/settings/hashtags"
+          className="p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors group"
+        >
+          <div className="flex items-center gap-4">
+            <span className="text-3xl">#️⃣</span>
+            <div>
+              <h2 className="text-lg font-bold text-white group-hover:text-blue-400 transition-colors">ハッシュタグ設定</h2>
+              <p className="text-sm text-slate-400">必須ハッシュタグの管理</p>
+            </div>
+          </div>
+        </Link>
       </div>
 
       {/* Account Info */}

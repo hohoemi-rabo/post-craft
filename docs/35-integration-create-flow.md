@@ -87,11 +87,11 @@ await supabaseAdmin.from('posts').insert({
 
 ## TODO
 
-- [ ] `src/types/create-flow.ts` に `postTypeId` フィールドを追加
-- [ ] `step-post-type.tsx` を更新（`POST_TYPES` → `usePostTypes` フック）
-- [ ] タイプ選択画面のローディングスケルトン追加
-- [ ] 「設定画面でカスタマイズ」リンクを追加
-- [ ] `useContentGeneration.ts` の全 API 呼び出しに `postTypeId` を追加
-- [ ] `posts/route.ts` (POST) に `post_type_id` 保存を追加
-- [ ] 全投稿タイプでの投稿作成フローテスト
-- [ ] `image_read` タイプの動作確認
+- [x] `src/types/create-flow.ts` に `postTypeId` フィールドを追加
+- [x] `step-post-type.tsx` を更新（`POST_TYPES` → `usePostTypes` フック）
+- [x] タイプ選択画面のローディングスケルトン追加
+- [x] 「設定画面でカスタマイズ」リンクを追加
+- [x] `useContentGeneration.ts` の全 API 呼び出しに `postTypeId` を追加
+- [x] `posts/route.ts` (POST) に `post_type_id` 保存を追加
+- [x] 全投稿タイプでの投稿作成フローテスト
+- [x] `image_read` タイプの動作確認

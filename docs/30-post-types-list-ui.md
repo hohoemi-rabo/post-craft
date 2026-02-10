@@ -74,16 +74,17 @@ SPEC-PHASE3.md セクション 8.3 に準拠。
 
 ## TODO
 
-- [ ] `src/app/(dashboard)/settings/post-types/page.tsx` を作成
-- [ ] `src/components/settings/post-type-list.tsx` を作成
-  - [ ] タイプカードの表示（アイコン、名前、説明、文字数、変数数）
-  - [ ] [編集] ボタン → ページ遷移
-  - [ ] [複製] ボタン → API呼び出し + 一覧更新
-  - [ ] [削除] ボタン → 確認モーダル + API呼び出し
-  - [ ] 有効/無効トグル → 即時API更新
-  - [ ] 使用状況カウンター（N / 10）
-  - [ ] ローディングスケルトン
-- [ ] ドラッグ&ドロップ並び替えを実装
-- [ ] 削除確認モーダルを実装（使用中投稿数表示）
-- [ ] 上限到達時の「新規作成」ボタン無効化
-- [ ] モバイル対応の確認
+- [x] `src/app/(dashboard)/settings/post-types/page.tsx` を作成
+- [x] `src/components/settings/post-type-list.tsx` を作成
+  - [x] タイプカードの表示（アイコン、名前、説明、文字数、変数数）
+  - [x] [編集] ボタン → `/settings/post-types/[id]` へ遷移
+  - [x] [複製] ボタン → API呼び出し + 一覧更新 + toast
+  - [x] [削除] ボタン → 確認モーダル + API呼び出し + affectedPosts表示
+  - [x] 有効/無効トグル → 即時API更新（スライドトグルUI）
+  - [x] 使用状況カウンター（📊 N / 10 タイプ使用中）
+  - [x] ローディングスケルトン（PostTypeListSkeleton）
+- [x] ドラッグ&ドロップ並び替えを実装（HTML Drag and Drop API）
+- [x] 削除確認モーダルを実装（Modal コンポーネント使用）
+- [x] 上限到達時の「新規作成」ボタン無効化（pointer-events-none）
+- [x] モバイル対応（レスポンシブカードレイアウト）
+- [x] `npm run build` 成功

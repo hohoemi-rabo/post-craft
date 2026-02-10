@@ -24,6 +24,11 @@ app/api/
 │   ├── route.ts              # GET (list), POST (create)
 │   ├── [id]/route.ts         # GET, PATCH (汎用更新: ホワイトリスト方式), DELETE
 │   └── [id]/image/route.ts   # POST (画像アップロード/差し替え), PUT (画像レコード更新)
+├── post-types/
+│   ├── route.ts              # GET (list), POST (create)
+│   └── [id]/route.ts         # GET, PUT, DELETE
+├── settings/
+│   └── hashtags/route.ts     # GET, PUT (必須ハッシュタグ設定)
 └── extract/route.ts          # POST (記事抽出)
 ```
 
@@ -105,12 +110,18 @@ export const supabaseAdmin = createClient(
 )
 ```
 
+### 共通クエリ定数
+```typescript
+// lib/supabase.ts
+export const POST_SELECT_QUERY = '*, post_images(*), post_type_ref:post_types(*)'
+```
+
 ### テーブル操作
 ```typescript
-// 取得
+// 取得（post_types JOIN 込み）
 const { data, error } = await supabase
   .from('posts')
-  .select('*, post_images(*)')
+  .select(POST_SELECT_QUERY)
   .eq('user_id', userId)
   .order('created_at', { ascending: false })
 
@@ -353,10 +364,10 @@ posts テーブル:
 ```typescript
 // PATCH /api/posts/[id] (JSON)
 // ホワイトリスト方式で更新可能フィールドを制限:
-// - post_type, input_text, generated_caption, generated_hashtags
-// - instagram_published, instagram_media_id (Instagram投稿ステータス)
+// - post_type, post_type_id, input_text, generated_caption, generated_hashtags
+// - instagram_published, instagram_media_id, related_post_id
 // instagram_published=true の場合 instagram_published_at を自動設定
-// 更新後は *, post_images(*) を含む完全なデータを返す
+// 更新後は POST_SELECT_QUERY を含む完全なデータを返す
 ```
 
 ### Facebook SDK の注意点

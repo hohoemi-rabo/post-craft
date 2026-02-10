@@ -52,8 +52,8 @@ SPEC-PHASE3.md セクション 7.1-7.2 に準拠。
 
 ## TODO
 
-- [ ] `src/app/api/settings/route.ts` を作成（GET: 取得 + UPSERT）
-- [ ] `src/app/api/settings/route.ts` に PUT を追加（汎用更新）
-- [ ] `src/app/api/settings/hashtags/route.ts` を作成（PUT: ハッシュタグ更新）
-- [ ] バリデーション（最大4個、空文字チェック、`#` 正規化）
-- [ ] 動作確認（全エンドポイント）
+- [x] `src/app/api/settings/route.ts` を作成（GET: 取得 + UPSERT）
+- [x] `src/app/api/settings/route.ts` に PUT を追加（汎用更新）
+- [x] `src/app/api/settings/hashtags/route.ts` を作成（PUT: ハッシュタグ更新）
+- [x] バリデーション（最大4個、空文字チェック、`#` 正規化）
+- [x] 動作確認（`npm run build` 成功、既存データ維持）

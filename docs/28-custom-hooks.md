@@ -76,16 +76,16 @@ function useUserSettings() {
 
 ## TODO
 
-- [ ] `src/hooks/usePostTypes.ts` を作成
-  - [ ] 一覧取得（初回ロード）
-  - [ ] 作成・更新・削除・複製アクション
-  - [ ] 並び替えアクション
-  - [ ] 有効/無効切り替え
-  - [ ] `activePostTypes` フィルタ
-  - [ ] ローディング・エラー状態管理
-- [ ] `src/hooks/useUserSettings.ts` を作成
-  - [ ] 設定取得（初回ロード）
-  - [ ] ハッシュタグ更新アクション
-  - [ ] `generatedHashtagCount` 計算
-  - [ ] ローディング・エラー状態管理
-- [ ] 動作確認
+- [x] `src/hooks/usePostTypes.ts` を作成
+  - [x] 一覧取得（初回ロード）
+  - [x] 作成・更新・削除・複製アクション
+  - [x] 並び替えアクション
+  - [x] 有効/無効切り替え
+  - [x] `activePostTypes` フィルタ
+  - [x] ローディング・エラー状態管理
+- [x] `src/hooks/useUserSettings.ts` を作成
+  - [x] 設定取得（初回ロード）
+  - [x] ハッシュタグ更新アクション
+  - [x] `generatedHashtagCount` 計算
+  - [x] ローディング・エラー状態管理
+- [x] 動作確認（`npm run build` 成功）

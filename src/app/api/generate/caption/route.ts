@@ -1,12 +1,17 @@
 import { NextResponse } from 'next/server'
 import { geminiVision, generateWithRetry, parseJsonResponse } from '@/lib/gemini'
 import { requireAuth } from '@/lib/api-utils'
+import { createServerClient } from '@/lib/supabase'
 import { POST_TYPES } from '@/lib/post-types'
-import { TEMPLATES, applyTemplate } from '@/lib/templates'
+import { TEMPLATES, applyTemplate, applyCustomTemplate } from '@/lib/templates'
 import type { PostType, TemplateData } from '@/types/post'
+import type { Placeholder } from '@/types/post-type'
+
+const TOTAL_HASHTAG_COUNT = 10
 
 interface GenerateCaptionRequest {
-  postType: PostType
+  postType?: PostType
+  postTypeId?: string
   inputText: string
   sourceUrl?: string
   imageBase64?: string
@@ -19,6 +24,18 @@ interface GenerateCaptionResponse {
   caption: string
   hashtags: string[]
   templateData: TemplateData
+}
+
+// Resolved post type info (from hardcoded or DB)
+interface ResolvedPostType {
+  name: string
+  template: string
+  requiredFields: string[]
+  optionalFields: string[]
+  charRange: { min: number; max: number }
+  typePrompt: string
+  hashtagTrend: string[]
+  isImageRead: boolean
 }
 
 // System prompt for caption generation
@@ -36,7 +53,7 @@ const SYSTEM_PROMPT = `あなたはパソコン教室「ほほ笑みラボ」の
 - 内容に合う場合は「共感 → 安心」の流れを取り入れる（例: 「〜って困りますよね」→「でも大丈夫です」）。ただし無理に入れず、自然な場合のみ
 - 日本語で出力`
 
-// Type-specific prompts
+// Type-specific prompts (for built-in types)
 const TYPE_PROMPTS: Record<PostType, string> = {
   solution: `質問と解決方法を紹介する投稿です。
 入力メモの内容を分析し、不足している解決手順や補足情報は、一般的なIT知識やGoogle検索の結果を用いて「AIが自ら補完して」作成してください。
@@ -110,51 +127,110 @@ ITに詳しくない人でも「なるほど、便利！」「保存して後で
 - 読者が「行ってみたい」「参加したい」と思える文章にすること`,
 }
 
+// Build type prompt dynamically from DB placeholders
+function buildCustomTypePrompt(
+  name: string,
+  placeholders: Placeholder[],
+  charRange: { min: number; max: number }
+): string {
+  const fieldRules = placeholders
+    .map((p) => {
+      const required = p.required ? '（必須）' : '（任意）'
+      const desc = p.description ? `: ${p.description}` : ''
+      return `- ${p.name}${required}${desc}`
+    })
+    .join('\n')
+
+  return `「${name}」タイプの投稿です。
+入力メモの内容を分析し、不足している情報は一般的な知識を用いて「AIが自ら補完して」作成してください。
+文字数目安: ${charRange.min}〜${charRange.max}文字
+
+【生成のルール】
+${fieldRules}`
+}
+
 export async function POST(request: Request) {
-  const { error } = await requireAuth()
+  const { error, userId } = await requireAuth()
   if (error) return error
 
   try {
     const body: GenerateCaptionRequest = await request.json()
-    const { postType, inputText, sourceUrl, imageBase64, imageMimeType, relatedPostCaption, relatedPostHashtags } = body
+    const { postType, postTypeId, inputText, sourceUrl, imageBase64, imageMimeType, relatedPostCaption, relatedPostHashtags } = body
 
-    // Validate request
-    // image_read タイプの場合は inputText は任意（メモなしでもOK）
-    if (!postType) {
+    // Resolve post type configuration
+    let resolved: ResolvedPostType
+
+    if (postTypeId) {
+      // New method: fetch from DB
+      const supabase = createServerClient()
+      const { data: dbType, error: dbError } = await supabase
+        .from('post_types')
+        .select('*')
+        .eq('id', postTypeId)
+        .eq('user_id', userId)
+        .single()
+
+      if (dbError || !dbType) {
+        return NextResponse.json(
+          { error: 'Post type not found' },
+          { status: 404 }
+        )
+      }
+
+      const placeholders = (dbType.placeholders || []) as unknown as Placeholder[]
+      const charRange = {
+        min: dbType.min_length ?? 200,
+        max: dbType.max_length ?? 400,
+      }
+
+      resolved = {
+        name: dbType.name,
+        template: dbType.template_structure,
+        requiredFields: placeholders.filter((p) => p.required).map((p) => p.name),
+        optionalFields: placeholders.filter((p) => !p.required).map((p) => p.name),
+        charRange,
+        typePrompt: buildCustomTypePrompt(dbType.name, placeholders, charRange),
+        hashtagTrend: [],
+        isImageRead: false,
+      }
+    } else if (postType && POST_TYPES[postType]) {
+      // Legacy method: use hardcoded constants
+      const typeConfig = POST_TYPES[postType]
+      resolved = {
+        name: typeConfig.name,
+        template: TEMPLATES[postType],
+        requiredFields: typeConfig.requiredFields,
+        optionalFields: typeConfig.optionalFields,
+        charRange: typeConfig.charRange,
+        typePrompt: TYPE_PROMPTS[postType],
+        hashtagTrend: typeConfig.hashtagTrend,
+        isImageRead: postType === 'image_read',
+      }
+    } else {
       return NextResponse.json(
-        { error: 'postType is required' },
+        { error: 'postType or postTypeId is required' },
         { status: 400 }
       )
     }
 
-    if (postType !== 'image_read' && !inputText) {
+    // Validate input
+    if (!resolved.isImageRead && !inputText) {
       return NextResponse.json(
         { error: 'inputText is required for this post type' },
         { status: 400 }
       )
     }
 
-    // image_read タイプの場合は画像が必須
-    if (postType === 'image_read' && (!imageBase64 || !imageMimeType)) {
+    if (resolved.isImageRead && (!imageBase64 || !imageMimeType)) {
       return NextResponse.json(
         { error: 'imageBase64 and imageMimeType are required for image_read type' },
         { status: 400 }
       )
     }
 
-    if (!POST_TYPES[postType]) {
-      return NextResponse.json(
-        { error: 'Invalid postType' },
-        { status: 400 }
-      )
-    }
-
-    const typeConfig = POST_TYPES[postType]
-    const template = TEMPLATES[postType]
-
-    // image_read タイプの場合、まず画像を分析
+    // image_read: analyze image first
     let imageAnalysis = ''
-    if (postType === 'image_read' && imageBase64 && imageMimeType) {
+    if (resolved.isImageRead && imageBase64 && imageMimeType) {
       const analysisResult = await geminiVision.generateContent([
         `この画像の内容を詳しく説明してください:
 - 何が写っているか（文字、イラスト、写真など）
@@ -175,18 +251,18 @@ export async function POST(request: Request) {
     // Step 1: Generate template data
     const templateDataPrompt = `${SYSTEM_PROMPT}
 
-${TYPE_PROMPTS[postType]}
+${resolved.typePrompt}
 
 以下の入力メモから、テンプレート変数を生成してください。
 
 【テンプレート構造】
-${template}
+${resolved.template}
 
 【必須変数】
-${typeConfig.requiredFields.join(', ')}
+${resolved.requiredFields.join(', ')}
 
 【任意変数】
-${typeConfig.optionalFields.length > 0 ? typeConfig.optionalFields.join(', ') : 'なし'}
+${resolved.optionalFields.length > 0 ? resolved.optionalFields.join(', ') : 'なし'}
 
 ${relatedPostCaption ? `【関連する前回の投稿】
 ${relatedPostCaption}
@@ -218,47 +294,61 @@ JSON形式で各変数の値を出力してください。
     const templateData = parseJsonResponse<TemplateData>(templateDataText)
 
     // Step 2: Apply template to generate caption
-    const caption = applyTemplate(postType, templateData)
+    let caption: string
+    if (postTypeId) {
+      caption = applyCustomTemplate(resolved.template, templateData)
+    } else {
+      caption = applyTemplate(postType!, templateData)
+    }
 
     // Step 3: Generate hashtags
-    // 必須ハッシュタグ（常に含める）
-    const mandatoryHashtags = ['ほほ笑みラボ', '飯田市', 'パソコン教室', 'スマホ']
+    // Fetch required hashtags from user settings
+    const supabase = createServerClient()
+    const { data: settingsData } = await supabase
+      .from('user_settings')
+      .select('required_hashtags')
+      .eq('user_id', userId)
+      .single()
 
-    // 前回のハッシュタグから必須タグを除外
+    const mandatoryHashtags: string[] = (settingsData?.required_hashtags || []).map(
+      (tag: string) => tag.replace(/^#/, '')
+    )
+    const generatedCount = TOTAL_HASHTAG_COUNT - mandatoryHashtags.length
+
+    // Filter out mandatory hashtags from related post
     const filteredRelatedHashtags = relatedPostHashtags?.filter(
       tag => !mandatoryHashtags.includes(tag.replace(/^#/, ''))
     ) || []
 
-    const hashtagPrompt = `以下のInstagram投稿に適したハッシュタグを6個生成してください。
+    const hashtagPrompt = `以下のInstagram投稿に適したハッシュタグを${generatedCount}個生成してください。
 
 【投稿タイプ】
-${typeConfig.name}
-
+${resolved.name}
+${resolved.hashtagTrend.length > 0 ? `
 【推奨ハッシュタグ】
-${typeConfig.hashtagTrend.join(', ')}
+${resolved.hashtagTrend.join(', ')}` : ''}
 ${filteredRelatedHashtags.length > 0 ? `
 【前回の投稿のハッシュタグ】
 ${filteredRelatedHashtags.map(t => t.replace(/^#/, '')).join(', ')}
 
 前回のハッシュタグのうち今回の投稿にも関連するものは優先的に再利用してください。
-ただし生成するハッシュタグは計6個で、すべてを引き継ぐ必要はありません。` : ''}
+ただし生成するハッシュタグは計${generatedCount}個で、すべてを引き継ぐ必要はありません。` : ''}
 
 【投稿内容】
 ${caption}
 
 【ルール】
-- 推奨タグから2-3個選択
-- 残りは投稿内容に基づいて生成
+${resolved.hashtagTrend.length > 0 ? '- 推奨タグから2-3個選択\n- 残りは投稿内容に基づいて生成' : '- 投稿内容に基づいてハッシュタグを生成'}
 - 日本語ハッシュタグを優先
 - 各ハッシュタグは#なしで出力
-- 以下のタグは含めないでください（別途追加します）: ほほ笑みラボ, 飯田市, パソコン教室, スマホ
+${mandatoryHashtags.length > 0 ? `- 以下のタグは含めないでください（別途追加します）: ${mandatoryHashtags.join(', ')}` : ''}
 - JSON配列形式で出力: ["タグ1", "タグ2", ...]
 余計な説明は不要です。JSON配列のみ出力してください。`
 
     const hashtagsText = await generateWithRetry(hashtagPrompt)
     const generatedHashtags = parseJsonResponse<string[]>(hashtagsText)
 
-    // 必須タグ + 生成タグを結合（計10個）
+    // Combine mandatory + generated hashtags
     const hashtags = [...mandatoryHashtags, ...generatedHashtags]
 
     const response: GenerateCaptionResponse = {

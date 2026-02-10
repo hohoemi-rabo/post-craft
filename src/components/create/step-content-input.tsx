@@ -6,7 +6,8 @@ import type { PostType } from '@/types/post'
 import { RelatedPostSelector, type RelatedPostData } from './related-post-selector'
 
 interface StepContentInputProps {
-  postType: PostType
+  postType: PostType | null
+  postTypeName?: string | null
   initialText: string
   initialUrl: string
   initialRelatedPostId?: string | null
@@ -40,6 +41,7 @@ AIの便利な使い方やTipsをメモ書きで入力してください。`,
 
 export function StepContentInput({
   postType,
+  postTypeName,
   initialText,
   initialUrl,
   initialRelatedPostId,
@@ -56,7 +58,7 @@ export function StepContentInput({
   const [relatedPost, setRelatedPost] = useState<RelatedPostData | null>(null)
   const [selectedRelatedPostId, setSelectedRelatedPostId] = useState<string | null>(initialRelatedPostId || null)
 
-  const typeConfig = POST_TYPES[postType]
+  const typeConfig = postType ? POST_TYPES[postType] : null
   const minLength = 20
   // Text must be at least minLength characters
   // URL alone is not enough - user must extract content first
@@ -107,8 +109,10 @@ export function StepContentInput({
     <div className="space-y-6">
       <div>
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-2xl">{typeConfig.icon}</span>
-          <h2 className="text-xl font-bold text-white">{typeConfig.name}</h2>
+          {typeConfig && <span className="text-2xl">{typeConfig.icon}</span>}
+          <h2 className="text-xl font-bold text-white">
+            {typeConfig?.name || postTypeName || '投稿'}
+          </h2>
         </div>
         <p className="text-slate-400 text-sm">
           投稿したい内容をメモ書きで入力してください
@@ -124,7 +128,7 @@ export function StepContentInput({
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder={PLACEHOLDERS[postType]}
+            placeholder={postType ? PLACEHOLDERS[postType] : '投稿したい内容をメモ書きで入力してください。'}
             rows={8}
             maxLength={10000}
             className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
@@ -176,7 +180,7 @@ export function StepContentInput({
       </div>
 
       {/* Related post selector (not for image_read) */}
-      {postType !== 'image_read' && (
+      {(!postType || postType !== 'image_read') && (
         <RelatedPostSelector
           enabled={relatedEnabled}
           onToggle={setRelatedEnabled}

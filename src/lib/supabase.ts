@@ -4,6 +4,9 @@ import type { Database } from '@/types/supabase'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
+/** Posts の select クエリ（post_images + post_types の JOIN 込み） */
+export const POST_SELECT_QUERY = '*, post_images(*), post_type_ref:post_types(*)'
+
 // Browser client (uses anon key, respects RLS)
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
 

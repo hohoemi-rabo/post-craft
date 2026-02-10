@@ -11,7 +11,7 @@ import {
   ProgressIndicator,
 } from '@/components/create'
 import { StepImageReadInput } from '@/components/create/step-image-read-input'
-import { type PostType } from '@/types/post'
+import { isBuiltinPostType } from '@/types/post'
 import { type ImageStyle, type AspectRatio, type BackgroundType } from '@/lib/image-styles'
 import { type CreateFormState, INITIAL_FORM_STATE } from '@/types/create-flow'
 import { useContentGeneration } from '@/hooks/useContentGeneration'
@@ -60,8 +60,14 @@ export default function CreatePage() {
   }, [])
 
   // Step 1: Select post type
-  const handleSelectPostType = (type: PostType) => {
-    setFormState((prev) => ({ ...prev, postType: type }))
+  const handleSelectPostType = (postTypeId: string, slug: string, name: string) => {
+    const builtinType = isBuiltinPostType(slug) ? slug : null
+    setFormState((prev) => ({
+      ...prev,
+      postType: builtinType,
+      postTypeId,
+      postTypeName: name,
+    }))
     setStep(2)
   }
 
@@ -210,9 +216,10 @@ export default function CreatePage() {
         case 1:
           return <StepPostType onSelect={handleSelectPostType} />
         case 2:
-          return formState.postType ? (
+          return (formState.postType || formState.postTypeId) ? (
             <StepContentInput
               postType={formState.postType}
+              postTypeName={formState.postTypeName}
               initialText={formState.inputText}
               initialUrl={formState.sourceUrl}
               initialRelatedPostId={formState.relatedPostId}
@@ -265,9 +272,10 @@ export default function CreatePage() {
         case 1:
           return <StepPostType onSelect={handleSelectPostType} />
         case 2:
-          return formState.postType ? (
+          return (formState.postType || formState.postTypeId) ? (
             <StepContentInput
               postType={formState.postType}
+              postTypeName={formState.postTypeName}
               initialText={formState.inputText}
               initialUrl={formState.sourceUrl}
               initialRelatedPostId={formState.relatedPostId}

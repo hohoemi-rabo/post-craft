@@ -67,13 +67,13 @@ SPEC-PHASE3.md セクション 7.1-7.2 に準拠。
 
 ## TODO
 
-- [ ] `src/app/api/post-types/route.ts` を作成（GET: 一覧取得）
-- [ ] `src/app/api/post-types/route.ts` に POST を追加（新規作成 + バリデーション + 上限チェック）
-- [ ] `src/app/api/post-types/[id]/route.ts` を作成（GET: 詳細取得）
-- [ ] `src/app/api/post-types/[id]/route.ts` に PUT を追加（更新）
-- [ ] `src/app/api/post-types/[id]/route.ts` に DELETE を追加（削除 + affectedPosts）
-- [ ] `src/app/api/post-types/[id]/duplicate/route.ts` を作成（複製）
-- [ ] `src/app/api/post-types/reorder/route.ts` を作成（並び替え）
-- [ ] slug 自動生成ロジックを実装
-- [ ] バリデーション（name 50文字, description 200文字, template 2000文字, placeholders 最大10個）
-- [ ] 動作確認（全エンドポイント）
+- [x] `src/app/api/post-types/route.ts` を作成（GET: 一覧取得）
+- [x] `src/app/api/post-types/route.ts` に POST を追加（新規作成 + バリデーション + 上限チェック）
+- [x] `src/app/api/post-types/[id]/route.ts` を作成（GET: 詳細取得）
+- [x] `src/app/api/post-types/[id]/route.ts` に PUT を追加（更新）
+- [x] `src/app/api/post-types/[id]/route.ts` に DELETE を追加（削除 + affectedPosts）
+- [x] `src/app/api/post-types/[id]/duplicate/route.ts` を作成（複製）
+- [x] `src/app/api/post-types/reorder/route.ts` を作成（並び替え）
+- [x] slug 自動生成ロジックを実装（`type-{timestamp}` 形式）
+- [x] バリデーション（name 50文字, description 200文字, template 2000文字, placeholders 最大10個）
+- [x] 動作確認（`npm run build` 成功、DBデータ7件維持）

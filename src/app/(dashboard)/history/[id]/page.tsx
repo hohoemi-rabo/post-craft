@@ -4,7 +4,6 @@ import { useEffect, useState, use } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { POST_TYPES } from '@/lib/post-types'
 import { type AspectRatio } from '@/lib/image-styles'
 import { InstagramPublishModal } from '@/components/publish/instagram-publish-modal'
 import { ImageUploader } from '@/components/ui/image-uploader'
@@ -79,8 +78,12 @@ export default function PostDetailPage({
     return null
   }
 
-  const displayPostType = editHook.isEditing ? editHook.editedPostType : post.post_type
-  const typeConfig = POST_TYPES[displayPostType]
+  const typeIcon = editHook.isEditing
+    ? editHook.editedPostTypeIcon
+    : (post.post_type_ref?.icon || '📝')
+  const typeName = editHook.isEditing
+    ? editHook.editedPostTypeName
+    : (post.post_type_ref?.name || post.post_type || '不明なタイプ')
   const firstImage = post.post_images?.[0]
   const aspectRatio = firstImage?.aspect_ratio || '1:1'
   const aspectClass = getAspectClass(aspectRatio)
@@ -127,9 +130,9 @@ export default function PostDetailPage({
 
       {/* Post info */}
       <div className="flex items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-xl">
-        <span className="text-2xl">{typeConfig?.icon}</span>
+        <span className="text-2xl">{typeIcon}</span>
         <div className="flex-1">
-          <p className="font-medium text-white">{typeConfig?.name}</p>
+          <p className="font-medium text-white">{typeName}</p>
           <p className="text-xs text-slate-400">{formatDate(post.created_at)}</p>
         </div>
         {editHook.isEditing && (
@@ -454,7 +457,9 @@ export default function PostDetailPage({
       <PostTypeChangeModal
         open={editHook.showTypeChangeModal}
         onClose={() => editHook.setShowTypeChangeModal(false)}
-        currentType={editHook.editedPostType}
+        currentTypeSlug={editHook.editedPostType}
+        currentTypeIcon={editHook.editedPostTypeIcon}
+        currentTypeName={editHook.editedPostTypeName}
         onChangeType={editHook.changeType}
         isRegenerating={editHook.isRegeneratingCaption}
       />
@@ -466,7 +471,7 @@ export default function PostDetailPage({
         postId={post.id}
         postType={editHook.isEditing ? editHook.editedPostType : post.post_type}
         caption={editHook.isEditing ? editHook.editedCaption : post.generated_caption}
-        currentStyle={firstImage?.image_style || null}
+        currentStyle={firstImage?.style || null}
         currentAspectRatio={firstImage?.aspect_ratio || null}
         onRegenerated={imageHandlers.handleImageRegenerated}
       />

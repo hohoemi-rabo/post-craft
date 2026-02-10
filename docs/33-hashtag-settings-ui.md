@@ -53,13 +53,13 @@ SPEC-PHASE3.md セクション 8.5 に準拠。
 
 ## TODO
 
-- [ ] `src/app/(dashboard)/settings/hashtags/page.tsx` を作成
-- [ ] `src/components/settings/hashtag-settings.tsx` を作成
-  - [ ] 現在のハッシュタグ一覧表示
-  - [ ] 削除ボタン
-  - [ ] 追加フォーム（`#` 自動付与）
-  - [ ] 最大4個の制限 + 残数表示
-  - [ ] 生成情報セクション（動的計算表示）
-  - [ ] 保存ボタン（変更ありの場合のみ有効）
-  - [ ] 保存成功時のToast通知
-- [ ] モバイル対応の確認
+- [x] `src/app/(dashboard)/settings/hashtags/page.tsx` を作成
+- [x] `src/components/settings/hashtag-settings.tsx` を作成
+  - [x] 現在のハッシュタグ一覧表示
+  - [x] 削除ボタン
+  - [x] 追加フォーム（`#` 自動付与）
+  - [x] 最大4個の制限 + 残数表示
+  - [x] 生成情報セクション（動的計算表示）
+  - [x] 保存ボタン（変更ありの場合のみ有効）
+  - [x] 保存成功時のToast通知
+- [x] モバイル対応の確認

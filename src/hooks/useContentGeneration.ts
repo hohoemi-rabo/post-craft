@@ -38,6 +38,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             postType: formState.postType,
+            postTypeId: formState.postTypeId,
             inputText: formState.inputText,
             relatedPostCaption: formState.relatedPostCaption || undefined,
             relatedPostHashtags: formState.relatedPostHashtags || undefined,
@@ -84,6 +85,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
             body: JSON.stringify({
               caption: generatedCaption,
               postType: formState.postType,
+              postTypeName: formState.postTypeName,
             }),
           })
           if (sceneResponse.ok) {
@@ -131,6 +133,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               postType: formState.postType,
+              postTypeId: formState.postTypeId,
               inputText: formState.inputText,
               relatedPostCaption: formState.relatedPostCaption || undefined,
               relatedPostHashtags: formState.relatedPostHashtags || undefined,
@@ -144,7 +147,8 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              postType: formState.postType,
+              postType: formState.postType || formState.postTypeName || 'custom',
+              postTypeId: formState.postTypeId,
               inputText: formState.inputText,
               sourceUrl: formState.sourceUrl || null,
               generatedCaption: generatedCaption,
@@ -234,6 +238,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             postType: formState.postType,
+            postTypeId: formState.postTypeId,
             inputText: formState.inputText,
             relatedPostCaption: formState.relatedPostCaption || undefined,
             relatedPostHashtags: formState.relatedPostHashtags || undefined,
@@ -262,6 +267,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
               body: JSON.stringify({
                 caption: captionData.caption,
                 postType: formState.postType,
+                postTypeName: formState.postTypeName,
               }),
             })
             if (sceneResponse.ok) {
@@ -309,7 +315,8 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              postType: formState.postType,
+              postType: formState.postType || formState.postTypeName || 'custom',
+              postTypeId: formState.postTypeId,
               inputText: formState.inputText,
               sourceUrl: formState.sourceUrl || null,
               generatedCaption: captionData.caption,
@@ -387,6 +394,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
             imageMimeType,
           }),
         })
+        // Note: image_read is always a built-in type, postTypeId not needed here
 
         if (!captionResponse.ok) {
           const errorData = await captionResponse.json().catch(() => ({}))
@@ -472,7 +480,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
    */
   const regenerateImage = useCallback(
     async (formState: CreateFormState) => {
-      if (!generatedResult || !formState.postType || formState.skipImage) return
+      if (!generatedResult || (!formState.postType && !formState.postTypeId) || formState.skipImage) return
 
       setIsRegenerating(true)
 
@@ -485,6 +493,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
             body: JSON.stringify({
               caption: generatedResult.caption,
               postType: formState.postType,
+              postTypeName: formState.postTypeName,
             }),
           })
           if (sceneResponse.ok) {

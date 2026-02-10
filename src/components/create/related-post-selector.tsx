@@ -1,17 +1,16 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { POST_TYPES } from '@/lib/post-types'
-import type { PostType } from '@/types/post'
 
 interface PostSummary {
   id: string
-  post_type: PostType
+  post_type: string
+  post_type_ref?: { icon: string; name: string } | null
   generated_caption: string
   generated_hashtags: string[]
   created_at: string
   post_images: {
-    image_style: string | null
+    style: string | null
     aspect_ratio: string | null
   }[]
 }
@@ -77,7 +76,7 @@ export function RelatedPostSelector({
       id: post.id,
       caption: post.generated_caption,
       hashtags: post.generated_hashtags,
-      imageStyle: firstImage?.image_style || null,
+      imageStyle: firstImage?.style || null,
       aspectRatio: firstImage?.aspect_ratio || null,
     })
   }
@@ -143,7 +142,8 @@ export function RelatedPostSelector({
           ) : (
             <div className="max-h-60 overflow-y-auto space-y-1.5 pr-1">
               {posts.map((post) => {
-                const typeConfig = POST_TYPES[post.post_type]
+                const typeIcon = post.post_type_ref?.icon || '📝'
+                const typeName = post.post_type_ref?.name || post.post_type || '不明'
                 const isSelected = selectedPostId === post.id
                 return (
                   <button
@@ -157,13 +157,13 @@ export function RelatedPostSelector({
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-base shrink-0">{typeConfig?.icon}</span>
+                      <span className="text-base shrink-0">{typeIcon}</span>
                       <div className="flex-1 min-w-0">
                         <p className={`text-xs truncate ${isSelected ? 'text-blue-300' : 'text-white'}`}>
                           {truncateCaption(post.generated_caption)}
                         </p>
                         <p className="text-[10px] text-slate-500">
-                          {typeConfig?.name} ・ {formatDate(post.created_at)}
+                          {typeName} ・ {formatDate(post.created_at)}
                         </p>
                       </div>
                       {isSelected && (

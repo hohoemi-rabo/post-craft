@@ -83,12 +83,12 @@ DROP TABLE IF EXISTS user_settings;
 
 ## TODO
 
-- [ ] バックアップテーブル `posts_backup` を作成
-- [ ] 7タイプの投稿タイプデータを準備（template_structure, placeholders JSONB）
-- [ ] `post_types` テーブルに7タイプを INSERT
-- [ ] 既存投稿の `post_type_id` を紐付け UPDATE
-- [ ] `user_settings` に必須ハッシュタグを INSERT
-- [ ] 検証SQL: 全投稿に `post_type_id` が設定されていることを確認
-- [ ] 検証SQL: 7タイプが正しく存在することを確認
-- [ ] 検証: 既存投稿の他カラムが変更されていないことを確認
-- [ ] ロールバック手順をドキュメント化
+- [x] バックアップテーブル `posts_backup` を作成
+- [x] 7タイプの投稿タイプデータを準備（template_structure, placeholders JSONB）
+- [x] `post_types` テーブルに7タイプを INSERT
+- [x] 既存投稿の `post_type_id` を紐付け UPDATE（13件全て紐付け完了）
+- [x] `user_settings` に必須ハッシュタグを INSERT（4個）
+- [x] 検証SQL: 全投稿に `post_type_id` が設定されていることを確認（NULL: 0）
+- [x] 検証SQL: 7タイプが正しく存在することを確認
+- [x] 検証: 既存投稿の他カラムが変更されていないことを確認（posts_backup: 13件）
+- [x] ロールバック手順をドキュメント化

@@ -5,7 +5,8 @@ import type { PostType } from '@/types/post'
 
 interface GenerateSceneRequest {
   caption: string
-  postType: PostType
+  postType?: PostType
+  postTypeName?: string
 }
 
 // POST /api/generate/scene - Generate scene description from caption
@@ -15,7 +16,7 @@ export async function POST(request: Request) {
 
   try {
     const body: GenerateSceneRequest = await request.json()
-    const { caption, postType } = body
+    const { caption, postType, postTypeName } = body
 
     if (!caption || caption.length < 10) {
       return NextResponse.json(
@@ -24,14 +25,18 @@ export async function POST(request: Request) {
       )
     }
 
-    if (!postType) {
+    if (!postType && !postTypeName) {
       return NextResponse.json(
         { error: 'Post type is required' },
         { status: 400 }
       )
     }
 
-    const sceneDescription = await generateSceneDescription(caption, postType)
+    const sceneDescription = await generateSceneDescription(
+      caption,
+      postType || 'custom',
+      postTypeName
+    )
 
     return NextResponse.json({ sceneDescription })
   } catch (error) {

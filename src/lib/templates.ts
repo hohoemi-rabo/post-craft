@@ -151,6 +151,11 @@ export const FIELD_LABELS: Record<string, string> = {
 // Apply template with data
 export function applyTemplate(type: PostType, data: TemplateData): string {
   const template = TEMPLATES[type]
+  return applyCustomTemplate(template, data)
+}
+
+// Apply any template string with data (for DB-managed custom post types)
+export function applyCustomTemplate(template: string, data: TemplateData): string {
   let result = template
 
   // Replace placeholders with data

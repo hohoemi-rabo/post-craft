@@ -83,14 +83,14 @@ DB から取得した `template_structure` と `placeholders` を使って:
 
 ## TODO
 
-- [ ] リクエストに `postTypeId` パラメータを追加
-- [ ] `postTypeId` → DB からテンプレート取得ロジックを実装
-- [ ] `postType`（slug）のフォールバックを維持
-- [ ] 必須ハッシュタグを `user_settings` テーブルから取得に変更
-- [ ] ハッシュタグ生成数を動的に計算（10 - 必須数）
-- [ ] テンプレート構造をDB値で動的に生成
-- [ ] 文字数目安をDB値（min_length, max_length）で動的に設定
-- [ ] ハッシュタグプロンプトの「除外するタグ」をDB値に変更
-- [ ] `scene/route.ts` の postType 参照も必要に応じて更新
-- [ ] 後方互換性テスト（slug での生成が動作すること）
-- [ ] 新方式テスト（postTypeId での生成が動作すること）
+- [x] リクエストに `postTypeId` パラメータを追加
+- [x] `postTypeId` → DB からテンプレート取得ロジックを実装
+- [x] `postType`（slug）のフォールバックを維持
+- [x] 必須ハッシュタグを `user_settings` テーブルから取得に変更
+- [x] ハッシュタグ生成数を動的に計算（10 - 必須数）
+- [x] テンプレート構造をDB値で動的に生成
+- [x] 文字数目安をDB値（min_length, max_length）で動的に設定
+- [x] ハッシュタグプロンプトの「除外するタグ」をDB値に変更
+- [x] `scene/route.ts` の postType 参照も必要に応じて更新
+- [x] 後方互換性テスト（slug での生成が動作すること）
+- [x] 新方式テスト（postTypeId での生成が動作すること）

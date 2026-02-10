@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react'
 import type { Post } from '@/types/history-detail'
-import type { PostType } from '@/types/post'
 import { useToast } from '@/components/ui/toast'
 
 /**
@@ -18,7 +17,10 @@ export function usePostEdit(
   const [editedCaption, setEditedCaption] = useState('')
   const [editedHashtags, setEditedHashtags] = useState<string[]>([])
   const [editedInputText, setEditedInputText] = useState('')
-  const [editedPostType, setEditedPostType] = useState<PostType>('solution')
+  const [editedPostType, setEditedPostType] = useState<string>('solution')
+  const [editedPostTypeId, setEditedPostTypeId] = useState<string | null>(null)
+  const [editedPostTypeIcon, setEditedPostTypeIcon] = useState<string>('📝')
+  const [editedPostTypeName, setEditedPostTypeName] = useState<string>('')
   const [newHashtagInput, setNewHashtagInput] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [isRegeneratingCaption, setIsRegeneratingCaption] = useState(false)
@@ -38,6 +40,9 @@ export function usePostEdit(
     setEditedHashtags([...initialPost.generated_hashtags])
     setEditedInputText(initialPost.input_text)
     setEditedPostType(initialPost.post_type)
+    setEditedPostTypeId(initialPost.post_type_id || null)
+    setEditedPostTypeIcon(initialPost.post_type_ref?.icon || '📝')
+    setEditedPostTypeName(initialPost.post_type_ref?.name || initialPost.post_type)
     setIsEditing(true)
   }, [initialPost])
 
@@ -61,6 +66,7 @@ export function usePostEdit(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           post_type: editedPostType,
+          post_type_id: editedPostTypeId,
           input_text: editedInputText,
           generated_caption: editedCaption,
           generated_hashtags: editedHashtags,
@@ -86,6 +92,7 @@ export function usePostEdit(
     postId,
     initialPost,
     editedPostType,
+    editedPostTypeId,
     editedInputText,
     editedCaption,
     editedHashtags,
@@ -104,6 +111,7 @@ export function usePostEdit(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           postType: editedPostType,
+          postTypeId: editedPostTypeId,
           inputText: editedInputText,
         }),
       })
@@ -124,14 +132,17 @@ export function usePostEdit(
     } finally {
       setIsRegeneratingCaption(false)
     }
-  }, [editedPostType, editedInputText, showToast])
+  }, [editedPostType, editedPostTypeId, editedInputText, showToast])
 
   /**
    * 投稿タイプを変更
    */
   const changeType = useCallback(
-    async (newType: PostType, regenerate: boolean) => {
-      setEditedPostType(newType)
+    async (newSlug: string, newPostTypeId: string, newIcon: string, newName: string, regenerate: boolean) => {
+      setEditedPostType(newSlug)
+      setEditedPostTypeId(newPostTypeId)
+      setEditedPostTypeIcon(newIcon)
+      setEditedPostTypeName(newName)
       setShowTypeChangeModal(false)
 
       if (regenerate) {
@@ -141,7 +152,8 @@ export function usePostEdit(
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              postType: newType,
+              postType: newSlug,
+              postTypeId: newPostTypeId,
               inputText: editedInputText,
             }),
           })
@@ -201,6 +213,9 @@ export function usePostEdit(
     editedHashtags,
     editedInputText,
     editedPostType,
+    editedPostTypeId,
+    editedPostTypeIcon,
+    editedPostTypeName,
     newHashtagInput,
     isSaving,
     isRegeneratingCaption,

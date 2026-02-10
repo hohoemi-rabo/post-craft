@@ -6,6 +6,8 @@ import type { PostType } from '@/types/post'
  */
 export interface CreateFormState {
   postType: PostType | null
+  postTypeId: string | null
+  postTypeName: string | null
   inputText: string
   sourceUrl: string
   imageStyle: ImageStyle
@@ -53,6 +55,8 @@ export interface GenerationStep {
  */
 export const INITIAL_FORM_STATE: CreateFormState = {
   postType: null,
+  postTypeId: null,
+  postTypeName: null,
   inputText: '',
   sourceUrl: '',
   imageStyle: 'manga_male',

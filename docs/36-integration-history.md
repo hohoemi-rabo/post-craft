@@ -81,12 +81,12 @@ const { activePostTypes } = usePostTypes()
 
 ## TODO
 
-- [ ] `posts/route.ts` (GET) に `post_types` テーブルの JOIN を追加
-- [ ] `posts/[id]/route.ts` (GET) に JOIN を追加
-- [ ] `posts/[id]/route.ts` (PATCH) のホワイトリストに `post_type_id` を追加
-- [ ] 履歴一覧ページを更新（`POST_TYPES` → JOINデータ）
-- [ ] 履歴詳細ページを更新
-- [ ] 削除されたタイプのフォールバック表示を実装
-- [ ] タイプ変更モーダルを更新（`POST_TYPES` → `usePostTypes`）
-- [ ] フィルタ機能をDB値ベースに更新
+- [x] `posts/route.ts` (GET) に `post_types` テーブルの JOIN を追加
+- [x] `posts/[id]/route.ts` (GET) に JOIN を追加
+- [x] `posts/[id]/route.ts` (PATCH) のホワイトリストに `post_type_id` を追加
+- [x] 履歴一覧ページを更新（`POST_TYPES` → JOINデータ）
+- [x] 履歴詳細ページを更新
+- [x] 削除されたタイプのフォールバック表示を実装
+- [x] タイプ変更モーダルを更新（`POST_TYPES` → `usePostTypes`）
+- [x] フィルタ機能をDB値ベースに更新
 - [ ] 既存投稿の表示テスト（全タイプ）

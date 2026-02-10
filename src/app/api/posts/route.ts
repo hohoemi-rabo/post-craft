@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase'
+import { createServerClient, POST_SELECT_QUERY } from '@/lib/supabase'
 import { requireAuth } from '@/lib/api-utils'
 import type { PostType } from '@/types/post'
 
@@ -18,7 +18,7 @@ export async function GET(request: Request) {
   try {
     let query = supabase
       .from('posts')
-      .select('*, post_images(*)', { count: 'exact' })
+      .select(POST_SELECT_QUERY, { count: 'exact' })
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
 
@@ -63,6 +63,7 @@ export async function POST(request: Request) {
     const body = await request.json()
     const {
       postType,
+      postTypeId,
       inputText,
       sourceUrl,
       generatedCaption,
@@ -88,7 +89,8 @@ export async function POST(request: Request) {
       .from('posts')
       .insert({
         user_id: userId,
-        post_type: postType,
+        post_type: postType || 'custom',
+        post_type_id: postTypeId || null,
         input_text: inputText,
         source_url: sourceUrl || null,
         generated_caption: generatedCaption,
@@ -122,10 +124,10 @@ export async function POST(request: Request) {
       }
     }
 
-    // Fetch the complete post with images
+    // Fetch the complete post with images and type ref
     const { data: completePost } = await supabase
       .from('posts')
-      .select('*, post_images(*)')
+      .select(POST_SELECT_QUERY)
       .eq('id', post.id)
       .single()
 

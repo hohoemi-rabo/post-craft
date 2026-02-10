@@ -277,9 +277,10 @@ export function buildRealisticImagePrompt(options: RealisticImagePromptOptions):
  */
 export async function generateSceneDescription(
   caption: string,
-  postType: PostType
+  postType: PostType | string,
+  postTypeName?: string
 ): Promise<string> {
-  const postTypeNames: Record<PostType, string> = {
+  const postTypeNames: Record<string, string> = {
     solution: '解決タイプ（シニア向け）',
     promotion: '宣伝タイプ',
     tips: 'AI活用タイプ',
@@ -289,11 +290,13 @@ export async function generateSceneDescription(
     image_read: '画像読み取りタイプ',
   }
 
+  const typeName = postTypeName || postTypeNames[postType] || postType
+
   const prompt = `以下の投稿内容から、画像のシーン説明を生成してください。
 30-50文字程度で、具体的なビジュアルをイメージできる説明にしてください。
 日本語で出力してください。シーンの説明のみ出力し、余計な説明は不要です。
 
-投稿タイプ: ${postTypeNames[postType]}
+投稿タイプ: ${typeName}
 投稿内容:
 ${caption.slice(0, 500)}
 

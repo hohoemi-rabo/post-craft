@@ -3,28 +3,9 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { POST_TYPES } from '@/lib/post-types'
 import { IMAGE_STYLES } from '@/lib/image-styles'
-import type { PostType } from '@/types/post'
-
-interface PostImage {
-  id: string
-  image_url: string
-  style: string | null
-  aspect_ratio: string | null
-}
-
-interface Post {
-  id: string
-  post_type: PostType
-  input_text: string
-  source_url: string | null
-  generated_caption: string
-  generated_hashtags: string[]
-  created_at: string
-  post_images: PostImage[]
-  instagram_published: boolean
-}
+import { usePostTypes } from '@/hooks/usePostTypes'
+import { type Post, formatDate } from '@/types/history-detail'
 
 interface PostsResponse {
   posts: Post[]
@@ -38,8 +19,10 @@ export default function HistoryPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const [filterType, setFilterType] = useState<PostType | ''>('')
+  const [filterType, setFilterType] = useState<string>('')
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+
+  const { activePostTypes } = usePostTypes()
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -79,17 +62,6 @@ export default function HistoryPage() {
     } catch (error) {
       console.error('Failed to delete post:', error)
     }
-  }
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
   }
 
   const truncateText = (text: string, maxLength: number) => {
@@ -134,14 +106,14 @@ export default function HistoryPage() {
           <select
             value={filterType}
             onChange={(e) => {
-              setFilterType(e.target.value as PostType | '')
+              setFilterType(e.target.value)
               setPage(1)
             }}
             className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">すべて</option>
-            {Object.values(POST_TYPES).map((type) => (
-              <option key={type.id} value={type.id}>
+            {activePostTypes.map((type) => (
+              <option key={type.id} value={type.slug}>
                 {type.icon} {type.name}
               </option>
             ))}
@@ -172,7 +144,8 @@ export default function HistoryPage() {
           {/* Post list */}
           <div className="space-y-4">
             {posts.map((post) => {
-              const typeConfig = POST_TYPES[post.post_type]
+              const typeIcon = post.post_type_ref?.icon || '📝'
+              const typeName = post.post_type_ref?.name || post.post_type || '不明なタイプ'
               const firstImage = post.post_images?.[0]
 
               return (
@@ -203,9 +176,9 @@ export default function HistoryPage() {
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-1">
-                        <span className="text-lg">{typeConfig?.icon}</span>
+                        <span className="text-lg">{typeIcon}</span>
                         <span className="text-sm font-medium text-white">
-                          {typeConfig?.name}
+                          {typeName}
                         </span>
                         {firstImage?.style && IMAGE_STYLES[firstImage.style as keyof typeof IMAGE_STYLES] && (
                           <span className="px-2 py-0.5 bg-purple-500/20 text-purple-300 text-xs rounded-full">

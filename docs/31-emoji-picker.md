@@ -64,12 +64,13 @@ interface EmojiPickerProps {
 
 ## TODO
 
-- [ ] `src/components/settings/emoji-picker.tsx` を作成
-  - [ ] 絵文字カテゴリ定数の定義
-  - [ ] ポップオーバーの開閉ロジック
-  - [ ] カテゴリタブUI
-  - [ ] 絵文字グリッド表示
-  - [ ] 選択状態のハイライト
-  - [ ] 外クリックで閉じる処理
-- [ ] モバイル対応の確認
-- [ ] ダークテーマでの表示確認
+- [x] `src/components/settings/emoji-picker.tsx` を作成
+  - [x] 絵文字カテゴリ定数の定義（10カテゴリ×5絵文字）
+  - [x] ポップオーバーの開閉ロジック（useState）
+  - [x] カテゴリタブUI（activeCategory切り替え）
+  - [x] 絵文字グリッド表示（5列）
+  - [x] 選択状態のハイライト（bg-blue-600/30 + ring-2）
+  - [x] 外クリックで閉じる処理（useRef + mousedown）
+- [x] モバイル対応（44x44px タッチターゲット、280px ポップオーバー）
+- [x] ダークテーマ対応（bg-slate-800, border-white/10）
+- [x] `npm run build` 成功

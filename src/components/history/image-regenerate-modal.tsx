@@ -9,13 +9,11 @@ import {
   type AspectRatio,
   type BackgroundType,
 } from '@/lib/image-styles'
-import type { PostType } from '@/types/post'
-
 interface ImageRegenerateModalProps {
   open: boolean
   onClose: () => void
   postId: string
-  postType: PostType
+  postType: string
   caption: string
   currentStyle: string | null
   currentAspectRatio: string | null

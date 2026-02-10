@@ -80,7 +80,7 @@ export interface UserSettings {
 
 ## TODO
 
-- [ ] `src/types/post-type.ts` を作成（Placeholder, PostTypeDB, PostTypeFormData）
-- [ ] `src/types/user-settings.ts` を作成（UserSettings）
-- [ ] `src/types/supabase.ts` に post_types, user_settings テーブルの型を追加
-- [ ] `npm run build` で型の競合がないことを確認
+- [x] `src/types/post-type.ts` を作成（Placeholder, PostTypeDB, PostTypeFormData）
+- [x] `src/types/user-settings.ts` を作成（UserSettings）
+- [x] `src/types/supabase.ts` に post_types, user_settings テーブルの型を追加
+- [x] `npm run build` で型の競合がないことを確認

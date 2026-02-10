@@ -8,7 +8,7 @@ Post Craft プロジェクトのガイドライン。
 **Post Craft** - メモ書きやブログ記事URLからInstagram投稿素材（キャプション、ハッシュタグ、画像）を自動生成するWebサービス。
 
 - **本番URL**: https://post-craft-rho.vercel.app/
-- **現在のフェーズ**: Phase 2 完了
+- **現在のフェーズ**: Phase 3 完了
 
 ## 技術スタック
 
@@ -45,11 +45,15 @@ src/
 │   │   ├── history/       # 履歴
 │   │   ├── characters/    # キャラクター管理
 │   │   └── settings/      # 設定
+│   │       ├── post-types/ # 投稿タイプ管理
+│   │       └── hashtags/  # ハッシュタグ設定
 │   ├── api/               # API Routes
 │   └── publish/           # Instagram投稿（スタンドアロン）
 ├── components/            # UIコンポーネント
+│   ├── create/            # 投稿作成コンポーネント
 │   ├── history/           # 履歴編集モーダル
 │   ├── publish/           # Instagram投稿コンポーネント
+│   ├── settings/          # 設定コンポーネント (post-type-list, post-type-form)
 │   └── providers/         # Context Providers
 ├── hooks/                 # カスタムフック
 ├── lib/                   # ユーティリティ
@@ -66,20 +70,27 @@ src/
 | `useCopyActions` | コピー機能（キャプション、ハッシュタグ） |
 | `usePostActions` | 投稿アクション（削除、再利用、ダウンロード） |
 | `usePostImageHandlers` | 画像関連のハンドラ |
+| `usePostTypes` | 投稿タイプの CRUD・並び替え・有効/無効切り替え |
 
 ### 型定義 (`src/types/`)
 
 | ファイル | 内容 |
 |---------|------|
-| `post.ts` | 投稿タイプ定義 |
+| `post.ts` | ビルトイン投稿タイプの union 型・ヘルパー (`isBuiltinPostType`) |
+| `post-type.ts` | DB管理の投稿タイプ型 (`PostTypeDB`, `PostTypeFormData`) |
 | `create-flow.ts` | 投稿作成フローの状態・型 |
-| `history-detail.ts` | 履歴詳細ページの型・ユーティリティ |
+| `history-detail.ts` | 履歴詳細ページの型・ユーティリティ (`Post`, `PostTypeRef`) |
 
 ## 主要機能
 
-### 投稿タイプ（7種類）
-| ID | タイプ | 説明 |
-|----|--------|------|
+### 投稿タイプ（DB管理）
+
+設定画面 (`/settings/post-types`) でユーザーがカスタマイズ可能。
+`post_types` テーブルで管理し、`usePostTypes` フックで取得。
+
+**ビルトインタイプ（7種類、初期データ）**:
+| slug | タイプ | 説明 |
+|------|--------|------|
 | `solution` | 解決タイプ | よくある質問と解決方法を紹介 |
 | `promotion` | 宣伝タイプ | サービス・商品の告知 |
 | `tips` | AI活用タイプ | AIの便利な使い方を紹介 |
@@ -87,6 +98,14 @@ src/
 | `useful` | お役立ちタイプ | 汎用的な便利情報 |
 | `howto` | 使い方タイプ | 便利情報＋手順を紹介 |
 | `image_read` | 画像読み取りタイプ | 画像をAIで読み取り投稿文を自動生成 |
+
+**カスタムタイプ**: ユーザーが自由に追加可能。テンプレート・プレースホルダー・文字数を設定。
+
+**デュアルシステム**:
+- `posts.post_type` (slug文字列): 後方互換用、ビルトインタイプの識別に使用
+- `posts.post_type_id` (UUID FK): `post_types` テーブルへの外部キー（ON DELETE SET NULL）
+- API: `post_type_ref:post_types(*)` で JOIN データを取得
+- 表示: `post.post_type_ref?.icon || '📝'` でフォールバック（削除済みタイプ対応）
 
 ### 投稿作成フロー
 画像生成あり（6ステップ）:
@@ -125,9 +144,11 @@ src/
 - **UI**: `StepContentInput` のトグル式セレクタ、`StepImageSettings` の3択ボタン
 
 ### ハッシュタグ生成
-- 必須タグ4個: #ほほ笑みラボ #飯田市 #パソコン教室 #スマホ
-- 生成タグ6個: 投稿内容に基づいて自動生成
-- 計10個のハッシュタグ
+- 必須タグ: ユーザー設定画面 (`/settings/hashtags`) でカスタマイズ可能
+  - デフォルト: #ほほ笑みラボ #飯田市 #パソコン教室 #スマホ
+  - `user_settings.required_hashtags` に保存
+  - API (`/api/settings/hashtags`) で取得・更新
+- 生成タグ: 投稿内容に基づいて自動生成（必須タグと合わせて計10個）
 - コピー・投稿時は縦並び（改行区切り）で出力
 
 ### 投稿履歴の編集機能
@@ -195,7 +216,8 @@ FACEBOOK_APP_SECRET=
 
 - `/docs/SPEC-CURRENT.md` - 現状仕様（Phase 2完了時点）
 - `/docs/SPEC-PHASE2.md` - Phase 2 要件定義
-- `/docs/SPEC-PHASE3.md` - Phase 3 構想メモ（ユーザーカスタマイズ機能）
+- `/docs/SPEC-PHASE3.md` - Phase 3 要件定義（ユーザーカスタマイズ機能）
+- `/docs/23-*.md` 〜 `/docs/37-*.md` - Phase 3 開発チケット
 
 ## 運営情報
 

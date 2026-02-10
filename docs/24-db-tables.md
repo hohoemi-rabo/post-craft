@@ -85,11 +85,11 @@ CREATE INDEX idx_posts_post_type_id ON posts(post_type_id);
 
 ## TODO
 
-- [ ] `post_types` テーブルを作成（Supabase migration）
-- [ ] `user_settings` テーブルを作成
-- [ ] `posts` テーブルに `post_type_id` カラムを追加
-- [ ] インデックスを作成
-- [ ] RLS ポリシーを設定（post_types: SELECT/INSERT/UPDATE/DELETE）
-- [ ] RLS ポリシーを設定（user_settings: SELECT/INSERT/UPDATE）
-- [ ] `updated_at` 自動更新トリガーを作成
-- [ ] 既存の `posts` データに影響がないことを確認
+- [x] `post_types` テーブルを作成（Supabase migration）
+- [x] `user_settings` テーブルを作成
+- [x] `posts` テーブルに `post_type_id` カラムを追加
+- [x] インデックスを作成
+- [x] RLS ポリシーを設定（post_types: CRUD own + Service role）
+- [x] RLS ポリシーを設定（user_settings: CRUD own + Service role）
+- [x] `updated_at` 自動更新トリガーを作成（search_path修正済み）
+- [x] 既存の `posts` データに影響がないことを確認（13件、post_type_id全てNULL）
