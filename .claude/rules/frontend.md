@@ -13,7 +13,7 @@ components/
 ├── create/       # 投稿作成専用
 ├── history/      # 履歴編集モーダル (post-edit-modal, image-regenerate-modal)
 ├── characters/   # キャラクター管理専用
-├── settings/     # 設定 (post-type-list, post-type-form)
+├── settings/     # 設定 (post-type-list, post-type-form, profile-list, profile-form)
 └── providers/    # Context Providers
 ```
 
@@ -23,6 +23,14 @@ components/
 - Props型: `コンポーネント名Props` (例: `ButtonProps`)
 
 ## Tailwind CSS
+
+### content 設定
+```typescript
+// tailwind.config.ts
+content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"]
+```
+**注意**: `src/lib/` にも Tailwind クラスを返す関数がある（`getAspectClass` 等）。
+`content` に `src/` 配下全体を含めないと、動的に生成されるクラスが CSS に出力されない。
 
 ### カラーパレット
 ```css
@@ -151,7 +159,9 @@ hooks/
 ├── useCopyActions.ts         # コピー機能
 ├── usePostActions.ts         # 投稿アクション
 ├── usePostImageHandlers.ts   # 画像ハンドラ
-└── usePostTypes.ts           # 投稿タイプ CRUD・並び替え・有効/無効
+├── usePostTypes.ts           # 投稿タイプ CRUD・並び替え・有効/無効
+├── useProfiles.ts            # プロフィール CRUD・並び替え
+└── useUserSettings.ts        # ユーザー設定（必須ハッシュタグ等）
 ```
 
 ### 命名規則

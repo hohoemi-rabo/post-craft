@@ -26,9 +26,17 @@ app/api/
 │   └── [id]/image/route.ts   # POST (画像アップロード/差し替え), PUT (画像レコード更新)
 ├── post-types/
 │   ├── route.ts              # GET (list), POST (create)
-│   └── [id]/route.ts         # GET, PUT, DELETE
+│   └── [id]/
+│       ├── route.ts          # GET, PUT, DELETE
+│       └── duplicate/route.ts # POST (複製)
+├── profiles/
+│   ├── route.ts              # GET (list), POST (create)
+│   └── [id]/
+│       ├── route.ts          # GET, PUT, DELETE
+│       ├── hashtags/route.ts # GET, PUT (プロフィール別必須ハッシュタグ)
+│       └── system-prompt/route.ts # GET, PUT (システムプロンプト)
 ├── settings/
-│   └── hashtags/route.ts     # GET, PUT (必須ハッシュタグ設定)
+│   └── hashtags/route.ts     # GET, PUT (レガシー必須ハッシュタグ設定)
 └── extract/route.ts          # POST (記事抽出)
 ```
 
@@ -205,7 +213,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
 ### API での認証チェック（ヘルパー関数使用）
 ```typescript
-import { requireAuth, requirePostOwnership, requireCharacterOwnership } from '@/lib/api-utils'
+import { requireAuth, requirePostOwnership, requireCharacterOwnership, requireProfileOwnership, requirePostTypeOwnership } from '@/lib/api-utils'
 
 // 認証のみ
 export async function GET() {
@@ -244,28 +252,31 @@ export async function DELETE(
 ```
 
 ### ヘルパー関数 (`lib/api-utils.ts`)
+
+内部で `checkOwnership<T>()` ヘルパーを使い、4つの所有権チェック関数を提供。
+戻り値は discriminated union 型で、`error` チェック後に data が non-null に絞り込まれる。
+
 ```typescript
 // 認証チェック
-export async function requireAuth(): Promise<{
-  error?: NextResponse
-  session?: Session
-  userId?: string
-}>
+export async function requireAuth()
+// → { error: NextResponse, session: null, userId: null }
+// → { error: null, session: Session, userId: string }
 
 // 投稿の所有権チェック
-export async function requirePostOwnership(
-  postId: string,
-  userId: string
-): Promise<{ error?: NextResponse }>
+export async function requirePostOwnership(postId, userId)
+// → { error: NextResponse, post: null } | { error: null, post: { id, user_id } }
 
-// キャラクターの所有権チェック（image_url も返す）
-export async function requireCharacterOwnership(
-  characterId: string,
-  userId: string
-): Promise<{
-  error?: NextResponse
-  character?: { id: string; user_id: string; image_url: string | null }
-}>
+// キャラクターの所有権チェック
+export async function requireCharacterOwnership(characterId, userId)
+// → { error: NextResponse, character: null } | { error: null, character: { id, user_id, image_url } }
+
+// プロフィールの所有権チェック（ProfileRow 型）
+export async function requireProfileOwnership(profileId, userId)
+// → { error: NextResponse, profile: null } | { error: null, profile: ProfileRow }
+
+// 投稿タイプの所有権チェック（PostTypeRow 型）
+export async function requirePostTypeOwnership(postTypeId, userId)
+// → { error: NextResponse, postType: null } | { error: null, postType: PostTypeRow }
 ```
 
 ### レガシーパターン（直接チェック）
