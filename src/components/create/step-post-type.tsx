@@ -2,13 +2,15 @@
 
 import Link from 'next/link'
 import { usePostTypes } from '@/hooks/usePostTypes'
+import type { Placeholder } from '@/types/post-type'
 
 interface StepPostTypeProps {
-  onSelect: (postTypeId: string, slug: string, name: string) => void
+  profileId?: string | null
+  onSelect: (postTypeId: string, slug: string, name: string, inputMode: 'fields' | 'memo', placeholders: Placeholder[]) => void
 }
 
-export function StepPostType({ onSelect }: StepPostTypeProps) {
-  const { activePostTypes, isLoading, error } = usePostTypes()
+export function StepPostType({ profileId, onSelect }: StepPostTypeProps) {
+  const { activePostTypes, isLoading, error } = usePostTypes(profileId)
 
   return (
     <div className="space-y-6">
@@ -43,7 +45,7 @@ export function StepPostType({ onSelect }: StepPostTypeProps) {
           {activePostTypes.map((type) => (
             <button
               key={type.id}
-              onClick={() => onSelect(type.id, type.slug, type.name)}
+              onClick={() => onSelect(type.id, type.slug, type.name, type.inputMode, type.placeholders)}
               className="p-6 bg-white/5 border border-white/10 rounded-xl text-left hover:bg-white/10 hover:border-white/20 transition-all group"
             >
               <div className="text-3xl mb-3">{type.icon}</div>

@@ -20,8 +20,8 @@ const navItems: NavItem[] = [
     label: '設定',
     icon: '⚙️',
     subItems: [
+      { href: '/settings/profiles', label: 'プロフィール', icon: '👥' },
       { href: '/settings/post-types', label: '投稿タイプ', icon: '📝' },
-      { href: '/settings/hashtags', label: 'ハッシュタグ', icon: '#️⃣' },
     ],
   },
 ]

@@ -64,6 +64,7 @@ export async function PATCH(
       'instagram_published',
       'instagram_media_id',
       'related_post_id',
+      'profile_id',
     ]
 
     const updateData: Record<string, unknown> = {}

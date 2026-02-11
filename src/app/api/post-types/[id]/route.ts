@@ -73,6 +73,10 @@ export async function PUT(
     if (body.maxLength !== undefined) updateData.max_length = body.maxLength
     if (body.isActive !== undefined) updateData.is_active = body.isActive
     if (body.sortOrder !== undefined) updateData.sort_order = body.sortOrder
+    if (body.userMemo !== undefined) updateData.user_memo = body.userMemo?.trim() || null
+    if (body.typePrompt !== undefined) updateData.type_prompt = body.typePrompt?.trim() || null
+    if (body.inputMode !== undefined) updateData.input_mode = body.inputMode === 'memo' ? 'memo' : 'fields'
+    if (body.profileId !== undefined) updateData.profile_id = body.profileId || null
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })

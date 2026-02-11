@@ -20,6 +20,15 @@ export interface PostTypeRef {
 }
 
 /**
+ * プロフィール参照データ（JOINデータ）
+ */
+export interface ProfileRef {
+  id: string
+  name: string
+  icon: string
+}
+
+/**
  * 投稿データ
  */
 export interface Post {
@@ -27,6 +36,8 @@ export interface Post {
   post_type: string
   post_type_id: string | null
   post_type_ref: PostTypeRef | null
+  profile_id: string | null
+  profile_ref: ProfileRef | null
   input_text: string
   source_url: string | null
   generated_caption: string

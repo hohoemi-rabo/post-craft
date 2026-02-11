@@ -4,7 +4,7 @@ import type { PostTypeRow } from '@/types/supabase'
 /**
  * DB Row (snake_case) → PostTypeDB (camelCase) 変換
  */
-export function toPostTypeDB(row: PostTypeRow): PostTypeDB {
+export function toPostTypeDB(row: PostTypeRow & { profile_ref?: { id: string; name: string; icon: string } | null }): PostTypeDB {
   return {
     id: row.id,
     userId: row.user_id,
@@ -18,6 +18,11 @@ export function toPostTypeDB(row: PostTypeRow): PostTypeDB {
     maxLength: row.max_length ?? 400,
     sortOrder: row.sort_order,
     isActive: row.is_active,
+    userMemo: row.user_memo ?? null,
+    typePrompt: row.type_prompt ?? null,
+    inputMode: (row.input_mode === 'memo' ? 'memo' : 'fields') as 'fields' | 'memo',
+    profileId: row.profile_id ?? null,
+    profileRef: row.profile_ref ?? null,
     createdAt: row.created_at ?? '',
     updatedAt: row.updated_at ?? '',
   }

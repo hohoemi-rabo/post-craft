@@ -171,9 +171,16 @@ export function PostTypeList({
                 {pt.description && (
                   <p className="text-sm text-slate-400 truncate">{pt.description}</p>
                 )}
-                <p className="text-xs text-slate-500 mt-1">
-                  {pt.minLength}〜{pt.maxLength}文字 | 変数 {pt.placeholders.length}個
-                </p>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-xs text-slate-500">
+                    {pt.minLength}〜{pt.maxLength}文字 | 変数 {pt.placeholders.length}個
+                  </p>
+                  {pt.profileRef && (
+                    <span className="text-xs px-2 py-0.5 bg-blue-600/15 text-blue-400 rounded-full truncate max-w-[150px]">
+                      {pt.profileRef.icon} {pt.profileRef.name}
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Actions */}

@@ -28,6 +28,11 @@ export interface PostTypeDB {
   maxLength: number
   sortOrder: number
   isActive: boolean
+  userMemo: string | null
+  typePrompt: string | null
+  inputMode: 'fields' | 'memo'
+  profileId: string | null
+  profileRef?: { id: string; name: string; icon: string } | null
   createdAt: string
   updatedAt: string
 }
@@ -45,4 +50,8 @@ export interface PostTypeFormData {
   minLength: number
   maxLength: number
   isActive: boolean
+  userMemo?: string
+  typePrompt?: string
+  inputMode: 'fields' | 'memo'
+  profileId?: string
 }

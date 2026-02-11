@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import type { PostTypeDB, PostTypeFormData } from '@/types/post-type'
 
-export function usePostTypes() {
+export function usePostTypes(profileId?: string | null) {
   const [postTypes, setPostTypes] = useState<PostTypeDB[]>([])
   const [count, setCount] = useState(0)
   const [maxCount, setMaxCount] = useState(10)
@@ -14,7 +14,10 @@ export function usePostTypes() {
     setIsLoading(true)
     setError(null)
     try {
-      const res = await fetch('/api/post-types')
+      const url = profileId
+        ? `/api/post-types?profileId=${profileId}`
+        : '/api/post-types'
+      const res = await fetch(url)
       if (!res.ok) {
         const data = await res.json()
         throw new Error(data.error || 'Failed to fetch post types')
@@ -30,7 +33,7 @@ export function usePostTypes() {
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [profileId])
 
   useEffect(() => {
     fetchPostTypes()

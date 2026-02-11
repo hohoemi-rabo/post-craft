@@ -87,6 +87,38 @@ export async function requireCharacterOwnership(characterId: string, userId: str
 }
 
 /**
+ * プロフィールの所有権チェック
+ * プロフィールが存在しないか、所有者でない場合はエラーレスポンスを返す
+ */
+export async function requireProfileOwnership(profileId: string, userId: string) {
+  const supabase = createServerClient()
+  const { data: profile, error: dbError } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', profileId)
+    .single()
+
+  if (dbError || !profile) {
+    return {
+      error: NextResponse.json({ error: 'Profile not found' }, { status: 404 }),
+      profile: null,
+    }
+  }
+
+  if (profile.user_id !== userId) {
+    return {
+      error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }),
+      profile: null,
+    }
+  }
+
+  return {
+    error: null,
+    profile,
+  }
+}
+
+/**
  * 投稿タイプの所有権チェック
  * 投稿タイプが存在しないか、所有者でない場合はエラーレスポンスを返す
  */

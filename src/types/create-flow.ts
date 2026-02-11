@@ -22,6 +22,10 @@ export interface CreateFormState {
   uploadedImageBase64: string
   uploadedImageMimeType: string
   imageReadAspectRatio: '1:1' | '4:5' | '16:9'
+  // 入力モード
+  inputMode: 'fields' | 'memo'
+  // プロフィール
+  profileId: string | null
   // 関連投稿参照
   relatedPostId: string | null
   relatedPostCaption: string | null
@@ -71,6 +75,10 @@ export const INITIAL_FORM_STATE: CreateFormState = {
   uploadedImageBase64: '',
   uploadedImageMimeType: '',
   imageReadAspectRatio: '1:1',
+  // 入力モード
+  inputMode: 'fields',
+  // プロフィール
+  profileId: null,
   // 関連投稿参照
   relatedPostId: null,
   relatedPostCaption: null,

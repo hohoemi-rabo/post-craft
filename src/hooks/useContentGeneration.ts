@@ -39,6 +39,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
           body: JSON.stringify({
             postType: formState.postType,
             postTypeId: formState.postTypeId,
+            profileId: formState.profileId || undefined,
             inputText: formState.inputText,
             relatedPostCaption: formState.relatedPostCaption || undefined,
             relatedPostHashtags: formState.relatedPostHashtags || undefined,
@@ -134,6 +135,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
             body: JSON.stringify({
               postType: formState.postType,
               postTypeId: formState.postTypeId,
+              profileId: formState.profileId || undefined,
               inputText: formState.inputText,
               relatedPostCaption: formState.relatedPostCaption || undefined,
               relatedPostHashtags: formState.relatedPostHashtags || undefined,
@@ -149,6 +151,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
             body: JSON.stringify({
               postType: formState.postType || formState.postTypeName || 'custom',
               postTypeId: formState.postTypeId,
+              profileId: formState.profileId || null,
               inputText: formState.inputText,
               sourceUrl: formState.sourceUrl || null,
               generatedCaption: generatedCaption,
@@ -239,6 +242,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
           body: JSON.stringify({
             postType: formState.postType,
             postTypeId: formState.postTypeId,
+            profileId: formState.profileId || undefined,
             inputText: formState.inputText,
             relatedPostCaption: formState.relatedPostCaption || undefined,
             relatedPostHashtags: formState.relatedPostHashtags || undefined,
@@ -317,6 +321,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
             body: JSON.stringify({
               postType: formState.postType || formState.postTypeName || 'custom',
               postTypeId: formState.postTypeId,
+              profileId: formState.profileId || null,
               inputText: formState.inputText,
               sourceUrl: formState.sourceUrl || null,
               generatedCaption: captionData.caption,

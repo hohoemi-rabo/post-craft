@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import {
+  StepProfileSelect,
   StepPostType,
   StepContentInput,
   StepImageSettings,
@@ -12,14 +13,26 @@ import {
 } from '@/components/create'
 import { StepImageReadInput } from '@/components/create/step-image-read-input'
 import { isBuiltinPostType } from '@/types/post'
+import type { Placeholder } from '@/types/post-type'
+import type { ProfileDB } from '@/types/profile'
 import { type ImageStyle, type AspectRatio, type BackgroundType } from '@/lib/image-styles'
 import { type CreateFormState, INITIAL_FORM_STATE } from '@/types/create-flow'
 import { useContentGeneration } from '@/hooks/useContentGeneration'
+import { useProfiles } from '@/hooks/useProfiles'
 import type { RelatedPostData } from '@/components/create/related-post-selector'
 
 export default function CreatePage() {
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(0) // 0 = profile select (or auto-skip)
   const [formState, setFormState] = useState<CreateFormState>(INITIAL_FORM_STATE)
+  const { hasMultipleProfiles, isLoading: isLoadingProfiles, defaultProfile } = useProfiles()
+
+  // Auto-select profile and skip to step 1 when only one profile
+  useEffect(() => {
+    if (!isLoadingProfiles && !hasMultipleProfiles && defaultProfile && step === 0) {
+      setFormState((prev) => ({ ...prev, profileId: defaultProfile.id }))
+      setStep(1)
+    }
+  }, [isLoadingProfiles, hasMultipleProfiles, defaultProfile, step])
 
   const {
     generatedCaption,
@@ -37,8 +50,20 @@ export default function CreatePage() {
     setGeneratedCaption,
   } = useContentGeneration({ onStepChange: setStep })
 
-  // Calculate total steps based on postType and skipImage
-  const totalSteps = formState.postType === 'image_read' ? 4 : formState.skipImage ? 5 : 6
+  // Calculate total steps based on postType, skipImage, and profile count
+  const profileStepOffset = hasMultipleProfiles ? 1 : 0
+  const baseSteps = formState.postType === 'image_read' ? 4 : formState.skipImage ? 5 : 6
+  const totalSteps = baseSteps + profileStepOffset
+
+  // Check for profileId in URL params (from dashboard)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const urlProfileId = params.get('profileId')
+    if (urlProfileId) {
+      setFormState((prev) => ({ ...prev, profileId: urlProfileId }))
+      setStep(1)
+    }
+  }, [])
 
   // Check for reuse data from history page
   useEffect(() => {
@@ -59,15 +84,26 @@ export default function CreatePage() {
     }
   }, [])
 
+  // Track placeholders for current post type (used in fields mode)
+  const [currentPlaceholders, setCurrentPlaceholders] = useState<Placeholder[]>([])
+
+  // Step 0: Select profile (only when multiple profiles)
+  const handleSelectProfile = useCallback((profile: ProfileDB) => {
+    setFormState((prev) => ({ ...prev, profileId: profile.id }))
+    setStep(1)
+  }, [])
+
   // Step 1: Select post type
-  const handleSelectPostType = (postTypeId: string, slug: string, name: string) => {
+  const handleSelectPostType = (postTypeId: string, slug: string, name: string, inputMode: 'fields' | 'memo' = 'fields', placeholders: Placeholder[] = []) => {
     const builtinType = isBuiltinPostType(slug) ? slug : null
     setFormState((prev) => ({
       ...prev,
       postType: builtinType,
       postTypeId,
       postTypeName: name,
+      inputMode,
     }))
+    setCurrentPlaceholders(placeholders)
     setStep(2)
   }
 
@@ -133,14 +169,16 @@ export default function CreatePage() {
 
   // Create new post
   const handleCreateNew = () => {
-    setStep(1)
+    setStep(hasMultipleProfiles ? 0 : 1)
     setFormState(INITIAL_FORM_STATE)
     resetGeneration()
   }
 
   // Go back
   const handleBack = () => {
-    if (step > 1) {
+    if (step === 1 && hasMultipleProfiles) {
+      setStep(0)
+    } else if (step > 1) {
       setStep(step - 1)
     }
   }
@@ -173,11 +211,23 @@ export default function CreatePage() {
 
   // Determine which step to render
   const renderStep = () => {
+    // Step 0: Profile selection (only for multiple profiles)
+    if (step === 0) {
+      if (isLoadingProfiles) {
+        return (
+          <div className="flex justify-center py-12">
+            <span className="animate-spin inline-block w-8 h-8 border-2 border-white/30 border-t-white rounded-full" />
+          </div>
+        )
+      }
+      return <StepProfileSelect onSelect={handleSelectProfile} />
+    }
+
     // image_read タイプ専用フロー: 1->2(画像+メモ)->3(生成)->4(結果)
     if (formState.postType === 'image_read') {
       switch (step) {
         case 1:
-          return <StepPostType onSelect={handleSelectPostType} />
+          return <StepPostType profileId={formState.profileId} onSelect={handleSelectPostType} />
         case 2:
           return (
             <StepImageReadInput
@@ -214,7 +264,7 @@ export default function CreatePage() {
       // skipImage flow: 1->2->3->4(generating)->5(result)
       switch (step) {
         case 1:
-          return <StepPostType onSelect={handleSelectPostType} />
+          return <StepPostType profileId={formState.profileId} onSelect={handleSelectPostType} />
         case 2:
           return (formState.postType || formState.postTypeId) ? (
             <StepContentInput
@@ -223,6 +273,8 @@ export default function CreatePage() {
               initialText={formState.inputText}
               initialUrl={formState.sourceUrl}
               initialRelatedPostId={formState.relatedPostId}
+              inputMode={formState.inputMode}
+              placeholders={currentPlaceholders}
               onSubmit={handleContentSubmit}
               onBack={handleBack}
             />
@@ -270,7 +322,7 @@ export default function CreatePage() {
       // Normal flow: 1->2->3->4(catchphrase)->5(generating)->6(result)
       switch (step) {
         case 1:
-          return <StepPostType onSelect={handleSelectPostType} />
+          return <StepPostType profileId={formState.profileId} onSelect={handleSelectPostType} />
         case 2:
           return (formState.postType || formState.postTypeId) ? (
             <StepContentInput
@@ -279,6 +331,8 @@ export default function CreatePage() {
               initialText={formState.inputText}
               initialUrl={formState.sourceUrl}
               initialRelatedPostId={formState.relatedPostId}
+              inputMode={formState.inputMode}
+              placeholders={currentPlaceholders}
               onSubmit={handleContentSubmit}
               onBack={handleBack}
             />
@@ -348,7 +402,9 @@ export default function CreatePage() {
       </div>
 
       <div className="max-w-2xl mx-auto">
-        <ProgressIndicator currentStep={step} totalSteps={totalSteps} />
+        {step > 0 && (
+          <ProgressIndicator currentStep={step} totalSteps={baseSteps} postType={formState.postType} />
+        )}
 
         <div className="p-6 bg-white/5 border border-white/10 rounded-2xl">
           {renderStep()}

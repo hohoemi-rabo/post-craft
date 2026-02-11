@@ -15,6 +15,8 @@ export default async function DashboardPage() {
     created_at: string | null
   }> = []
 
+  let profiles: Array<{ id: string; name: string; icon: string; is_default: boolean }> = []
+
   if (session?.user?.id) {
     // Get total posts count
     const { count } = await supabase
@@ -33,6 +35,15 @@ export default async function DashboardPage() {
       .limit(3)
 
     recentPosts = data || []
+
+    // Get profiles
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('id, name, icon, is_default')
+      .eq('user_id', session.user.id)
+      .order('sort_order', { ascending: true })
+
+    profiles = profileData || []
   }
 
   const postTypeLabels: Record<string, string> = {
@@ -55,6 +66,32 @@ export default async function DashboardPage() {
           Instagram投稿素材を簡単に作成できます
         </p>
       </div>
+
+      {/* Profile Quick Select (only when multiple profiles) */}
+      {profiles.length > 1 && (
+        <div>
+          <h2 className="text-lg font-bold text-white mb-3">プロフィールを選んで投稿作成</h2>
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {profiles.map((profile) => (
+              <Link
+                key={profile.id}
+                href={`/create?profileId=${profile.id}`}
+                className="group p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/20 transition-all"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{profile.icon}</span>
+                  <div>
+                    <h3 className="font-bold text-white group-hover:text-blue-400 transition-colors text-sm">
+                      {profile.name}
+                    </h3>
+                    <p className="text-xs text-slate-400">投稿を作成 →</p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

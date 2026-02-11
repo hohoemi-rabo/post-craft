@@ -21,6 +21,18 @@ export default function SettingsPage() {
       {/* Settings Navigation Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Link
+          href="/settings/profiles"
+          className="p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors group"
+        >
+          <div className="flex items-center gap-4">
+            <span className="text-3xl">👥</span>
+            <div>
+              <h2 className="text-lg font-bold text-white group-hover:text-blue-400 transition-colors">プロフィール管理</h2>
+              <p className="text-sm text-slate-400">ターゲット別のプロンプト・ハッシュタグ・投稿タイプを管理</p>
+            </div>
+          </div>
+        </Link>
+        <Link
           href="/settings/post-types"
           className="p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors group"
         >
@@ -29,18 +41,6 @@ export default function SettingsPage() {
             <div>
               <h2 className="text-lg font-bold text-white group-hover:text-blue-400 transition-colors">投稿タイプ管理</h2>
               <p className="text-sm text-slate-400">投稿テンプレートの追加・編集・並び替え</p>
-            </div>
-          </div>
-        </Link>
-        <Link
-          href="/settings/hashtags"
-          className="p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors group"
-        >
-          <div className="flex items-center gap-4">
-            <span className="text-3xl">#️⃣</span>
-            <div>
-              <h2 className="text-lg font-bold text-white group-hover:text-blue-400 transition-colors">ハッシュタグ設定</h2>
-              <p className="text-sm text-slate-400">必須ハッシュタグの管理</p>
             </div>
           </div>
         </Link>
@@ -102,7 +102,7 @@ export default function SettingsPage() {
         <dl className="space-y-2 text-sm">
           <div className="flex justify-between">
             <dt className="text-slate-400">バージョン</dt>
-            <dd className="text-white">2.0.0 (Phase 2)</dd>
+            <dd className="text-white">4.0.0 (Phase 4)</dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-slate-400">フレームワーク</dt>

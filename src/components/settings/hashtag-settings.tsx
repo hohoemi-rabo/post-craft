@@ -7,9 +7,59 @@ import { useToast } from '@/components/ui/toast'
 const MAX_REQUIRED = 4
 const TOTAL = 10
 
-export function HashtagSettings() {
-  const { requiredHashtags, isLoading, error, updateHashtags } = useUserSettings()
+interface HashtagSettingsProps {
+  profileId?: string
+}
+
+export function HashtagSettings({ profileId }: HashtagSettingsProps) {
+  const userSettings = useUserSettings()
   const { showToast } = useToast()
+
+  // Profile-based state
+  const [profileTags, setProfileTags] = useState<string[]>([])
+  const [profileLoading, setProfileLoading] = useState(!!profileId)
+  const [profileError, setProfileError] = useState<string | null>(null)
+
+  // Fetch profile hashtags if profileId provided
+  useEffect(() => {
+    if (!profileId) return
+    const fetchProfileHashtags = async () => {
+      setProfileLoading(true)
+      try {
+        const res = await fetch(`/api/profiles/${profileId}/hashtags`)
+        if (!res.ok) throw new Error('Failed to fetch')
+        const data = await res.json()
+        setProfileTags(data.requiredHashtags || [])
+      } catch {
+        setProfileError('ハッシュタグの読み込みに失敗しました')
+      } finally {
+        setProfileLoading(false)
+      }
+    }
+    fetchProfileHashtags()
+  }, [profileId])
+
+  const requiredHashtags = profileId ? profileTags : userSettings.requiredHashtags
+  const isLoading = profileId ? profileLoading : userSettings.isLoading
+  const error = profileId ? profileError : userSettings.error
+
+  const updateHashtags = async (tags: string[]) => {
+    if (profileId) {
+      const res = await fetch(`/api/profiles/${profileId}/hashtags`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requiredHashtags: tags }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Failed to update')
+      }
+      const data = await res.json()
+      setProfileTags(data.requiredHashtags)
+    } else {
+      await userSettings.updateHashtags(tags)
+    }
+  }
 
   const [localTags, setLocalTags] = useState<string[]>([])
   const [savedTags, setSavedTags] = useState<string[]>([])

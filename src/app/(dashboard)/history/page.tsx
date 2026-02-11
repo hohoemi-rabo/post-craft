@@ -186,6 +186,11 @@ export default function HistoryPage() {
                             {IMAGE_STYLES[firstImage.style as keyof typeof IMAGE_STYLES].name}
                           </span>
                         )}
+                        {post.profile_ref && (
+                          <span className="px-2 py-0.5 bg-blue-600/15 text-blue-400 text-xs rounded-full">
+                            {post.profile_ref.icon} {post.profile_ref.name}
+                          </span>
+                        )}
                         <span className="text-xs text-slate-500">
                           {formatDate(post.created_at)}
                         </span>

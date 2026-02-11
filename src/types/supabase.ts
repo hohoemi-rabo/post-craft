@@ -50,6 +50,51 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          icon: string
+          description: string | null
+          system_prompt_memo: string | null
+          system_prompt: string | null
+          required_hashtags: string[]
+          is_default: boolean
+          sort_order: number
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          name: string
+          icon?: string
+          description?: string | null
+          system_prompt_memo?: string | null
+          system_prompt?: string | null
+          required_hashtags?: string[]
+          is_default?: boolean
+          sort_order?: number
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          icon?: string
+          description?: string | null
+          system_prompt_memo?: string | null
+          system_prompt?: string | null
+          required_hashtags?: string[]
+          is_default?: boolean
+          sort_order?: number
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       post_types: {
         Row: {
           id: string
@@ -64,6 +109,10 @@ export type Database = {
           max_length: number | null
           sort_order: number
           is_active: boolean
+          user_memo: string | null
+          type_prompt: string | null
+          input_mode: string
+          profile_id: string | null
           created_at: string | null
           updated_at: string | null
         }
@@ -80,6 +129,10 @@ export type Database = {
           max_length?: number | null
           sort_order?: number
           is_active?: boolean
+          user_memo?: string | null
+          type_prompt?: string | null
+          input_mode?: string
+          profile_id?: string | null
           created_at?: string | null
           updated_at?: string | null
         }
@@ -96,10 +149,22 @@ export type Database = {
           max_length?: number | null
           sort_order?: number
           is_active?: boolean
+          user_memo?: string | null
+          type_prompt?: string | null
+          input_mode?: string
+          profile_id?: string | null
           created_at?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "post_types_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_settings: {
         Row: {
@@ -107,6 +172,8 @@ export type Database = {
           user_id: string
           required_hashtags: string[]
           settings: Json
+          system_prompt_memo: string | null
+          system_prompt: string | null
           created_at: string | null
           updated_at: string | null
         }
@@ -115,6 +182,8 @@ export type Database = {
           user_id: string
           required_hashtags?: string[]
           settings?: Json
+          system_prompt_memo?: string | null
+          system_prompt?: string | null
           created_at?: string | null
           updated_at?: string | null
         }
@@ -123,6 +192,8 @@ export type Database = {
           user_id?: string
           required_hashtags?: string[]
           settings?: Json
+          system_prompt_memo?: string | null
+          system_prompt?: string | null
           created_at?: string | null
           updated_at?: string | null
         }
@@ -188,6 +259,7 @@ export type Database = {
           instagram_published_at: string | null
           post_type: string
           post_type_id: string | null
+          profile_id: string | null
           source_url: string | null
           updated_at: string | null
           user_id: string | null
@@ -203,6 +275,7 @@ export type Database = {
           instagram_published_at?: string | null
           post_type: string
           post_type_id?: string | null
+          profile_id?: string | null
           source_url?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -218,6 +291,7 @@ export type Database = {
           instagram_published_at?: string | null
           post_type?: string
           post_type_id?: string | null
+          profile_id?: string | null
           source_url?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -228,6 +302,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -288,5 +369,6 @@ export type User = Tables<'users'>
 export type Character = Tables<'characters'>
 export type Post = Tables<'posts'>
 export type PostImage = Tables<'post_images'>
+export type ProfileRow = Tables<'profiles'>
 export type PostTypeRow = Tables<'post_types'>
 export type UserSettingsRow = Tables<'user_settings'>

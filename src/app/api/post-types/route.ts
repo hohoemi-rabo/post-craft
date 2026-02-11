@@ -3,19 +3,28 @@ import { createServerClient } from '@/lib/supabase'
 import { requireAuth } from '@/lib/api-utils'
 import { toPostTypeDB, POST_TYPE_MAX_COUNT } from '@/lib/post-type-utils'
 
-// GET /api/post-types - List post types
-export async function GET() {
+// GET /api/post-types - List post types (optional profileId filter)
+export async function GET(request: Request) {
   const { error, userId } = await requireAuth()
   if (error) return error
+
+  const { searchParams } = new URL(request.url)
+  const profileId = searchParams.get('profileId')
 
   const supabase = createServerClient()
 
   try {
-    const { data, error: dbError } = await supabase
+    let query = supabase
       .from('post_types')
-      .select('*')
+      .select('*, profile_ref:profiles(id, name, icon)')
       .eq('user_id', userId)
       .order('sort_order', { ascending: true })
+
+    if (profileId) {
+      query = query.eq('profile_id', profileId)
+    }
+
+    const { data, error: dbError } = await query
 
     if (dbError) {
       console.error('Error fetching post types:', dbError)
@@ -60,6 +69,10 @@ export async function POST(request: Request) {
       minLength,
       maxLength,
       isActive,
+      userMemo,
+      typePrompt,
+      inputMode,
+      profileId,
     } = body
 
     // Validation
@@ -132,6 +145,10 @@ export async function POST(request: Request) {
         max_length: maxLength ?? 400,
         sort_order: nextSortOrder,
         is_active: isActive ?? true,
+        user_memo: userMemo?.trim() || null,
+        type_prompt: typePrompt?.trim() || null,
+        input_mode: inputMode === 'memo' ? 'memo' : 'fields',
+        profile_id: profileId || null,
       })
       .select()
       .single()

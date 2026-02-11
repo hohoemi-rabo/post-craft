@@ -112,6 +112,7 @@ export function usePostEdit(
         body: JSON.stringify({
           postType: editedPostType,
           postTypeId: editedPostTypeId,
+          profileId: initialPost?.profile_id || null,
           inputText: editedInputText,
         }),
       })
@@ -132,7 +133,7 @@ export function usePostEdit(
     } finally {
       setIsRegeneratingCaption(false)
     }
-  }, [editedPostType, editedPostTypeId, editedInputText, showToast])
+  }, [editedPostType, editedPostTypeId, editedInputText, initialPost?.profile_id, showToast])
 
   /**
    * 投稿タイプを変更
@@ -154,6 +155,7 @@ export function usePostEdit(
             body: JSON.stringify({
               postType: newSlug,
               postTypeId: newPostTypeId,
+              profileId: initialPost?.profile_id || null,
               inputText: editedInputText,
             }),
           })
@@ -176,7 +178,7 @@ export function usePostEdit(
         }
       }
     },
-    [editedInputText, showToast]
+    [editedInputText, initialPost?.profile_id, showToast]
   )
 
   /**

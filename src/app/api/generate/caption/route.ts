@@ -12,6 +12,7 @@ const TOTAL_HASHTAG_COUNT = 10
 interface GenerateCaptionRequest {
   postType?: PostType
   postTypeId?: string
+  profileId?: string
   inputText: string
   sourceUrl?: string
   imageBase64?: string
@@ -36,10 +37,11 @@ interface ResolvedPostType {
   typePrompt: string
   hashtagTrend: string[]
   isImageRead: boolean
+  isMemoMode: boolean
 }
 
-// System prompt for caption generation
-const SYSTEM_PROMPT = `あなたはパソコン教室「ほほ笑みラボ」の講師として、生徒さんに役立つInstagram投稿を作成します。入力メモが短文であっても、あなたの持つIT知識や一般的な情報を駆使して、読者がその場で実践できるレベルまで具体的に内容を膨らませてください。
+// Default system prompt (fallback when user_settings.system_prompt is NULL)
+const DEFAULT_SYSTEM_PROMPT = `あなたはパソコン教室「ほほ笑みラボ」の講師として、生徒さんに役立つInstagram投稿を作成します。入力メモが短文であっても、あなたの持つIT知識や一般的な情報を駆使して、読者がその場で実践できるレベルまで具体的に内容を膨らませてください。
 
 【最重要ルール】
 - 入力メモの主題・トピックを正確に反映すること
@@ -155,7 +157,7 @@ export async function POST(request: Request) {
 
   try {
     const body: GenerateCaptionRequest = await request.json()
-    const { postType, postTypeId, inputText, sourceUrl, imageBase64, imageMimeType, relatedPostCaption, relatedPostHashtags } = body
+    const { postType, postTypeId, profileId, inputText, sourceUrl, imageBase64, imageMimeType, relatedPostCaption, relatedPostHashtags } = body
 
     // Resolve post type configuration
     let resolved: ResolvedPostType
@@ -183,15 +185,18 @@ export async function POST(request: Request) {
         max: dbType.max_length ?? 400,
       }
 
+      const isMemoMode = dbType.input_mode === 'memo'
+
       resolved = {
         name: dbType.name,
         template: dbType.template_structure,
-        requiredFields: placeholders.filter((p) => p.required).map((p) => p.name),
-        optionalFields: placeholders.filter((p) => !p.required).map((p) => p.name),
+        requiredFields: isMemoMode ? [] : placeholders.filter((p) => p.required).map((p) => p.name),
+        optionalFields: isMemoMode ? [] : placeholders.filter((p) => !p.required).map((p) => p.name),
         charRange,
-        typePrompt: buildCustomTypePrompt(dbType.name, placeholders, charRange),
+        typePrompt: dbType.type_prompt || buildCustomTypePrompt(dbType.name, placeholders, charRange),
         hashtagTrend: [],
         isImageRead: false,
+        isMemoMode,
       }
     } else if (postType && POST_TYPES[postType]) {
       // Legacy method: use hardcoded constants
@@ -205,6 +210,7 @@ export async function POST(request: Request) {
         typePrompt: TYPE_PROMPTS[postType],
         hashtagTrend: typeConfig.hashtagTrend,
         isImageRead: postType === 'image_read',
+        isMemoMode: false,
       }
     } else {
       return NextResponse.json(
@@ -248,8 +254,84 @@ export async function POST(request: Request) {
       imageAnalysis = analysisResult.response.text()
     }
 
-    // Step 1: Generate template data
-    const templateDataPrompt = `${SYSTEM_PROMPT}
+    // Fetch system_prompt + required_hashtags from profile or user_settings
+    const settingsSupabase = createServerClient()
+    let systemPrompt = DEFAULT_SYSTEM_PROMPT
+    let requiredHashtagsRaw: string[] = []
+
+    if (profileId) {
+      // Profile-based: fetch from profiles table
+      const { data: profileData } = await settingsSupabase
+        .from('profiles')
+        .select('system_prompt, required_hashtags')
+        .eq('id', profileId)
+        .eq('user_id', userId)
+        .single()
+
+      if (profileData) {
+        systemPrompt = profileData.system_prompt || DEFAULT_SYSTEM_PROMPT
+        requiredHashtagsRaw = profileData.required_hashtags || []
+      }
+    } else {
+      // Legacy fallback: fetch from user_settings
+      const { data: settingsData } = await settingsSupabase
+        .from('user_settings')
+        .select('system_prompt, required_hashtags')
+        .eq('user_id', userId)
+        .single()
+
+      if (settingsData) {
+        systemPrompt = settingsData.system_prompt || DEFAULT_SYSTEM_PROMPT
+        requiredHashtagsRaw = settingsData.required_hashtags || []
+      }
+    }
+
+    // Step 1: Generate caption
+    let caption: string
+    let templateData: TemplateData = {}
+
+    if (resolved.isMemoMode) {
+      // Memo mode: generate caption directly from template structure + input text
+      const memoPrompt = `${systemPrompt}
+
+${resolved.typePrompt}
+
+以下の入力メモから、テンプレート構造に沿ったInstagram投稿文を生成してください。
+
+【テンプレート構造】
+${resolved.template}
+
+【文字数目安】
+${resolved.charRange.min}〜${resolved.charRange.max}文字
+
+${relatedPostCaption ? `【関連する前回の投稿】
+${relatedPostCaption}
+
+【関連投稿の参照ルール】
+- 投稿の冒頭に、前回の投稿内容を1文で軽く触れる導入文を追加してください
+- 例: 「前回、○○についてお伝えしましたが、今回は...」
+- 導入文は1文のみで簡潔にまとめること
+- 「Part 2」「第2弾」「続き」「シリーズ」のような表現は使わないこと
+- あくまで今回の投稿がメインであり、前回の投稿はきっかけとして触れるだけ
+
+` : ''}【入力メモ】
+${inputText || '（メモなし - 画像の内容に基づいて作成）'}
+${sourceUrl ? `\n【参照URL】\n${sourceUrl}` : ''}
+${imageAnalysis ? `\n【画像から読み取った内容】\n${imageAnalysis}` : ''}
+
+【重要な注意】
+- テンプレート構造に沿った形式で出力してください
+- 入力メモの主題を正確に反映してください
+- 不足情報はAIが補完してください
+
+【出力形式】
+投稿文のテキストのみを出力してください。余計な説明は不要です。
+ハッシュタグ（#タグ）は投稿文に含めないでください。ハッシュタグは別途生成します。`
+
+      caption = (await generateWithRetry(memoPrompt)).trim()
+    } else {
+      // Fields mode: generate template data as JSON, then apply template
+      const templateDataPrompt = `${systemPrompt}
 
 ${resolved.typePrompt}
 
@@ -288,29 +370,22 @@ ${imageAnalysis ? `\n【画像から読み取った内容】\n${imageAnalysis}` 
 【出力形式】
 JSON形式で各変数の値を出力してください。
 例: {"question": "○○", "step1": "○○", ...}
-余計な説明は不要です。JSONのみ出力してください。`
+余計な説明は不要です。JSONのみ出力してください。
+ハッシュタグ（#タグ）は変数の値に含めないでください。ハッシュタグは別途生成します。`
 
-    const templateDataText = await generateWithRetry(templateDataPrompt)
-    const templateData = parseJsonResponse<TemplateData>(templateDataText)
+      const templateDataText = await generateWithRetry(templateDataPrompt)
+      templateData = parseJsonResponse<TemplateData>(templateDataText)
 
-    // Step 2: Apply template to generate caption
-    let caption: string
-    if (postTypeId) {
-      caption = applyCustomTemplate(resolved.template, templateData)
-    } else {
-      caption = applyTemplate(postType!, templateData)
+      if (postTypeId) {
+        caption = applyCustomTemplate(resolved.template, templateData)
+      } else {
+        caption = applyTemplate(postType!, templateData)
+      }
     }
 
-    // Step 3: Generate hashtags
-    // Fetch required hashtags from user settings
-    const supabase = createServerClient()
-    const { data: settingsData } = await supabase
-      .from('user_settings')
-      .select('required_hashtags')
-      .eq('user_id', userId)
-      .single()
+    // Step 2: Generate hashtags
 
-    const mandatoryHashtags: string[] = (settingsData?.required_hashtags || []).map(
+    const mandatoryHashtags: string[] = requiredHashtagsRaw.map(
       (tag: string) => tag.replace(/^#/, '')
     )
     const generatedCount = TOTAL_HASHTAG_COUNT - mandatoryHashtags.length
