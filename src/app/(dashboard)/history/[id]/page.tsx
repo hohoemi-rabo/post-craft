@@ -4,13 +4,13 @@ import { useEffect, useState, use } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { type AspectRatio } from '@/lib/image-styles'
+import { type AspectRatio, getAspectClass } from '@/lib/image-styles'
 import { InstagramPublishModal } from '@/components/publish/instagram-publish-modal'
 import { ImageUploader } from '@/components/ui/image-uploader'
 import { PostTypeChangeModal } from '@/components/history/post-edit-modal'
 import { ImageRegenerateModal } from '@/components/history/image-regenerate-modal'
 import { AspectRatioCropModal } from '@/components/history/aspect-ratio-crop-modal'
-import { type Post, formatDate, formatHashtag, getAspectClass } from '@/types/history-detail'
+import { type Post, formatDate, formatHashtag } from '@/types/history-detail'
 import { usePostEdit } from '@/hooks/usePostEdit'
 import { useCopyActions } from '@/hooks/useCopyActions'
 import { usePostActions } from '@/hooks/usePostActions'
@@ -86,7 +86,7 @@ export default function PostDetailPage({
     : (post.post_type_ref?.name || post.post_type || '不明なタイプ')
   const firstImage = post.post_images?.[0]
   const aspectRatio = firstImage?.aspect_ratio || '1:1'
-  const aspectClass = getAspectClass(aspectRatio)
+  const aspectClass = getAspectClass(aspectRatio as AspectRatio)
 
   return (
     <div className="space-y-6">

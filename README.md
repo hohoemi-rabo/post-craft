@@ -43,9 +43,6 @@ npm install
 `.env.local`ファイルを作成し、以下の環境変数を設定：
 
 ```bash
-# OpenAI API
-OPENAI_API_KEY=your_api_key_here
-
 # Application URL
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 

@@ -78,21 +78,20 @@ export function formatDate(dateString: string): string {
 }
 
 /**
+ * 日付を短くフォーマット（月日のみ）
+ */
+export function formatDateShort(dateString: string): string {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('ja-JP', {
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
+/**
  * ハッシュタグをフォーマット
  */
 export function formatHashtag(tag: string): string {
   return tag.startsWith('#') ? tag : `#${tag}`
 }
 
-/**
- * アスペクト比からCSSクラスを取得
- */
-export function getAspectClass(ratio: string): string {
-  switch (ratio) {
-    case '1:1': return 'aspect-square'
-    case '4:5': return 'aspect-[4/5]'
-    case '9:16': return 'aspect-[9/16]'
-    case '16:9': return 'aspect-[16/9]'
-    default: return 'aspect-square'
-  }
-}

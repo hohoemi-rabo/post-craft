@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from 'react'
 import Image from 'next/image'
 import type { InstagramAccount } from '@/types/instagram'
+import { IMAGE_UPLOAD } from '@/lib/constants'
 
 interface PublishFormProps {
   account: InstagramAccount
@@ -22,12 +23,11 @@ export function PublishForm({
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileSelect = useCallback((file: File) => {
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
-    if (!allowedTypes.includes(file.type)) {
+    if (!IMAGE_UPLOAD.ALLOWED_TYPES.includes(file.type)) {
       alert('JPEG、PNG、WebP形式の画像を選択してください')
       return
     }
-    if (file.size > 8 * 1024 * 1024) {
+    if (file.size > IMAGE_UPLOAD.MAX_SIZE) {
       alert('画像サイズは8MB以下にしてください')
       return
     }

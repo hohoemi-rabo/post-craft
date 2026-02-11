@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { createServerClient } from '@/lib/supabase'
+import type { Database } from '@/types/supabase'
+
+type TableName = keyof Database['public']['Tables']
+type PostTypeRow = Database['public']['Tables']['post_types']['Row']
+type ProfileRow = Database['public']['Tables']['profiles']['Row']
 
 /**
  * API認証チェック
@@ -23,35 +28,50 @@ export async function requireAuth() {
 }
 
 /**
+ * リソースの所有権チェック（内部ヘルパー）
+ * テーブルからリソースを取得し、user_id を検証する
+ */
+async function checkOwnership<T extends Record<string, unknown>>(
+  table: TableName,
+  resourceId: string,
+  userId: string,
+  select: string,
+  resourceName: string
+): Promise<{ error: NextResponse; data: null } | { error: null; data: T }> {
+  const supabase = createServerClient()
+  const { data, error: dbError } = await supabase
+    .from(table)
+    .select(select)
+    .eq('id', resourceId)
+    .single()
+
+  if (dbError || !data) {
+    return {
+      error: NextResponse.json({ error: `${resourceName} not found` }, { status: 404 }),
+      data: null,
+    }
+  }
+
+  if ((data as unknown as Record<string, unknown>).user_id !== userId) {
+    return {
+      error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }),
+      data: null,
+    }
+  }
+
+  return { error: null, data: data as unknown as T }
+}
+
+/**
  * 投稿の所有権チェック
  * 投稿が存在しないか、所有者でない場合はエラーレスポンスを返す
  */
 export async function requirePostOwnership(postId: string, userId: string) {
-  const supabase = createServerClient()
-  const { data: post, error: dbError } = await supabase
-    .from('posts')
-    .select('id, user_id')
-    .eq('id', postId)
-    .single()
-
-  if (dbError || !post) {
-    return {
-      error: NextResponse.json({ error: 'Post not found' }, { status: 404 }),
-      post: null,
-    }
-  }
-
-  if (post.user_id !== userId) {
-    return {
-      error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }),
-      post: null,
-    }
-  }
-
-  return {
-    error: null,
-    post,
-  }
+  const result = await checkOwnership<{ id: string; user_id: string }>(
+    'posts', postId, userId, 'id, user_id', 'Post'
+  )
+  if (result.error) return { error: result.error, post: null }
+  return { error: null, post: result.data }
 }
 
 /**
@@ -59,31 +79,11 @@ export async function requirePostOwnership(postId: string, userId: string) {
  * キャラクターが存在しないか、所有者でない場合はエラーレスポンスを返す
  */
 export async function requireCharacterOwnership(characterId: string, userId: string) {
-  const supabase = createServerClient()
-  const { data: character, error: dbError } = await supabase
-    .from('characters')
-    .select('id, user_id, image_url')
-    .eq('id', characterId)
-    .single()
-
-  if (dbError || !character) {
-    return {
-      error: NextResponse.json({ error: 'Character not found' }, { status: 404 }),
-      character: null,
-    }
-  }
-
-  if (character.user_id !== userId) {
-    return {
-      error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }),
-      character: null,
-    }
-  }
-
-  return {
-    error: null,
-    character,
-  }
+  const result = await checkOwnership<{ id: string; user_id: string; image_url: string | null }>(
+    'characters', characterId, userId, 'id, user_id, image_url', 'Character'
+  )
+  if (result.error) return { error: result.error, character: null }
+  return { error: null, character: result.data }
 }
 
 /**
@@ -91,31 +91,11 @@ export async function requireCharacterOwnership(characterId: string, userId: str
  * プロフィールが存在しないか、所有者でない場合はエラーレスポンスを返す
  */
 export async function requireProfileOwnership(profileId: string, userId: string) {
-  const supabase = createServerClient()
-  const { data: profile, error: dbError } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', profileId)
-    .single()
-
-  if (dbError || !profile) {
-    return {
-      error: NextResponse.json({ error: 'Profile not found' }, { status: 404 }),
-      profile: null,
-    }
-  }
-
-  if (profile.user_id !== userId) {
-    return {
-      error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }),
-      profile: null,
-    }
-  }
-
-  return {
-    error: null,
-    profile,
-  }
+  const result = await checkOwnership<ProfileRow>(
+    'profiles', profileId, userId, '*', 'Profile'
+  )
+  if (result.error) return { error: result.error, profile: null }
+  return { error: null, profile: result.data }
 }
 
 /**
@@ -123,29 +103,9 @@ export async function requireProfileOwnership(profileId: string, userId: string)
  * 投稿タイプが存在しないか、所有者でない場合はエラーレスポンスを返す
  */
 export async function requirePostTypeOwnership(postTypeId: string, userId: string) {
-  const supabase = createServerClient()
-  const { data: postType, error: dbError } = await supabase
-    .from('post_types')
-    .select('*')
-    .eq('id', postTypeId)
-    .single()
-
-  if (dbError || !postType) {
-    return {
-      error: NextResponse.json({ error: 'Post type not found' }, { status: 404 }),
-      postType: null,
-    }
-  }
-
-  if (postType.user_id !== userId) {
-    return {
-      error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }),
-      postType: null,
-    }
-  }
-
-  return {
-    error: null,
-    postType,
-  }
+  const result = await checkOwnership<PostTypeRow>(
+    'post_types', postTypeId, userId, '*', 'Post type'
+  )
+  if (result.error) return { error: result.error, postType: null }
+  return { error: null, postType: result.data }
 }

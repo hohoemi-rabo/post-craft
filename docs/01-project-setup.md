@@ -45,7 +45,6 @@ Week 1
 
 ### 環境変数（.env.local）
 ```
-OPENAI_API_KEY=your_api_key_here
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 

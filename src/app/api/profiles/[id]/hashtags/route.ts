@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase'
 import { requireAuth, requireProfileOwnership } from '@/lib/api-utils'
+import { TOTAL_HASHTAG_COUNT } from '@/lib/constants'
 
 const MAX_REQUIRED_HASHTAGS = 4
-const TOTAL_HASHTAG_COUNT = 10
 
 // GET /api/profiles/[id]/hashtags
 export async function GET(

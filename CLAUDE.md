@@ -8,7 +8,7 @@ Post Craft プロジェクトのガイドライン。
 **Post Craft** - メモ書きやブログ記事URLからInstagram投稿素材（キャプション、ハッシュタグ、画像）を自動生成するWebサービス。
 
 - **本番URL**: https://post-craft-rho.vercel.app/
-- **現在のフェーズ**: Phase 3 完了
+- **現在のフェーズ**: Phase 4 完了
 
 ## 技術スタック
 
@@ -46,17 +46,22 @@ src/
 │   │   ├── characters/    # キャラクター管理
 │   │   └── settings/      # 設定
 │   │       ├── post-types/ # 投稿タイプ管理
-│   │       └── hashtags/  # ハッシュタグ設定
+│   │       ├── profiles/  # プロフィール管理
+│   │       ├── hashtags/  # ハッシュタグ設定（レガシー）
+│   │       └── system-prompt/ # システムプロンプト設定
 │   ├── api/               # API Routes
 │   └── publish/           # Instagram投稿（スタンドアロン）
 ├── components/            # UIコンポーネント
 │   ├── create/            # 投稿作成コンポーネント
 │   ├── history/           # 履歴編集モーダル
 │   ├── publish/           # Instagram投稿コンポーネント
-│   ├── settings/          # 設定コンポーネント (post-type-list, post-type-form)
+│   ├── settings/          # 設定コンポーネント (post-type-list, post-type-form, profile-list, profile-form)
 │   └── providers/         # Context Providers
 ├── hooks/                 # カスタムフック
 ├── lib/                   # ユーティリティ
+│   ├── constants.ts       # 共通定数 (TOTAL_HASHTAG_COUNT, IMAGE_UPLOAD)
+│   ├── api-utils.ts       # API認証・所有権チェックヘルパー
+│   └── ...
 └── types/                 # 型定義
 ```
 
@@ -71,6 +76,8 @@ src/
 | `usePostActions` | 投稿アクション（削除、再利用、ダウンロード） |
 | `usePostImageHandlers` | 画像関連のハンドラ |
 | `usePostTypes` | 投稿タイプの CRUD・並び替え・有効/無効切り替え |
+| `useProfiles` | プロフィールの CRUD・並び替え |
+| `useUserSettings` | ユーザー設定（必須ハッシュタグ等） |
 
 ### 型定義 (`src/types/`)
 
@@ -79,7 +86,8 @@ src/
 | `post.ts` | ビルトイン投稿タイプの union 型・ヘルパー (`isBuiltinPostType`) |
 | `post-type.ts` | DB管理の投稿タイプ型 (`PostTypeDB`, `PostTypeFormData`) |
 | `create-flow.ts` | 投稿作成フローの状態・型 |
-| `history-detail.ts` | 履歴詳細ページの型・ユーティリティ (`Post`, `PostTypeRef`) |
+| `history-detail.ts` | 履歴詳細ページの型・ユーティリティ (`Post`, `PostTypeRef`, `ProfileRef`) |
+| `supabase.ts` | Supabase Database 型定義（自動生成） |
 
 ## 主要機能
 
@@ -143,11 +151,23 @@ src/
 - **DB**: `posts.related_post_id` で関連を記録（外部キー、ON DELETE SET NULL）
 - **UI**: `StepContentInput` のトグル式セレクタ、`StepImageSettings` の3択ボタン
 
+### プロフィール機能（Phase 4）
+投稿タイプをプロフィール（ペルソナ）ごとにグループ化する機能。
+
+- **プロフィール**: ターゲット層・トーン（システムプロンプト）・必須ハッシュタグを個別設定
+- **DB**: `profiles` テーブル、`post_types.profile_id` で紐付け
+- **デフォルト**: 「シニア向け」プロフィール（is_default=true）
+- **設定画面**: `/settings/profiles`（一覧）、`/settings/profiles/[id]`（編集）、`/settings/profiles/new`（新規）
+- **投稿タイプ連携**: 投稿タイプ作成時にプロフィールを選択可能
+- **キャプション生成**: 選択されたプロフィールのシステムプロンプトと必須ハッシュタグを使用
+- **投稿作成UI**: タイプ選択ステップでプロフィールバッジ表示、フィルタリング対応
+- **API**: `/api/profiles/[id]`（CRUD）、`/api/profiles/[id]/hashtags`（必須タグ）、`/api/profiles/[id]/system-prompt`（プロンプト）
+
 ### ハッシュタグ生成
-- 必須タグ: ユーザー設定画面 (`/settings/hashtags`) でカスタマイズ可能
+- 必須タグ: プロフィール単位でカスタマイズ可能（`profiles.required_hashtags`）
   - デフォルト: #ほほ笑みラボ #飯田市 #パソコン教室 #スマホ
-  - `user_settings.required_hashtags` に保存
-  - API (`/api/settings/hashtags`) で取得・更新
+  - レガシー: `user_settings.required_hashtags`（プロフィール未指定時のフォールバック）
+  - API: `/api/profiles/[id]/hashtags` または `/api/settings/hashtags`
 - 生成タグ: 投稿内容に基づいて自動生成（必須タグと合わせて計10個）
 - コピー・投稿時は縦並び（改行区切り）で出力
 
@@ -218,6 +238,7 @@ FACEBOOK_APP_SECRET=
 - `/docs/SPEC-PHASE2.md` - Phase 2 要件定義
 - `/docs/SPEC-PHASE3.md` - Phase 3 要件定義（ユーザーカスタマイズ機能）
 - `/docs/23-*.md` 〜 `/docs/37-*.md` - Phase 3 開発チケット
+- `/docs/38-*.md` 〜 `/docs/53-*.md` - Phase 3.5/4 開発チケット
 
 ## 運営情報
 

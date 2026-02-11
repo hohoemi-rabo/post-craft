@@ -88,7 +88,6 @@ trackEvent('generate_post', {
 
 ### 環境変数（Vercel設定）
 ```
-OPENAI_API_KEY=sk-...
 NEXT_PUBLIC_GA_ID=G-...
 NEXT_PUBLIC_APP_URL=https://your-domain.vercel.app
 ```

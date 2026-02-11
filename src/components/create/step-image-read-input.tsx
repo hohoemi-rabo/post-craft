@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect } from 'react'
+import { IMAGE_UPLOAD } from '@/lib/constants'
 
 type ImageReadAspectRatio = '1:1' | '4:5' | '16:9'
 
@@ -119,12 +120,11 @@ export function StepImageReadInput({ onSubmit, onBack }: StepImageReadInputProps
   }, [aspectRatio, originalPreview, selectedFile, cropImage])
 
   const handleFileSelect = useCallback((file: File) => {
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
-    if (!allowedTypes.includes(file.type)) {
+    if (!IMAGE_UPLOAD.ALLOWED_TYPES.includes(file.type)) {
       setError('JPEG、PNG、WebP形式の画像を選択してください')
       return
     }
-    if (file.size > 8 * 1024 * 1024) {
+    if (file.size > IMAGE_UPLOAD.MAX_SIZE) {
       setError('画像サイズは8MB以下にしてください')
       return
     }

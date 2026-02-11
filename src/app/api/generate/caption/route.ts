@@ -6,8 +6,7 @@ import { POST_TYPES } from '@/lib/post-types'
 import { TEMPLATES, applyTemplate, applyCustomTemplate } from '@/lib/templates'
 import type { PostType, TemplateData } from '@/types/post'
 import type { Placeholder } from '@/types/post-type'
-
-const TOTAL_HASHTAG_COUNT = 10
+import { TOTAL_HASHTAG_COUNT } from '@/lib/constants'
 
 interface GenerateCaptionRequest {
   postType?: PostType

@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase'
 import { requireAuth, requirePostOwnership } from '@/lib/api-utils'
-
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
-const MAX_SIZE = 8 * 1024 * 1024 // 8MB
+import { IMAGE_UPLOAD } from '@/lib/constants'
 
 // Helper: delete old image from Storage
 async function deleteOldImage(
@@ -42,14 +40,14 @@ export async function POST(
     return NextResponse.json({ error: 'Image file is required' }, { status: 400 })
   }
 
-  if (!ALLOWED_TYPES.includes(file.type)) {
+  if (!IMAGE_UPLOAD.ALLOWED_TYPES.includes(file.type)) {
     return NextResponse.json(
       { error: 'JPEG、PNG、WebP形式の画像を選択してください' },
       { status: 400 }
     )
   }
 
-  if (file.size > MAX_SIZE) {
+  if (file.size > IMAGE_UPLOAD.MAX_SIZE) {
     return NextResponse.json(
       { error: '画像サイズは8MB以下にしてください' },
       { status: 400 }

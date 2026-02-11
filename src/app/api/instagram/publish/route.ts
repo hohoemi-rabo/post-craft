@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase'
 import { createMediaContainer, waitAndPublish } from '@/lib/instagram'
+import { IMAGE_UPLOAD } from '@/lib/constants'
 
 export const maxDuration = 60 // Allow up to 60 seconds for publishing
 
@@ -61,15 +62,14 @@ export async function POST(request: Request) {
         )
       }
 
-      if (image.size > 8 * 1024 * 1024) {
+      if (image.size > IMAGE_UPLOAD.MAX_SIZE) {
         return NextResponse.json(
           { error: '画像サイズは8MB以下にしてください' },
           { status: 400 }
         )
       }
 
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
-      if (!allowedTypes.includes(image.type)) {
+      if (!IMAGE_UPLOAD.ALLOWED_TYPES.includes(image.type)) {
         return NextResponse.json(
           { error: 'JPEG、PNG、WebP形式の画像のみ対応しています' },
           { status: 400 }

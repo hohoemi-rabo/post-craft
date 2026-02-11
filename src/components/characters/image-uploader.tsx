@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { useCallback, useState } from 'react'
+import { IMAGE_UPLOAD } from '@/lib/constants'
 
 interface ImageUploaderProps {
   currentImage?: string | null
@@ -10,8 +11,7 @@ interface ImageUploaderProps {
   disabled?: boolean
 }
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
-const ACCEPTED_TYPES = ['image/png', 'image/jpeg', 'image/webp']
+const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB (キャラクター画像は小さめ)
 
 export function ImageUploader({
   currentImage,
@@ -24,7 +24,7 @@ export function ImageUploader({
   const [isDragging, setIsDragging] = useState(false)
 
   const validateFile = (file: File): string | null => {
-    if (!ACCEPTED_TYPES.includes(file.type)) {
+    if (!IMAGE_UPLOAD.ALLOWED_TYPES.includes(file.type)) {
       return 'PNG, JPG, WEBP形式のみ対応しています'
     }
     if (file.size > MAX_FILE_SIZE) {

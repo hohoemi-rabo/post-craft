@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import type { UserSettings } from '@/types/user-settings'
-
-const TOTAL_HASHTAG_COUNT = 10
+import { TOTAL_HASHTAG_COUNT } from '@/lib/constants'
 
 export function useUserSettings() {
   const [settings, setSettings] = useState<UserSettings | null>(null)

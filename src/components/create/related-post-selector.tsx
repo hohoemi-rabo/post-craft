@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { formatDateShort } from '@/types/history-detail'
 
 interface PostSummary {
   id: string
@@ -81,13 +82,6 @@ export function RelatedPostSelector({
     })
   }
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('ja-JP', {
-      month: 'short',
-      day: 'numeric',
-    })
-  }
 
   const truncateCaption = (caption: string, maxLen = 40) => {
     if (caption.length <= maxLen) return caption
@@ -163,7 +157,7 @@ export function RelatedPostSelector({
                           {truncateCaption(post.generated_caption)}
                         </p>
                         <p className="text-[10px] text-slate-500">
-                          {typeName} ・ {formatDate(post.created_at)}
+                          {typeName} ・ {formatDateShort(post.created_at)}
                         </p>
                       </div>
                       {isSelected && (
