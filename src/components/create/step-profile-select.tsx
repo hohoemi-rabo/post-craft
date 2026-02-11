@@ -57,19 +57,17 @@ export function StepProfileSelect({ onSelect }: StepProfileSelectProps) {
             <button
               key={profile.id}
               onClick={() => onSelect(profile)}
-              className="p-6 bg-white/5 border border-white/10 rounded-xl text-left hover:bg-white/10 hover:border-white/20 transition-all group"
+              className="relative p-6 bg-white/5 border border-white/10 rounded-xl text-left hover:bg-white/10 hover:border-white/20 transition-all group"
             >
+              {profile.isDefault && (
+                <span className="absolute top-2.5 right-2.5 px-1.5 py-0.5 bg-blue-600/20 text-blue-400 text-[10px] rounded-full">
+                  デフォルト
+                </span>
+              )}
               <div className="text-3xl mb-3">{profile.icon}</div>
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-bold text-white group-hover:text-blue-400 transition-colors">
-                  {profile.name}
-                </h3>
-                {profile.isDefault && (
-                  <span className="px-1.5 py-0.5 bg-blue-600/20 text-blue-400 text-xs rounded-full">
-                    デフォルト
-                  </span>
-                )}
-              </div>
+              <h3 className="font-bold text-white group-hover:text-blue-400 transition-colors mb-1">
+                {profile.name}
+              </h3>
               {profile.description && (
                 <p className="text-sm text-slate-400">{profile.description}</p>
               )}
