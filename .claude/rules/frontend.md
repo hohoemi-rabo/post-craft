@@ -11,7 +11,7 @@ components/
 ├── layout/       # レイアウト (header, footer, sidebar)
 ├── dashboard/    # ダッシュボード専用
 ├── create/       # 投稿作成専用
-├── history/      # 履歴編集モーダル (post-edit-modal, image-regenerate-modal)
+├── history/      # 履歴一覧・編集 (post-list, post-card, filter, pagination, delete-button, skeleton, edit-modal等)
 ├── characters/   # キャラクター管理専用
 ├── settings/     # 設定 (post-type-list, post-type-form, profile-list, profile-form)
 └── providers/    # Context Providers
@@ -125,6 +125,21 @@ showToast({ type: 'error', message: 'エラーが発生しました' })
 ```
 
 データ取得には `POST_SELECT_QUERY` を使用し、`post_type_ref`, `profile_ref`, `post_images` を JOIN で取得すること。
+
+### 履歴一覧の Server Component 構成
+履歴一覧 (`/history`) は Server Component + Suspense で実装。インタラクティブ部分のみ Client Component に分離:
+```
+page.tsx (Server) → ヘッダー + フィルター即表示
+  └── <Suspense fallback={<HistorySkeleton />}>
+       └── HistoryPostList (Server async: Supabase直接クエリ)
+            ├── HistoryPostCard (Server) × N
+            │    └── HistoryDeleteButton (Client: postId のみ)
+            └── HistoryPagination (Server: <Link>ベース)
+```
+
+- フィルター・ページネーションは URL `searchParams` で管理（`?page=2&postType=tips`）
+- 削除後は `router.refresh()` で Server Component を再実行
+- `<Suspense key={page-postType}>` でフィルター/ページ変更時にスケルトン再表示
 
 ## フォント
 

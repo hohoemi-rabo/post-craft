@@ -42,7 +42,7 @@ src/
 │   ├── (dashboard)/       # ダッシュボード (認証必須)
 │   │   ├── dashboard/     # ホーム
 │   │   ├── create/        # 投稿作成
-│   │   ├── history/       # 履歴
+│   │   │   ├── history/       # 履歴 (Server Component + Suspense)
 │   │   ├── characters/    # キャラクター管理
 │   │   └── settings/      # 設定
 │   │       ├── post-types/ # 投稿タイプ管理
@@ -53,7 +53,7 @@ src/
 │   └── publish/           # Instagram投稿（スタンドアロン）
 ├── components/            # UIコンポーネント
 │   ├── create/            # 投稿作成コンポーネント
-│   ├── history/           # 履歴編集モーダル
+│   ├── history/           # 履歴一覧・編集 (post-list, post-card, filter, pagination, delete-button, skeleton, edit-modal等)
 │   ├── publish/           # Instagram投稿コンポーネント
 │   ├── settings/          # 設定コンポーネント (post-type-list, post-type-form, profile-list, profile-form)
 │   └── providers/         # Context Providers
@@ -95,6 +95,7 @@ src/
 
 設定画面 (`/settings/post-types`) でユーザーがカスタマイズ可能。
 `post_types` テーブルで管理し、`usePostTypes` フックで取得。
+プロフィールタブフィルターで絞り込み表示対応（`usePostTypes(profileId)` でAPIフィルタリング）。
 
 **ビルトインタイプ（7種類、初期データ）**:
 | slug | タイプ | 説明 |
@@ -172,6 +173,23 @@ src/
   - API: `/api/profiles/[id]/hashtags` または `/api/settings/hashtags`
 - 生成タグ: 投稿内容に基づいて自動生成（必須タグと合わせて計10個）
 - コピー・投稿時は縦並び（改行区切り）で出力
+
+### 投稿履歴（Server Component + Suspense）
+履歴一覧ページ (`/history`) は Server Component + Suspense アーキテクチャで実装。
+
+- **アーキテクチャ**: Server Component (page.tsx) → Suspense → async Server Component (HistoryPostList)
+- **データフェッチ**: `createServerClient()` + `POST_SELECT_QUERY` で Supabase に直接クエリ（API Route 不要）
+- **状態管理**: URL `searchParams` ベース（`?page=2&postType=tips`）でブックマーク・ブラウザバック対応
+- **ページネーション**: `<Link>` ベース（JS不要）
+- **フィルター**: `HistoryFilter` (Client Component) → `router.push()` でURL更新
+- **削除**: `HistoryDeleteButton` (Client Component) → 既存 DELETE API → `router.refresh()`
+- **コンポーネント分割**:
+  - `history-post-list.tsx` (Server async): データフェッチ + 一覧表示
+  - `history-post-card.tsx` (Server): 投稿カード（バッジ・サムネイル）
+  - `history-filter.tsx` (Client): フィルタードロップダウン
+  - `history-delete-button.tsx` (Client): 削除ボタン + 確認UI
+  - `history-pagination.tsx` (Server): `<Link>` ベースのページネーション
+  - `history-skeleton.tsx` (Server): Suspense フォールバック
 
 ### 投稿履歴の編集機能
 履歴詳細ページ (`/history/[id]`) でインライン編集が可能。

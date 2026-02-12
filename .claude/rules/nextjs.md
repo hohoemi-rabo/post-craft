@@ -279,6 +279,45 @@ export const revalidate = 3600  // 1時間
 export const dynamicParams = true  // true = オンデマンド, false = 404
 ```
 
+## Server Component + Suspense パターン（実装例: 履歴ページ）
+
+データ一覧ページの推奨構成。ヘッダーやフィルターは即表示、データは Suspense でストリーミング:
+
+```tsx
+// page.tsx (Server Component)
+export default async function Page({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+  const session = await auth()
+  if (!session?.user?.id) redirect('/login')
+  const params = await searchParams
+
+  return (
+    <div>
+      {/* 即表示: ヘッダー、フィルター */}
+      <h1>一覧</h1>
+      <FilterComponent />  {/* Client Component */}
+
+      {/* ストリーミング: データ一覧 */}
+      <Suspense key={params.page} fallback={<Skeleton />}>
+        <DataList userId={session.user.id} page={parseInt(params.page || '1')} />
+      </Suspense>
+    </div>
+  )
+}
+
+// data-list.tsx (Server Component, async)
+async function DataList({ userId, page }: Props) {
+  const supabase = createServerClient()
+  const { data } = await supabase.from('table').select('*').eq('user_id', userId)
+  return <>{data.map(item => <ItemCard key={item.id} item={item} />)}</>
+}
+```
+
+**ポイント**:
+- `<Suspense key={...}>` で検索条件変更時にスケルトン再表示
+- ページネーションは `<Link href>` ベース（JS不要）
+- 削除等のミューテーション後は `router.refresh()` で Server Component 再実行
+- Client Component には最小限の props のみ渡す（シリアライゼーション最適化）
+
 ## パフォーマンス Tips
 
 1. **並列フェッチ** - `Promise.all()` でウォーターフォール回避
@@ -286,3 +325,4 @@ export const dynamicParams = true  // true = オンデマンド, false = 404
 3. **画像最適化** - `next/image` + LCP画像に `priority`
 4. **フォント最適化** - `next/font` 使用
 5. **Streaming** - Suspense で段階的レンダリング
+6. **URL ベースの状態** - `searchParams` でフィルター・ページネーション（ブックマーク・ブラウザバック対応）
