@@ -50,10 +50,8 @@ export default function CreatePage() {
     setGeneratedCaption,
   } = useContentGeneration({ onStepChange: setStep })
 
-  // Calculate total steps based on postType, skipImage, and profile count
-  const profileStepOffset = hasMultipleProfiles ? 1 : 0
+  // Calculate total steps based on postType and skipImage
   const baseSteps = formState.postType === 'image_read' ? 4 : formState.skipImage ? 5 : 6
-  const totalSteps = baseSteps + profileStepOffset
 
   // Check for profileId in URL params (from dashboard)
   useEffect(() => {
