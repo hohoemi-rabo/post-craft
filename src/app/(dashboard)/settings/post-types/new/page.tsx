@@ -1,9 +1,13 @@
 'use client'
 
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { PostTypeForm } from '@/components/settings/post-type-form'
 
 export default function NewPostTypePage() {
+  const searchParams = useSearchParams()
+  const profileId = searchParams.get('profileId') ?? undefined
+
   return (
     <div className="space-y-6">
       {/* Breadcrumb */}
@@ -17,7 +21,7 @@ export default function NewPostTypePage() {
 
       <h1 className="text-2xl md:text-3xl font-bold text-white">投稿タイプを作成</h1>
 
-      <PostTypeForm mode="new" />
+      <PostTypeForm mode="new" defaultProfileId={profileId} />
     </div>
   )
 }

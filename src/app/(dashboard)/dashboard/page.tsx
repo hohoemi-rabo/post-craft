@@ -1,6 +1,18 @@
 import { auth } from '@/lib/auth'
-import { createServerClient } from '@/lib/supabase'
+import { createServerClient, POST_SELECT_QUERY } from '@/lib/supabase'
+import { IMAGE_STYLES } from '@/lib/image-styles'
 import Link from 'next/link'
+
+interface RecentPost {
+  id: string
+  post_type: string
+  generated_caption: string
+  created_at: string | null
+  instagram_published: boolean
+  post_images: Array<{ id: string; image_url: string; style: string | null }> | null
+  post_type_ref: { id: string; name: string; icon: string } | null
+  profile_ref: { id: string; name: string; icon: string } | null
+}
 
 export default async function DashboardPage() {
   const session = await auth()
@@ -8,12 +20,7 @@ export default async function DashboardPage() {
 
   // Get user stats
   let totalPosts = 0
-  let recentPosts: Array<{
-    id: string
-    post_type: string
-    generated_caption: string
-    created_at: string | null
-  }> = []
+  let recentPosts: RecentPost[] = []
 
   let profiles: Array<{ id: string; name: string; icon: string; is_default: boolean }> = []
 
@@ -26,15 +33,15 @@ export default async function DashboardPage() {
 
     totalPosts = count || 0
 
-    // Get recent posts
+    // Get recent posts (with post_type_ref, profile_ref, post_images)
     const { data } = await supabase
       .from('posts')
-      .select('id, post_type, generated_caption, created_at')
+      .select(POST_SELECT_QUERY)
       .eq('user_id', session.user.id)
       .order('created_at', { ascending: false })
       .limit(3)
 
-    recentPosts = data || []
+    recentPosts = (data || []) as unknown as RecentPost[]
 
     // Get profiles
     const { data: profileData } = await supabase
@@ -44,15 +51,6 @@ export default async function DashboardPage() {
       .order('sort_order', { ascending: true })
 
     profiles = profileData || []
-  }
-
-  const postTypeLabels: Record<string, string> = {
-    solution: '解決タイプ',
-    promotion: '宣伝タイプ',
-    tips: 'AI活用タイプ',
-    showcase: '実績タイプ',
-    useful: 'お役立ちタイプ',
-    howto: '使い方タイプ',
   }
 
   return (
@@ -183,37 +181,62 @@ export default async function DashboardPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {recentPosts.map((post) => (
-              <Link
-                key={post.id}
-                href={`/history/${post.id}`}
-                className="block p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded-full">
-                        {postTypeLabels[post.post_type] || post.post_type}
-                      </span>
-                      <span className="text-xs text-slate-500">
-                        {post.created_at && new Date(post.created_at).toLocaleDateString('ja-JP')}
-                      </span>
+            {recentPosts.map((post) => {
+              const typeIcon = post.post_type_ref?.icon || '📝'
+              const typeName = post.post_type_ref?.name || post.post_type || '不明なタイプ'
+              const firstImage = post.post_images?.[0]
+
+              return (
+                <Link
+                  key={post.id}
+                  href={`/history/${post.id}`}
+                  className="block p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                        <span className="text-lg">{typeIcon}</span>
+                        <span className="text-sm font-medium text-white">{typeName}</span>
+                        {firstImage?.style && IMAGE_STYLES[firstImage.style as keyof typeof IMAGE_STYLES] && (
+                          <span className="px-2 py-0.5 bg-purple-500/20 text-purple-300 text-xs rounded-full">
+                            {IMAGE_STYLES[firstImage.style as keyof typeof IMAGE_STYLES].icon}{' '}
+                            {IMAGE_STYLES[firstImage.style as keyof typeof IMAGE_STYLES].name}
+                          </span>
+                        )}
+                        {post.profile_ref && (
+                          <span className="px-2 py-0.5 bg-blue-600/15 text-blue-400 text-xs rounded-full">
+                            {post.profile_ref.icon} {post.profile_ref.name}
+                          </span>
+                        )}
+                        <span className="text-xs text-slate-500">
+                          {post.created_at && new Date(post.created_at).toLocaleDateString('ja-JP')}
+                        </span>
+                        {post.instagram_published ? (
+                          <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">
+                            ✅ 投稿済み
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 bg-white/5 text-slate-400 text-xs rounded-full">
+                            ⏳ 未投稿
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-white text-sm truncate">
+                        {post.generated_caption.substring(0, 80)}...
+                      </p>
                     </div>
-                    <p className="text-white text-sm truncate">
-                      {post.generated_caption.substring(0, 80)}...
-                    </p>
+                    <svg
+                      className="w-5 h-5 text-slate-400 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </div>
-                  <svg
-                    className="w-5 h-5 text-slate-400 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              )
+            })}
           </div>
         )}
       </div>

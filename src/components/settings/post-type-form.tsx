@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { PostTypeDB, PostTypeFormData, Placeholder } from '@/types/post-type'
 import { usePostTypes } from '@/hooks/usePostTypes'
+import { useProfiles } from '@/hooks/useProfiles'
 import { useToast } from '@/components/ui/toast'
 import { EmojiPicker } from '@/components/settings/emoji-picker'
 import { PostTypePreviewModal } from '@/components/settings/post-type-preview-modal'
@@ -11,6 +12,7 @@ import { PostTypePreviewModal } from '@/components/settings/post-type-preview-mo
 interface PostTypeFormProps {
   mode: 'new' | 'edit'
   initialData?: PostTypeDB
+  defaultProfileId?: string
 }
 
 interface FormErrors {
@@ -28,12 +30,28 @@ interface GeneratedData {
   samplePost: string
 }
 
-export function PostTypeForm({ mode, initialData }: PostTypeFormProps) {
+export function PostTypeForm({ mode, initialData, defaultProfileId }: PostTypeFormProps) {
   const router = useRouter()
   const { showToast } = useToast()
   const { createPostType, updatePostType } = usePostTypes()
+  const { profiles, isLoading: isLoadingProfiles } = useProfiles()
 
   // Basic info state
+  // Priority: URL param (defaultProfileId) > existing data (initialData) > auto-select default
+  const [profileId, setProfileId] = useState<string | undefined>(
+    defaultProfileId ?? initialData?.profileId ?? undefined
+  )
+
+  // Auto-select default profile for new post types when no profileId is set
+  useEffect(() => {
+    if (mode === 'new' && !profileId && !defaultProfileId && profiles.length > 0) {
+      const defaultProfile = profiles.find(p => p.isDefault) ?? profiles[0]
+      if (defaultProfile) {
+        setProfileId(defaultProfile.id)
+      }
+    }
+  }, [mode, profileId, defaultProfileId, profiles])
+
   const [icon, setIcon] = useState(initialData?.icon || '📝')
   const [name, setName] = useState(initialData?.name || '')
   const [description, setDescription] = useState(initialData?.description || '')
@@ -131,6 +149,7 @@ export function PostTypeForm({ mode, initialData }: PostTypeFormProps) {
         inputMode,
         userMemo: userMemo.trim(),
         typePrompt: generatedData.typePrompt,
+        profileId,
       }
 
       if (mode === 'new') {
@@ -170,6 +189,7 @@ export function PostTypeForm({ mode, initialData }: PostTypeFormProps) {
         inputMode,
         userMemo: userMemo.trim() || undefined,
         typePrompt: initialData.typePrompt || undefined,
+        profileId,
       }
 
       await updatePostType(initialData.id, formData)
@@ -188,6 +208,35 @@ export function PostTypeForm({ mode, initialData }: PostTypeFormProps) {
       {/* Section 1: Basic Info */}
       <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
         <h2 className="text-lg font-bold text-white">基本情報</h2>
+
+        {/* Profile selection */}
+        <div>
+          <label className="block text-sm text-slate-400 mb-2">プロフィール</label>
+          {isLoadingProfiles ? (
+            <div className="h-12 bg-white/5 rounded-xl animate-pulse" />
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {profiles.map((profile) => {
+                const isSelected = profileId === profile.id
+                return (
+                  <button
+                    key={profile.id}
+                    type="button"
+                    onClick={() => setProfileId(profile.id)}
+                    className={`px-4 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${
+                      isSelected
+                        ? 'border-blue-500 bg-blue-600/20 text-white ring-1 ring-blue-500/30'
+                        : 'border-white/10 bg-white/5 text-slate-400 hover:border-white/20 hover:text-slate-300'
+                    }`}
+                  >
+                    {isSelected && <span className="mr-1.5">&#10003;</span>}
+                    {profile.icon} {profile.name}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
 
         <div className="flex items-start gap-4">
           {/* Icon */}

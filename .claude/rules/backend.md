@@ -386,6 +386,19 @@ posts テーブル:
 - 非同期処理は `.then()` チェーンで対応
 - HTTPS 必須（localhost では `--experimental-https` オプションが必要）
 
+## キャプション/ハッシュタグ生成ルール
+
+**必須**: 新規作成・履歴編集を問わず、キャプションやハッシュタグを生成・再生成する際は、必ず選択中プロフィールの `system_prompt` を取得して AI プロンプトに含めること。
+
+- **呼び出し側**: `/api/generate/caption` へのリクエストに `profileId` を必ず含める
+- **API 側**: `profileId` があれば `profiles` テーブルから `system_prompt` + `required_hashtags` を取得
+- **フォールバック**: `profileId` がない場合は `user_settings` テーブルから取得（レガシー互換）
+- **対象シーン**:
+  - 新規投稿作成時のキャプション生成（`useContentGeneration`）
+  - 履歴編集でのキャプション再生成（`usePostEdit.regenerateCaption`）
+  - 履歴編集での投稿タイプ変更＋再生成（`usePostEdit.changeType`）
+- **後処理**: キャプション生成後、ハッシュタグ行と表紙タイトル案を自動除去（`cleanGeneratedCaption`）。詳細は `.claude/rules/ai.md` の「キャプション生成の後処理」参照
+
 ## パフォーマンス
 
 ### タイムアウト

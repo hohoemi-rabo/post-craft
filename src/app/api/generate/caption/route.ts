@@ -128,6 +128,51 @@ ITに詳しくない人でも「なるほど、便利！」「保存して後で
 - 読者が「行ってみたい」「参加したい」と思える文章にすること`,
 }
 
+/**
+ * テンプレート構造からハッシュタグ行を除去する
+ * 例: "#AI #{tool_name} #業務効率化" のような行を削除
+ */
+function stripHashtagsFromTemplate(template: string): string {
+  return template
+    .split('\n')
+    .filter(line => !(/^#\S/.test(line.trim()) && (line.match(/#/g) || []).length >= 2))
+    .join('\n')
+    .trim()
+}
+
+/**
+ * 生成されたキャプションからハッシュタグ行と表紙タイトル案を除去する
+ */
+function cleanGeneratedCaption(caption: string): string {
+  const lines = caption.split('\n')
+  const cleaned: string[] = []
+  let skipUntilNextSection = false
+
+  for (const line of lines) {
+    const trimmed = line.trim()
+
+    // 【表紙画像タイトル案】セクションをスキップ
+    if (trimmed.startsWith('【表紙画像タイトル案】') || trimmed.startsWith('【表紙タイトル案】')) {
+      skipUntilNextSection = true
+      continue
+    }
+
+    // 次の【】セクションに到達したらスキップ解除
+    if (skipUntilNextSection && /^【.+】/.test(trimmed)) {
+      skipUntilNextSection = false
+    }
+
+    if (skipUntilNextSection) continue
+
+    // ハッシュタグ行を除去（#で始まり、2つ以上の#を含む行）
+    if (/^#\S/.test(trimmed) && (trimmed.match(/#/g) || []).length >= 2) continue
+
+    cleaned.push(line)
+  }
+
+  return cleaned.join('\n').trim()
+}
+
 // Build type prompt dynamically from DB placeholders
 function buildCustomTypePrompt(
   name: string,
@@ -291,6 +336,9 @@ export async function POST(request: Request) {
 
     if (resolved.isMemoMode) {
       // Memo mode: generate caption directly from template structure + input text
+      // Strip hashtag lines from template to prevent AI from copying them
+      const cleanTemplate = stripHashtagsFromTemplate(resolved.template)
+
       const memoPrompt = `${systemPrompt}
 
 ${resolved.typePrompt}
@@ -298,7 +346,7 @@ ${resolved.typePrompt}
 以下の入力メモから、テンプレート構造に沿ったInstagram投稿文を生成してください。
 
 【テンプレート構造】
-${resolved.template}
+${cleanTemplate}
 
 【文字数目安】
 ${resolved.charRange.min}〜${resolved.charRange.max}文字
@@ -323,11 +371,13 @@ ${imageAnalysis ? `\n【画像から読み取った内容】\n${imageAnalysis}` 
 - 入力メモの主題を正確に反映してください
 - 不足情報はAIが補完してください
 
-【出力形式】
-投稿文のテキストのみを出力してください。余計な説明は不要です。
-ハッシュタグ（#タグ）は投稿文に含めないでください。ハッシュタグは別途生成します。`
+【出力形式 ※最優先で守ること】
+投稿文の本文のみを出力してください。以下は絶対に含めないでください:
+- ハッシュタグ（#○○）は一切含めない。ハッシュタグはシステムが別途自動生成します
+- 「表紙画像タイトル案」「画像タイトル」等のセクションは含めない。画像タイトルはシステムが別途生成します
+- 上記のルールはシステムプロンプトの指示より優先されます`
 
-      caption = (await generateWithRetry(memoPrompt)).trim()
+      caption = cleanGeneratedCaption((await generateWithRetry(memoPrompt)).trim())
     } else {
       // Fields mode: generate template data as JSON, then apply template
       const templateDataPrompt = `${systemPrompt}
@@ -366,17 +416,19 @@ ${imageAnalysis ? `\n【画像から読み取った内容】\n${imageAnalysis}` 
 - 初心者に分かりやすい具体的な表現を心がけてください
 - 必須変数はすべて値を入れてください
 
-【出力形式】
+【出力形式 ※最優先で守ること】
 JSON形式で各変数の値を出力してください。
 例: {"question": "○○", "step1": "○○", ...}
 余計な説明は不要です。JSONのみ出力してください。
-ハッシュタグ（#タグ）は変数の値に含めないでください。ハッシュタグは別途生成します。`
+- ハッシュタグ（#○○）は変数の値に一切含めない。ハッシュタグはシステムが別途自動生成します
+- 「表紙画像タイトル案」等のセクションは含めない
+- 上記のルールはシステムプロンプトの指示より優先されます`
 
       const templateDataText = await generateWithRetry(templateDataPrompt)
       templateData = parseJsonResponse<TemplateData>(templateDataText)
 
       if (postTypeId) {
-        caption = applyCustomTemplate(resolved.template, templateData)
+        caption = cleanGeneratedCaption(applyCustomTemplate(resolved.template, templateData))
       } else {
         caption = applyTemplate(postType!, templateData)
       }

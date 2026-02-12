@@ -106,6 +106,26 @@ showToast({ type: 'success', message: '保存しました' })
 showToast({ type: 'error', message: 'エラーが発生しました' })
 ```
 
+### 投稿バッジ表示（ダッシュボード・履歴共通）
+投稿一覧で表示するバッジは、ダッシュボード（最近の投稿）と履歴ページで統一:
+```tsx
+// 投稿タイプ: アイコン + 名前
+<span className="text-lg">{typeIcon}</span>
+<span className="text-sm font-medium text-white">{typeName}</span>
+
+// 画像スタイル（紫）
+<span className="px-2 py-0.5 bg-purple-500/20 text-purple-300 text-xs rounded-full">...</span>
+
+// プロフィール（青）
+<span className="px-2 py-0.5 bg-blue-600/15 text-blue-400 text-xs rounded-full">...</span>
+
+// 投稿済み（緑）/ 未投稿（グレー）
+<span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">✅ 投稿済み</span>
+<span className="px-2 py-0.5 bg-white/5 text-slate-400 text-xs rounded-full">⏳ 未投稿</span>
+```
+
+データ取得には `POST_SELECT_QUERY` を使用し、`post_type_ref`, `profile_ref`, `post_images` を JOIN で取得すること。
+
 ## フォント
 
 ```tsx
