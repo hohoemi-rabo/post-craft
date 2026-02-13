@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { JSDOM } from 'jsdom'
 import { Readability } from '@mozilla/readability'
 import { ERROR_MESSAGES } from '@/lib/error-messages'
+import { requireAuth } from '@/lib/api-utils'
 
 export async function POST(request: NextRequest) {
+  const { error: authError } = await requireAuth()
+  if (authError) return authError
+
   try {
     const { url } = await request.json()
 

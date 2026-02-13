@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { ProfileDB, ProfileFormData } from '@/types/profile'
 
 export function useProfiles() {
@@ -36,15 +36,8 @@ export function useProfiles() {
     fetchProfiles()
   }, [fetchProfiles])
 
-  const defaultProfile = useMemo(
-    () => profiles.find(p => p.isDefault) ?? profiles[0] ?? null,
-    [profiles]
-  )
-
-  const hasMultipleProfiles = useMemo(
-    () => profiles.length > 1,
-    [profiles]
-  )
+  const defaultProfile = profiles.find(p => p.isDefault) ?? profiles[0] ?? null
+  const hasMultipleProfiles = profiles.length > 1
 
   const createProfile = useCallback(async (data: ProfileFormData): Promise<ProfileDB> => {
     const res = await fetch('/api/profiles', {

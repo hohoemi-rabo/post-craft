@@ -25,32 +25,27 @@ export default async function DashboardPage() {
   let profiles: Array<{ id: string; name: string; icon: string; is_default: boolean }> = []
 
   if (session?.user?.id) {
-    // Get total posts count
-    const { count } = await supabase
-      .from('posts')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', session.user.id)
+    const [countResult, postsResult, profilesResult] = await Promise.all([
+      supabase
+        .from('posts')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', session.user.id),
+      supabase
+        .from('posts')
+        .select(POST_SELECT_QUERY)
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false })
+        .limit(3),
+      supabase
+        .from('profiles')
+        .select('id, name, icon, is_default')
+        .eq('user_id', session.user.id)
+        .order('sort_order', { ascending: true }),
+    ])
 
-    totalPosts = count || 0
-
-    // Get recent posts (with post_type_ref, profile_ref, post_images)
-    const { data } = await supabase
-      .from('posts')
-      .select(POST_SELECT_QUERY)
-      .eq('user_id', session.user.id)
-      .order('created_at', { ascending: false })
-      .limit(3)
-
-    recentPosts = (data || []) as unknown as RecentPost[]
-
-    // Get profiles
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('id, name, icon, is_default')
-      .eq('user_id', session.user.id)
-      .order('sort_order', { ascending: true })
-
-    profiles = profileData || []
+    totalPosts = countResult.count || 0
+    recentPosts = (postsResult.data || []) as unknown as RecentPost[]
+    profiles = profilesResult.data || []
   }
 
   return (

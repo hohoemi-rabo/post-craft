@@ -3,8 +3,12 @@ import {
   exchangeForLongLivedToken,
   getInstagramAccounts,
 } from '@/lib/instagram'
+import { requireAuth } from '@/lib/api-utils'
 
 export async function POST(request: Request) {
+  const { error: authError } = await requireAuth()
+  if (authError) return authError
+
   try {
     const body = await request.json()
     const { accessToken } = body

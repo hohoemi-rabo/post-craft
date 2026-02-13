@@ -194,7 +194,7 @@ export function usePostEdit(
       return
     }
 
-    setEditedHashtags([...editedHashtags, normalizedInput])
+    setEditedHashtags(prev => [...prev, normalizedInput])
     setNewHashtagInput('')
   }, [newHashtagInput, editedHashtags, showToast])
 
@@ -203,9 +203,9 @@ export function usePostEdit(
    */
   const removeHashtag = useCallback(
     (index: number) => {
-      setEditedHashtags(editedHashtags.filter((_, i) => i !== index))
+      setEditedHashtags(prev => prev.filter((_, i) => i !== index))
     },
-    [editedHashtags]
+    []
   )
 
   return {

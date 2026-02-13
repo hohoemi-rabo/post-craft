@@ -255,11 +255,14 @@ FACEBOOK_APP_SECRET=
 
 ## 仕様書
 
+- `/docs/SPEC-FULL.md` - 全体仕様（Phase 1〜3）
 - `/docs/SPEC-CURRENT.md` - 現状仕様（Phase 2完了時点）
 - `/docs/SPEC-PHASE2.md` - Phase 2 要件定義
 - `/docs/SPEC-PHASE3.md` - Phase 3 要件定義（ユーザーカスタマイズ機能）
+- `/docs/SPEC-PHASE4.md` - Phase 4 要件定義（分析機能統合）
 - `/docs/23-*.md` 〜 `/docs/37-*.md` - Phase 3 開発チケット
-- `/docs/38-*.md` 〜 `/docs/53-*.md` - Phase 3.5/4 開発チケット
+- `/docs/38-*.md` 〜 `/docs/46-*.md` - Phase 3.5/4 開発チケット
+- `/docs/47-*.md` 〜 `/docs/67-*.md` - Phase 4 開発チケット（分析機能）
 
 ## 運営情報
 

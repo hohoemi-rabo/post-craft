@@ -29,7 +29,7 @@ export function StepResult({
   postId,
 }: StepResultProps) {
   const [editedCaption, setEditedCaption] = useState(caption)
-  const [selectedHashtags, setSelectedHashtags] = useState<Set<string>>(new Set(hashtags))
+  const [selectedHashtags, setSelectedHashtags] = useState<Set<string>>(() => new Set(hashtags))
   const [copiedCaption, setCopiedCaption] = useState(false)
   const [showPublishModal, setShowPublishModal] = useState(false)
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null)

@@ -14,6 +14,7 @@ interface UseContentGenerationOptions {
  */
 export function useContentGeneration({ onStepChange }: UseContentGenerationOptions) {
   const [generatedCaption, setGeneratedCaption] = useState<string>('')
+  const [generatedHashtagsFromCaption, setGeneratedHashtagsFromCaption] = useState<string[]>([])
   const [generatedResult, setGeneratedResult] = useState<GeneratedResult | null>(null)
   const [savedPostId, setSavedPostId] = useState<string | null>(null)
   const [isRegenerating, setIsRegenerating] = useState(false)
@@ -52,6 +53,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
 
         const captionData = await captionResponse.json()
         setGeneratedCaption(captionData.caption)
+        setGeneratedHashtagsFromCaption(captionData.hashtags || [])
       } catch (error) {
         console.error('Caption generation error:', error)
         alert('キャプション生成に失敗しました。もう一度お試しください。')
@@ -125,26 +127,9 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
         updateStepStatus('image', 'complete')
         setGenerationProgress(66)
 
-        // Step 3: Save post
+        // Step 3: Save post (use hashtags cached from generateCaptionFirst)
         updateStepStatus('save', 'loading')
         try {
-          // Fetch hashtags from caption API response
-          const captionResponse = await fetch('/api/generate/caption', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              postType: formState.postType,
-              postTypeId: formState.postTypeId,
-              profileId: formState.profileId || undefined,
-              inputText: formState.inputText,
-              relatedPostCaption: formState.relatedPostCaption || undefined,
-              relatedPostHashtags: formState.relatedPostHashtags || undefined,
-            }),
-          })
-          const captionData = captionResponse.ok
-            ? await captionResponse.json()
-            : { hashtags: [] }
-
           const saveRes = await fetch('/api/posts', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -155,7 +140,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
               inputText: formState.inputText,
               sourceUrl: formState.sourceUrl || null,
               generatedCaption: generatedCaption,
-              generatedHashtags: captionData.hashtags || [],
+              generatedHashtags: generatedHashtagsFromCaption,
               imageUrl: imageData.imageUrl,
               imageStyle,
               aspectRatio,
@@ -170,7 +155,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
 
           setGeneratedResult({
             caption: generatedCaption,
-            hashtags: captionData.hashtags || [],
+            hashtags: generatedHashtagsFromCaption,
             imageUrl: imageData.imageUrl,
           })
         } catch {
@@ -199,6 +184,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
     },
     [
       generatedCaption,
+      generatedHashtagsFromCaption,
       generationSteps,
       initSteps,
       onStepChange,
@@ -546,6 +532,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
    */
   const resetGeneration = useCallback(() => {
     setGeneratedCaption('')
+    setGeneratedHashtagsFromCaption([])
     setGeneratedResult(null)
     setSavedPostId(null)
     resetSteps()

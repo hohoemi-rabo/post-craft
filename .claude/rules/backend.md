@@ -178,9 +178,15 @@ const { error } = await supabase.storage
 全テーブルで RLS 有効化必須:
 ```sql
 -- ユーザーは自分のデータのみアクセス可
+-- 注意: auth.uid() は (select auth.uid()) でラップすること（行ごとの再評価防止）
 CREATE POLICY "Users can CRUD own data" ON posts
-  FOR ALL USING (auth.uid()::text = user_id::text);
+  FOR ALL USING ((select auth.uid())::text = user_id::text);
 ```
+
+**RLS ベストプラクティス**:
+- `(select auth.uid())` を使用（サブクエリでキャッシュされ、行ごとの再評価を防止）
+- service_role は自動的に RLS をバイパスするため、service_role 用ポリシーは不要
+- 新規テーブル作成時は必ず `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` を実行
 
 ## 認証 (NextAuth.js)
 

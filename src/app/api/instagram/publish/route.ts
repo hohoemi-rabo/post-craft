@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase'
 import { createMediaContainer, waitAndPublish } from '@/lib/instagram'
 import { IMAGE_UPLOAD } from '@/lib/constants'
+import { requireAuth } from '@/lib/api-utils'
 
 export const maxDuration = 60 // Allow up to 60 seconds for publishing
 
@@ -24,6 +25,9 @@ async function publishToInstagram(
 }
 
 export async function POST(request: Request) {
+  const { error: authError } = await requireAuth()
+  if (authError) return authError
+
   try {
     const contentType = request.headers.get('content-type') || ''
 

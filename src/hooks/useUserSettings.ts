@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { UserSettings } from '@/types/user-settings'
 import { TOTAL_HASHTAG_COUNT } from '@/lib/constants'
 
@@ -61,15 +61,8 @@ export function useUserSettings() {
     await fetchSettings()
   }, [fetchSettings])
 
-  const requiredHashtags = useMemo(
-    () => settings?.requiredHashtags ?? [],
-    [settings]
-  )
-
-  const generatedHashtagCount = useMemo(
-    () => TOTAL_HASHTAG_COUNT - requiredHashtags.length,
-    [requiredHashtags]
-  )
+  const requiredHashtags = settings?.requiredHashtags ?? []
+  const generatedHashtagCount = TOTAL_HASHTAG_COUNT - requiredHashtags.length
 
   return {
     settings,
