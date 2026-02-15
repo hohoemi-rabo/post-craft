@@ -236,12 +236,12 @@ export async function requireAnalysisOwnership(analysisId: string, userId: strin
 
 ## TODO
 
-- [ ] `src/app/api/analysis/route.ts` を作成（GET: 一覧, POST: 作成）
-- [ ] `src/app/api/analysis/[id]/route.ts` を作成（GET: 詳細, DELETE: 削除）
-- [ ] `src/app/api/analysis/[id]/status/route.ts` を作成（GET: ステータス）
-- [ ] `src/lib/api-utils.ts` に `requireAnalysisOwnership` を追加
-- [ ] `api-utils.ts` の `TableName` 型に `competitor_analyses` が含まれることを確認
-- [ ] バリデーションのテスト（不正な `sourceType`、必須フィールド欠落）
-- [ ] ページネーションの動作確認
-- [ ] 所有権チェックの動作確認（他ユーザーの分析にアクセス不可）
-- [ ] `npm run build` 成功を確認
+- [x] `src/app/api/analysis/route.ts` を作成（GET: 一覧, POST: 作成）
+- [x] `src/app/api/analysis/[id]/route.ts` を作成（GET: 詳細, DELETE: 削除）
+- [x] `src/app/api/analysis/[id]/status/route.ts` を作成（GET: ステータス）
+- [x] `src/lib/api-utils.ts` に `requireAnalysisOwnership` を追加
+- [x] `api-utils.ts` の `TableName` 型に `competitor_analyses` が含まれることを確認
+- [x] バリデーションのテスト（不正な `sourceType`、必須フィールド欠落）
+- [x] ページネーションの動作確認
+- [x] 所有権チェックの動作確認（他ユーザーの分析にアクセス不可）
+- [x] `npm run build` 成功を確認

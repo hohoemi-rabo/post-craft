@@ -6,6 +6,7 @@ import type { Database } from '@/types/supabase'
 type TableName = keyof Database['public']['Tables']
 type PostTypeRow = Database['public']['Tables']['post_types']['Row']
 type ProfileRow = Database['public']['Tables']['profiles']['Row']
+type CompetitorAnalysisRow = Database['public']['Tables']['competitor_analyses']['Row']
 
 /**
  * API認証チェック
@@ -108,4 +109,16 @@ export async function requirePostTypeOwnership(postTypeId: string, userId: strin
   )
   if (result.error) return { error: result.error, postType: null }
   return { error: null, postType: result.data }
+}
+
+/**
+ * 分析の所有権チェック
+ * 分析が存在しないか、所有者でない場合はエラーレスポンスを返す
+ */
+export async function requireAnalysisOwnership(analysisId: string, userId: string) {
+  const result = await checkOwnership<CompetitorAnalysisRow>(
+    'competitor_analyses', analysisId, userId, '*', 'Analysis'
+  )
+  if (result.error) return { error: result.error, analysis: null }
+  return { error: null, analysis: result.data }
 }
