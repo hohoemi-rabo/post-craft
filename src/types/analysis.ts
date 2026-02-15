@@ -117,6 +117,18 @@ export interface BlogAnalysisResult {
 }
 
 /**
+ * 分析結果から自動生成されるプロフィールデータ
+ */
+export interface GeneratedProfile {
+  name: string              // 例: '〇〇和菓子店 Instagram'
+  icon: string              // 絵文字アイコン
+  description: string       // プロフィール説明文
+  system_prompt_memo: string  // 分析サマリーをメモとして保存
+  system_prompt: string     // AI用システムプロンプト
+  required_hashtags: string[]  // 必須ハッシュタグ（#記号なし）
+}
+
+/**
  * CSV パース結果
  */
 export interface CsvParseResult {

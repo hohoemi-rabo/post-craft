@@ -158,13 +158,13 @@ function buildProfileGenerationPrompt(
 
 ## TODO
 
-- [ ] `src/types/analysis.ts` に `GeneratedProfile` 型を追加
-- [ ] `src/lib/generation-prompts.ts` を新規作成
-- [ ] `generateProfile()` 関数を実装
-- [ ] `buildProfileGenerationPrompt()` プロンプト構築関数を実装
-- [ ] Instagram分析のみのケースをテスト
-- [ ] ブログ分析のみのケースをテスト
-- [ ] 両方の分析結果を渡すケースをテスト
-- [ ] JSON パース失敗時のリトライロジックを実装
-- [ ] バリデーション（文字数チェック、配列長チェック）を実装
-- [ ] `npm run build` 成功を確認
+- [x] `src/types/analysis.ts` に `GeneratedProfile` 型を追加
+- [x] `src/lib/generation-prompts.ts` を新規作成
+- [x] `generateProfile()` 関数を実装
+- [x] `buildProfileGenerationPrompt()` プロンプト構築関数を実装
+- [ ] Instagram分析のみのケースをテスト（実データで検証予定）
+- [ ] ブログ分析のみのケースをテスト（実データで検証予定）
+- [ ] 両方の分析結果を渡すケースをテスト（実データで検証予定）
+- [x] JSON パース失敗時のリトライロジックを実装 → `generateWithRetry(prompt, 3, 60000)` で3回リトライ
+- [x] バリデーション → プロンプト内で文字数・配列長を指定（300〜600文字、3〜5個）
+- [x] `npm run build` 成功を確認
