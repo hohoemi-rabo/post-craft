@@ -278,14 +278,16 @@ function getStepTextClass(status: string): string {
 
 ## TODO
 
-- [ ] `src/hooks/useAnalysisProgress.ts` を新規作成
-- [ ] ポーリングロジックの実装（2秒間隔、自動停止）
-- [ ] ステータス → ステップ状態のマッピングロジック実装
-- [ ] ステータス → 進捗率の計算ロジック実装
-- [ ] `src/components/analysis/analysis-progress.tsx` を更新（#52 の雛形を拡充）
-- [ ] `StepIcon` コンポーネントの実装
-- [ ] プログレスバーの実装（CSS transition）
-- [ ] 完了時の自動遷移実装（3秒後に `/analysis/[id]`）
-- [ ] エラー表示 + 再試行ボタンの実装
-- [ ] 両方のソース指定時の複数ID追跡テスト
-- [ ] クリーンアップ処理（アンマウント時のインターバル解除）
+- [x] ポーリングロジックの実装（2秒間隔、最大3分タイムアウト、自動停止）
+- [x] ステータス → ステップ状態のマッピングロジック実装（completed/failed/analyzing）
+- [x] `src/components/analysis/analysis-progress.tsx` を更新（最終ステップをAI分析ポーリングに置換）
+- [x] StepIcon は既存の丸アイコンパターンを継続使用（✓/⋯/!/○）
+- [x] 完了時の自動遷移実装（1.5秒後に `/analysis/[id]`）
+- [x] ヘッダーに完了状態表示（「分析が完了しました」+ 遷移メッセージ）
+- [x] エラー表示 + やり直しボタン（既存のまま）
+- [x] 両方のソース指定時の複数ID追跡（Promise.all でポーリング）
+- [x] クリーンアップ処理（abortRef でポーリングループ中断）
+- [x] `npm run build` 成功
+- [x] `useAnalysisProgress.ts` フック → コンポーネント内に統合（分離不要と判断）
+- [x] プログレスバー → 不採用（AI分析は1回のプロンプトで4要素同時抽出、途中経過は存在しない）
+- [x] サブステップ表示 → 不採用（偽の進捗は誤解を招く）

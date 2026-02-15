@@ -17,6 +17,7 @@ interface ProgressStep {
 export function AnalysisProgress({ config, onComplete }: AnalysisProgressProps) {
   const [steps, setSteps] = useState<ProgressStep[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [isCompleted, setIsCompleted] = useState(false)
   const abortRef = useRef(false)
 
   const hasInstagram = config.sourceTypes.includes('instagram')
@@ -39,7 +40,7 @@ export function AnalysisProgress({ config, onComplete }: AnalysisProgressProps) 
       }
       initialSteps.push({ label: 'ブログ記事を取得中...', status: 'pending' })
     }
-    initialSteps.push({ label: 'データ処理を完了しています...', status: 'pending' })
+    initialSteps.push({ label: 'AI分析を待機中...', status: 'pending' })
     setSteps(initialSteps)
 
     let stepIndex = 0
@@ -178,15 +179,63 @@ export function AnalysisProgress({ config, onComplete }: AnalysisProgressProps) 
 
       if (abortRef.current) return
 
-      // ─── 完了 ───
-      updateStep(stepIndex, { status: 'completed', label: 'データ処理が完了しました' })
+      // ─── AI 分析ポーリング ───
+      const analysisIdsToTrack = [igAnalysisId, blogAnalysisId].filter(Boolean) as string[]
 
-      // primaryAnalysisId で結果ページへ遷移
+      updateStep(stepIndex, { status: 'in-progress', label: 'AIが分析しています...' })
+
+      const pollAnalysis = async (): Promise<void> => {
+        const maxPolls = 90 // 最大3分（2秒 × 90 = 180秒）
+        let pollCount = 0
+
+        while (pollCount < maxPolls && !abortRef.current) {
+          await new Promise(r => setTimeout(r, 2000))
+          pollCount++
+          if (abortRef.current) return
+
+          const statuses = await Promise.all(
+            analysisIdsToTrack.map(async (id) => {
+              const res = await fetch(`/api/analysis/${id}/status`)
+              if (!res.ok) throw new Error('ステータスの取得に失敗しました')
+              return res.json()
+            })
+          )
+
+          const allCompleted = statuses.every((s: { status: string }) => s.status === 'completed')
+          const failed = statuses.find((s: { status: string }) => s.status === 'failed') as { error_message?: string } | undefined
+
+          if (failed) {
+            throw new Error(failed.error_message || 'AI分析に失敗しました')
+          }
+
+          if (allCompleted) {
+            updateStep(stepIndex, { status: 'completed', label: 'AI分析が完了しました' })
+            return
+          }
+
+          // analyzing 中は経過表示を更新
+          const elapsed = pollCount * 2
+          updateStep(stepIndex, {
+            status: 'in-progress',
+            label: 'AIが分析しています...',
+            detail: `経過時間: ${elapsed}秒`,
+          })
+        }
+
+        if (!abortRef.current) {
+          throw new Error('分析がタイムアウトしました')
+        }
+      }
+
+      await pollAnalysis()
+
+      // 完了 → 遷移
+      setIsCompleted(true)
       const finalId = igAnalysisId || blogAnalysisId
-      if (finalId) {
+      if (finalId && !abortRef.current) {
         setTimeout(() => {
           if (!abortRef.current) onComplete(finalId)
-        }, 1000)
+        }, 1500)
       }
     } catch (err) {
       if (abortRef.current) return
@@ -212,7 +261,18 @@ export function AnalysisProgress({ config, onComplete }: AnalysisProgressProps) 
     <div className="max-w-lg mx-auto">
       {/* ヘッダー */}
       <div className="text-center mb-10">
-        {!error ? (
+        {error ? (
+          <>
+            <div className="text-4xl mb-4">⚠️</div>
+            <h2 className="text-xl font-bold text-white">エラーが発生しました</h2>
+          </>
+        ) : isCompleted ? (
+          <>
+            <div className="text-4xl mb-4">📊</div>
+            <h2 className="text-xl font-bold text-white">分析が完了しました</h2>
+            <p className="text-sm text-green-400 mt-1">結果ページへ遷移します...</p>
+          </>
+        ) : (
           <>
             <div className="relative inline-block mb-4">
               <div className="text-4xl">📊</div>
@@ -220,11 +280,6 @@ export function AnalysisProgress({ config, onComplete }: AnalysisProgressProps) 
             </div>
             <h2 className="text-xl font-bold text-white">分析を実行しています</h2>
             <p className="text-sm text-white/50 mt-1">しばらくお待ちください...</p>
-          </>
-        ) : (
-          <>
-            <div className="text-4xl mb-4">⚠️</div>
-            <h2 className="text-xl font-bold text-white">エラーが発生しました</h2>
           </>
         )}
       </div>

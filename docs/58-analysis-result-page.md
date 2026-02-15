@@ -431,15 +431,16 @@ function SummarySection({
 
 ## TODO
 
-- [ ] `src/app/(dashboard)/analysis/[id]/page.tsx` を新規作成（Server Component）
-- [ ] `src/components/analysis/analysis-report.tsx` を新規作成
-- [ ] `src/components/analysis/post-type-chart.tsx` を新規作成（CSSベース横棒グラフ）
-- [ ] `src/components/analysis/tone-display.tsx` を新規作成（キー・バリュー + フレーズリスト）
-- [ ] `src/components/analysis/hashtag-display.tsx` を新規作成（カテゴリ別タグクラウド）
-- [ ] `src/components/analysis/posting-pattern.tsx` を新規作成（曜日別 + 時間帯表示）
-- [ ] `SummarySection` コンポーネントを実装（サマリー + 成功要因）
-- [ ] `SourceTypeBadge` コンポーネントを実装（Instagram/ブログ）
-- [ ] `InfoItem` 共通コンポーネントを実装（ラベル + 値）
-- [ ] ブログ分析結果の表示対応（基本レイアウト）
-- [ ] レスポンシブデザインの実装（モバイル: 1カラム、md以上: 2カラムグリッド）
-- [ ] ダークテーマの配色を既存UIと統一
+- [x] `src/app/(dashboard)/analysis/[id]/page.tsx` を新規作成（Server Component）
+- [x] `src/components/analysis/analysis-report.tsx` を新規作成
+- [x] `src/components/analysis/post-type-chart.tsx` を新規作成（CSSベース横棒グラフ）
+- [x] `src/components/analysis/tone-display.tsx` を新規作成（キー・バリュー + フレーズリスト）
+- [x] `src/components/analysis/hashtag-display.tsx` を新規作成（カテゴリ別タグクラウド）
+- [x] `src/components/analysis/posting-pattern.tsx` を新規作成（曜日別 + 時間帯表示）
+- [x] `SummarySection` コンポーネントを実装（サマリー + 成功要因）→ analysis-report.tsx 内に配置
+- [x] `SourceTypeBadge` コンポーネントを実装（Instagram/ブログ）→ page.tsx 内にインライン実装
+- [x] `InfoItem` 共通コンポーネントを実装（ラベル + 値）→ analysis-report.tsx からエクスポート
+- [x] ブログ分析結果の表示対応（基本レイアウト: content_strengths, reusable_content, profile_material）
+- [x] レスポンシブデザインの実装（モバイル: 1カラム、md以上: 2カラムグリッド）
+- [x] ダークテーマの配色を既存UIと統一
+- [x] `npm run build` 成功

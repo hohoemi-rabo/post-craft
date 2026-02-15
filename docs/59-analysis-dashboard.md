@@ -306,14 +306,15 @@ SPEC-PHASE4.md セクション 6.3 に従い、サイドバーに「分析」メ
 
 ## TODO
 
-- [ ] `src/app/(dashboard)/analysis/page.tsx` を新規作成（Server Component + Suspense）
-- [ ] `src/components/analysis/analysis-list.tsx` を新規作成（Server async Component）
-- [ ] `src/components/analysis/analysis-card.tsx` を新規作成（Server Component）
-- [ ] `src/components/analysis/analysis-skeleton.tsx` を新規作成
-- [ ] `StatusBadge` コンポーネントを実装（4状態）
-- [ ] `SourceTypeBadge` コンポーネントを実装（Instagram/ブログ）
-- [ ] 空状態の表示を実装
-- [ ] サイドバーに「🔍 分析」メニューを追加
-- [ ] 分析一覧の降順ソート（作成日時）を確認
-- [ ] レスポンシブグリッドの実装（1/2/3カラム）
-- [ ] ダークテーマの配色を既存UIと統一
+- [x] `src/app/(dashboard)/analysis/page.tsx` を新規作成（Server Component + Suspense）
+- [x] `src/components/analysis/analysis-list.tsx` を新規作成（Server async Component）
+- [x] `src/components/analysis/analysis-card.tsx` を新規作成（Server Component）
+- [x] `src/components/analysis/analysis-skeleton.tsx` を新規作成
+- [x] `StatusBadge` コンポーネントを実装（4状態: pending/analyzing/completed/failed）
+- [x] `SourceTypeBadge` コンポーネントを実装（Instagram: 紫、Blog: 緑）
+- [x] 空状態の表示を実装（「まだ分析がありません」+ CTA）
+- [x] サイドバーに「🔍 分析」メニューを追加 → 既に追加済み（sidebar.tsx, mobile-nav.tsx）
+- [x] 分析一覧の降順ソート（作成日時）を確認
+- [x] レスポンシブグリッドの実装（1/2/3カラム）
+- [x] ダークテーマの配色を既存UIと統一
+- [x] `npm run build` 成功
