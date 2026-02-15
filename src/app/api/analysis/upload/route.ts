@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth, requireAnalysisOwnership } from '@/lib/api-utils'
 import { createServerClient } from '@/lib/supabase'
 import { parseBrightDataFile } from '@/lib/csv-parser'
+import { executeAnalysis } from '@/lib/analysis-executor'
 import type { Json } from '@/types/supabase'
 
 export async function POST(request: NextRequest) {
@@ -51,6 +52,11 @@ export async function POST(request: NextRequest) {
       console.error('Failed to save parse result:', updateError)
       return NextResponse.json({ error: 'データの保存に失敗しました' }, { status: 500 })
     }
+
+    // AI 分析をバックグラウンドで実行（fire-and-forget）
+    executeAnalysis(analysisId).catch((err) => {
+      console.error(`Background analysis ${analysisId} failed:`, err)
+    })
 
     return NextResponse.json({
       success: true,

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth, requireAnalysisOwnership } from '@/lib/api-utils'
 import { createServerClient } from '@/lib/supabase'
 import { crawlBlog } from '@/lib/blog-crawler'
+import { executeAnalysis } from '@/lib/analysis-executor'
 import type { Json } from '@/types/supabase'
 
 export const maxDuration = 300
@@ -77,6 +78,11 @@ export async function POST(request: NextRequest) {
       console.error('Failed to save crawl result:', updateError)
       return NextResponse.json({ error: 'データの保存に失敗しました' }, { status: 500 })
     }
+
+    // AI 分析をバックグラウンドで実行（fire-and-forget）
+    executeAnalysis(analysisId).catch((err) => {
+      console.error(`Background analysis ${analysisId} failed:`, err)
+    })
 
     return NextResponse.json({
       success: true,

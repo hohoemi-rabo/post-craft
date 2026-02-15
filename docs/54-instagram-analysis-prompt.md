@@ -181,11 +181,11 @@ function validateInstagramAnalysisResult(
 
 ## TODO
 
-- [ ] `src/types/analysis.ts` に `InstagramPostData`, `InstagramProfileData`, `InstagramAnalysisResult` 型を定義
-- [ ] `src/lib/analysis-prompts.ts` を新規作成
-- [ ] `buildInstagramAnalysisPrompt()` プロンプト構築関数を実装
-- [ ] `analyzeInstagramPosts()` 分析実行関数を実装
-- [ ] `validateInstagramAnalysisResult()` バリデーション関数を実装
-- [ ] 投稿データが大量の場合のトリミングロジックを実装（100件 + エンゲージメント上位20件）
+- [x] `src/types/analysis.ts` に `InstagramPostData`, `InstagramProfileData`, `InstagramAnalysisResult` 型を定義（#50 で実施済み）
+- [x] `src/lib/analysis-prompts.ts` を新規作成
+- [x] `buildInstagramAnalysisPrompt()` プロンプト構築関数を実装
+- [x] `analyzeInstagramPosts()` 分析実行関数を実装
+- [x] `validateInstagramAnalysisResult()` バリデーション関数を実装
+- [x] 投稿データが大量の場合のトリミングロジックを実装（100件 + エンゲージメント上位20件）
 - [ ] 実データ（Bright Data CSV）でのプロンプトチューニング
 - [ ] エラーケースのテスト（不正JSON、空データ、タイムアウト）

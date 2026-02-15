@@ -248,12 +248,13 @@ export const maxDuration = 60 // 秒
 
 ## TODO
 
-- [ ] `src/lib/analysis-executor.ts` を新規作成
-- [ ] `executeAnalysis()` 関数を実装（ソースタイプ分岐 + エラーハンドリング）
-- [ ] `updateAnalysisStatus()` ヘルパー関数を実装
-- [ ] `POST /api/analysis` にレコード作成 + fire-and-forget 実行を統合
-- [ ] `GET /api/analysis/[id]/status` ステータスポーリングAPIを作成
-- [ ] 両方のソース同時分析のフローを実装・テスト
-- [ ] `raw_data` が存在しない場合のエラーハンドリング
+- [x] `src/lib/analysis-executor.ts` を新規作成
+- [x] `executeAnalysis()` 関数を実装（ソースタイプ分岐 + エラーハンドリング）
+- [x] `updateAnalysisStatus()` ヘルパー関数を実装
+- [x] `POST /api/analysis/upload` に fire-and-forget 実行を統合
+- [x] `POST /api/analysis/blog-crawl` に fire-and-forget 実行を統合
+- [x] `GET /api/analysis/[id]/status` ステータスポーリングAPI（#49 で作成済み）
+- [x] 両方のソース同時分析のフロー（各ルートで個別に executeAnalysis が呼ばれる）
+- [x] `raw_data` が存在しない場合のエラーハンドリング
 - [ ] Vercel デプロイ時の `maxDuration` 設定を確認
 - [ ] fire-and-forget パターンの動作検証（Vercel 環境での制約確認）

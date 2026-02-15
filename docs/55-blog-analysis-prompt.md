@@ -207,11 +207,11 @@ SNS転用可能なネタの `suggested_post_type` は、PostCraftのビルトイ
 
 ## TODO
 
-- [ ] `src/types/analysis.ts` に `BlogPostData`, `BlogAnalysisInput`, `BlogAnalysisResult` 型を追加
-- [ ] `src/lib/analysis-prompts.ts` に `buildBlogAnalysisPrompt()` プロンプト構築関数を実装
-- [ ] `prepareBlogDataForPrompt()` トリミング関数を実装（50記事、本文500文字）
-- [ ] `analyzeBlogPosts()` 分析実行関数を実装
-- [ ] `validateBlogAnalysisResult()` バリデーション関数を実装
-- [ ] PostCraftビルトインタイプへのマッピング表をプロンプトに組み込み
+- [x] `src/types/analysis.ts` に `BlogPostData`, `BlogAnalysisInput`, `BlogAnalysisResult` 型を追加（#50 で実施済み）
+- [x] `src/lib/analysis-prompts.ts` に `buildBlogAnalysisPrompt()` プロンプト構築関数を実装
+- [x] `prepareBlogDataForPrompt()` トリミング関数を実装（50記事、本文500文字）
+- [x] `analyzeBlogPosts()` 分析実行関数を実装
+- [x] `validateBlogAnalysisResult()` バリデーション関数を実装
+- [x] PostCraftビルトインタイプへのマッピング表をプロンプトに組み込み
 - [ ] 実データ（ブログ記事）でのプロンプトチューニング
 - [ ] エラーケースのテスト（不正JSON、空データ、記事0件）
