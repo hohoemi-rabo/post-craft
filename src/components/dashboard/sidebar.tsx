@@ -14,6 +14,7 @@ const navItems: NavItem[] = [
   { href: '/dashboard', label: 'ダッシュボード', icon: '🏠' },
   { href: '/create', label: '新規作成', icon: '✏️' },
   { href: '/history', label: '投稿履歴', icon: '📋' },
+  { href: '/analysis', label: '分析', icon: '🔍' },
   { href: '/characters', label: 'キャラクター', icon: '👤' },
   {
     href: '/settings',

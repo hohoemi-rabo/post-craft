@@ -86,12 +86,12 @@ export const config = {
 
 ## TODO
 
-- [ ] `src/components/dashboard/sidebar.tsx` の `navItems` に分析メニューを追加
-- [ ] `src/components/dashboard/mobile-nav.tsx` の `navItems` に分析メニューを追加
-- [ ] モバイルナビで6アイテムのレイアウトを確認・調整
-- [ ] `middleware.ts` の `matcher` に `/analysis/:path*` を追加
-- [ ] デスクトップのサイドバー表示確認（アクティブ状態含む）
-- [ ] モバイルナビの表示確認（各画面幅）
-- [ ] 未認証アクセスのリダイレクト動作確認
-- [ ] 既存ナビゲーションへの影響がないことを確認
-- [ ] `npm run build` 成功を確認
+- [x] `src/components/dashboard/sidebar.tsx` の `navItems` に分析メニューを追加
+- [x] `src/components/dashboard/mobile-nav.tsx` の `navItems` に分析メニューを追加
+- [x] モバイルナビで6アイテムのレイアウトを確認・調整
+- [x] `middleware.ts` の `matcher` に `/analysis/:path*` を追加（#52 で実施済み）
+- [x] デスクトップのサイドバー表示確認（アクティブ状態含む）
+- [x] モバイルナビの表示確認（各画面幅）
+- [x] 未認証アクセスのリダイレクト動作確認
+- [x] 既存ナビゲーションへの影響がないことを確認
+- [x] `npm run build` 成功を確認
