@@ -415,16 +415,16 @@ export async function POST(request: NextRequest) {
 
 ## TODO
 
-- [ ] `src/lib/blog-crawler.ts` を作成
-- [ ] sitemap.xml パース戦略の実装（sitemap index の再帰取得含む）
-- [ ] RSS/Atom フィードパース戦略の実装
-- [ ] リンク巡回戦略の実装（記事URLフィルタリング）
-- [ ] 記事本文抽出の実装（JSDOM + Readability、既存ロジック再利用）
-- [ ] 同時接続数制限付き並列処理の実装
-- [ ] 公開日・カテゴリ・タグの抽出ロジック
-- [ ] URL正規化、タイムアウト付きfetchの実装
-- [ ] `src/app/api/analysis/blog-crawl/route.ts` を作成
-- [ ] バリデーション（URL、analysisId）
-- [ ] ステータス遷移の管理（analyzing → pending / failed）
-- [ ] エラーハンドリング（タイムアウト、ネットワークエラー、パースエラー）
-- [ ] `npm run build` 成功を確認
+- [x] `src/lib/blog-crawler.ts` を作成
+- [x] sitemap.xml パース戦略の実装（sitemap index の再帰取得含む）
+- [x] RSS/Atom フィードパース戦略の実装
+- [x] リンク巡回戦略の実装（記事URLフィルタリング）
+- [x] 記事本文抽出の実装（JSDOM + Readability、既存ロジック再利用）
+- [x] 同時接続数制限付き並列処理の実装
+- [x] 公開日・カテゴリ・タグの抽出ロジック
+- [x] URL正規化、タイムアウト付きfetchの実装
+- [x] `src/app/api/analysis/blog-crawl/route.ts` を作成
+- [x] バリデーション（URL、analysisId）
+- [x] ステータス遷移の管理（analyzing → pending / failed）
+- [x] エラーハンドリング（タイムアウト、ネットワークエラー、パースエラー）
+- [x] `npm run build` 成功を確認
