@@ -22,5 +22,6 @@ export const config = {
     '/history/:path*',
     '/characters/:path*',
     '/settings/:path*',
+    '/analysis/:path*',
   ],
 }

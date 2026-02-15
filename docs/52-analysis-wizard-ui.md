@@ -392,19 +392,19 @@ src/
 
 ## TODO
 
-- [ ] `src/app/(dashboard)/analysis/new/page.tsx` を作成
-- [ ] `src/components/analysis/analysis-wizard.tsx` を作成（ステップ管理 + プログレスバー）
-- [ ] `src/components/analysis/source-selector.tsx` を作成（3つのソース選択カード）
-- [ ] `src/components/analysis/data-input-form.tsx` を作成
-  - [ ] Instagram フォーム（アカウント名 + ファイルアップロード）
-  - [ ] ブログフォーム（URL + ブログ名）
-  - [ ] ドラッグ&ドロップ UI
-  - [ ] ファイルバリデーション（形式、サイズ）
-- [ ] `src/components/analysis/analysis-progress.tsx` を作成
-  - [ ] 分析レコード作成（POST /api/analysis）
-  - [ ] ファイルアップロード（POST /api/analysis/upload）
-  - [ ] ブログクロール（POST /api/analysis/blog-crawl）
-  - [ ] ステータスポーリング（GET /api/analysis/[id]/status、2秒間隔）
-  - [ ] 完了・エラーハンドリング
-- [ ] レスポンシブデザインの実装（モバイルファースト）
-- [ ] `npm run build` 成功を確認
+- [x] `src/app/(dashboard)/analysis/new/page.tsx` を作成
+- [x] `src/components/analysis/analysis-wizard.tsx` を作成（ステップ管理 + プログレスバー）
+- [x] `src/components/analysis/source-selector.tsx` を作成（3つのソース選択カード）
+- [x] `src/components/analysis/data-input-form.tsx` を作成
+  - [x] Instagram フォーム（アカウント名 + ファイルアップロード）
+  - [x] ブログフォーム（URL + ブログ名）
+  - [x] ドラッグ&ドロップ UI
+  - [x] ファイルバリデーション（形式、サイズ）
+- [x] `src/components/analysis/analysis-progress.tsx` を作成
+  - [x] 分析レコード作成（POST /api/analysis）
+  - [x] ファイルアップロード（POST /api/analysis/upload）
+  - [x] ブログクロール（POST /api/analysis/blog-crawl）
+  - [x] ステータスポーリング（GET /api/analysis/[id]/status、2秒間隔）
+  - [x] 完了・エラーハンドリング
+- [x] レスポンシブデザインの実装（モバイルファースト）
+- [x] `npm run build` 成功を確認

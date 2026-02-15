@@ -1,0 +1,286 @@
+'use client'
+
+import { useState, useEffect, useRef, useCallback } from 'react'
+import type { AnalysisConfig } from './analysis-wizard'
+
+interface AnalysisProgressProps {
+  config: AnalysisConfig
+  onComplete: (analysisId: string) => void
+}
+
+interface ProgressStep {
+  label: string
+  status: 'pending' | 'in-progress' | 'completed' | 'error'
+  detail?: string
+}
+
+export function AnalysisProgress({ config, onComplete }: AnalysisProgressProps) {
+  const [steps, setSteps] = useState<ProgressStep[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const abortRef = useRef(false)
+
+  const hasInstagram = config.sourceTypes.includes('instagram')
+  const hasBlog = config.sourceTypes.includes('blog')
+
+  const updateStep = useCallback((index: number, update: Partial<ProgressStep>) => {
+    setSteps(prev => prev.map((s, i) => i === index ? { ...s, ...update } : s))
+  }, [])
+
+  const startAnalysis = useCallback(async () => {
+    // 進捗ステップを初期化
+    const initialSteps: ProgressStep[] = []
+    if (hasInstagram) {
+      initialSteps.push({ label: '分析レコードを作成中...', status: 'pending' })
+      initialSteps.push({ label: 'ファイルをアップロード中...', status: 'pending' })
+    }
+    if (hasBlog) {
+      if (!hasInstagram) {
+        initialSteps.push({ label: '分析レコードを作成中...', status: 'pending' })
+      }
+      initialSteps.push({ label: 'ブログ記事を取得中...', status: 'pending' })
+    }
+    initialSteps.push({ label: 'データ処理を完了しています...', status: 'pending' })
+    setSteps(initialSteps)
+
+    let stepIndex = 0
+    let igAnalysisId: string | null = null
+    let blogAnalysisId: string | null = null
+
+    try {
+      // ─── Instagram フロー ───
+      if (hasInstagram && config.instagram) {
+        // 1. 分析レコード作成
+        updateStep(stepIndex, { status: 'in-progress' })
+        const createRes = await fetch('/api/analysis', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sourceType: 'instagram',
+            sourceIdentifier: config.instagram.accountName,
+            sourceDisplayName: `@${config.instagram.accountName}`,
+            dataSource: 'upload',
+          }),
+        })
+
+        if (!createRes.ok) {
+          throw new Error('Instagram 分析レコードの作成に失敗しました')
+        }
+
+        const createData = await createRes.json()
+        igAnalysisId = createData.id
+        // igAnalysisId will be used as finalId
+        updateStep(stepIndex, { status: 'completed', label: '分析レコードを作成しました' })
+        stepIndex++
+
+        if (abortRef.current) return
+
+        // 2. ファイルアップロード
+        updateStep(stepIndex, { status: 'in-progress' })
+        const formData = new FormData()
+        formData.append('file', config.instagram.file!)
+        formData.append('analysisId', igAnalysisId!)
+
+        const uploadRes = await fetch('/api/analysis/upload', {
+          method: 'POST',
+          body: formData,
+        })
+
+        if (!uploadRes.ok) {
+          const uploadData = await uploadRes.json()
+          throw new Error(uploadData.error || 'ファイルのアップロードに失敗しました')
+        }
+
+        const uploadData = await uploadRes.json()
+        updateStep(stepIndex, {
+          status: 'completed',
+          label: 'ファイルをアップロードしました',
+          detail: `${uploadData.postCount}件の投稿を検出`,
+        })
+        stepIndex++
+      }
+
+      if (abortRef.current) return
+
+      // ─── ブログ フロー ───
+      if (hasBlog && config.blog) {
+        // 1. 分析レコード作成（Instagram フローがなかった場合のみ）
+        if (!hasInstagram) {
+          updateStep(stepIndex, { status: 'in-progress' })
+          const createRes = await fetch('/api/analysis', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              sourceType: 'blog',
+              sourceIdentifier: config.blog.blogUrl,
+              sourceDisplayName: config.blog.blogName || config.blog.blogUrl,
+              dataSource: 'crawl',
+            }),
+          })
+
+          if (!createRes.ok) {
+            throw new Error('ブログ分析レコードの作成に失敗しました')
+          }
+
+          const createData = await createRes.json()
+          blogAnalysisId = createData.id
+          // blogAnalysisId will be used as finalId
+          updateStep(stepIndex, { status: 'completed', label: '分析レコードを作成しました' })
+          stepIndex++
+        } else {
+          // Instagram と合わせる場合、ブログも別レコード
+          const createRes = await fetch('/api/analysis', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              sourceType: 'blog',
+              sourceIdentifier: config.blog.blogUrl,
+              sourceDisplayName: config.blog.blogName || config.blog.blogUrl,
+              dataSource: 'crawl',
+            }),
+          })
+
+          if (!createRes.ok) {
+            throw new Error('ブログ分析レコードの作成に失敗しました')
+          }
+
+          const createData = await createRes.json()
+          blogAnalysisId = createData.id
+        }
+
+        if (abortRef.current) return
+
+        // 2. ブログクロール
+        updateStep(stepIndex, { status: 'in-progress', label: 'ブログ記事を取得中...（数分かかる場合があります）' })
+
+        const crawlRes = await fetch('/api/analysis/blog-crawl', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            blogUrl: config.blog.blogUrl,
+            blogName: config.blog.blogName,
+            analysisId: blogAnalysisId,
+          }),
+        })
+
+        if (!crawlRes.ok) {
+          const crawlData = await crawlRes.json()
+          throw new Error(crawlData.error || 'ブログのクロールに失敗しました')
+        }
+
+        const crawlData = await crawlRes.json()
+        updateStep(stepIndex, {
+          status: 'completed',
+          label: 'ブログ記事を取得しました',
+          detail: `${crawlData.postCount}件の記事を取得（${crawlData.strategy}）`,
+        })
+        stepIndex++
+      }
+
+      if (abortRef.current) return
+
+      // ─── 完了 ───
+      updateStep(stepIndex, { status: 'completed', label: 'データ処理が完了しました' })
+
+      // primaryAnalysisId で結果ページへ遷移
+      const finalId = igAnalysisId || blogAnalysisId
+      if (finalId) {
+        setTimeout(() => {
+          if (!abortRef.current) onComplete(finalId)
+        }, 1000)
+      }
+    } catch (err) {
+      if (abortRef.current) return
+      const message = err instanceof Error ? err.message : '分析処理に失敗しました'
+      setError(message)
+      // 現在進行中のステップをエラーに
+      setSteps(prev =>
+        prev.map(s => s.status === 'in-progress' ? { ...s, status: 'error' } : s)
+      )
+    }
+  }, [config, hasInstagram, hasBlog, updateStep, onComplete])
+
+  useEffect(() => {
+    abortRef.current = false
+    startAnalysis()
+
+    return () => {
+      abortRef.current = true
+    }
+  }, [startAnalysis])
+
+  return (
+    <div className="max-w-lg mx-auto">
+      {/* ヘッダー */}
+      <div className="text-center mb-10">
+        {!error ? (
+          <>
+            <div className="relative inline-block mb-4">
+              <div className="text-4xl">📊</div>
+              <div className="absolute inset-0 animate-ping opacity-20 text-4xl">📊</div>
+            </div>
+            <h2 className="text-xl font-bold text-white">分析を実行しています</h2>
+            <p className="text-sm text-white/50 mt-1">しばらくお待ちください...</p>
+          </>
+        ) : (
+          <>
+            <div className="text-4xl mb-4">⚠️</div>
+            <h2 className="text-xl font-bold text-white">エラーが発生しました</h2>
+          </>
+        )}
+      </div>
+
+      {/* 進捗ステップ */}
+      <div className="space-y-3">
+        {steps.map((progressStep, index) => (
+          <div
+            key={index}
+            className={`flex items-start gap-3 p-3 rounded-xl transition-colors ${
+              progressStep.status === 'in-progress' ? 'bg-white/5' : ''
+            }`}
+          >
+            {/* ステータスアイコン */}
+            <div className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-xs mt-0.5 ${
+              progressStep.status === 'completed' ? 'bg-green-500 text-white' :
+              progressStep.status === 'in-progress' ? 'bg-blue-500 text-white animate-pulse' :
+              progressStep.status === 'error' ? 'bg-red-500 text-white' :
+              'bg-white/10 text-white/30'
+            }`}>
+              {progressStep.status === 'completed' ? '✓' :
+               progressStep.status === 'in-progress' ? '⋯' :
+               progressStep.status === 'error' ? '!' :
+               '○'}
+            </div>
+
+            {/* ラベル + 詳細 */}
+            <div className="flex-1 min-w-0">
+              <p className={`text-sm font-medium ${
+                progressStep.status === 'completed' ? 'text-white/80' :
+                progressStep.status === 'in-progress' ? 'text-white' :
+                progressStep.status === 'error' ? 'text-red-400' :
+                'text-white/30'
+              }`}>
+                {progressStep.label}
+              </p>
+              {progressStep.detail && (
+                <p className="text-xs text-white/40 mt-0.5">{progressStep.detail}</p>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* エラー表示 */}
+      {error && (
+        <div className="mt-8 p-5 rounded-2xl border border-red-500/20 bg-red-500/5">
+          <p className="text-sm text-red-300 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-5 py-2.5 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors cursor-pointer text-sm min-h-[44px]"
+          >
+            やり直す
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
