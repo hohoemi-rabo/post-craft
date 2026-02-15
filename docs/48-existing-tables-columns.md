@@ -112,15 +112,15 @@ sourceAnalysisId: row.source_analysis_id ?? null
 
 ## TODO
 
-- [ ] `profiles` テーブルに `source_analysis_id UUID` カラムを追加（FK, ON DELETE SET NULL）
-- [ ] `post_types` テーブルに `source_analysis_id UUID` カラムを追加（FK, ON DELETE SET NULL）
-- [ ] `src/types/supabase.ts` の `profiles` Row/Insert/Update を更新
-- [ ] `src/types/supabase.ts` の `profiles` Relationships を更新
-- [ ] `src/types/supabase.ts` の `post_types` Row/Insert/Update を更新
-- [ ] `src/types/supabase.ts` の `post_types` Relationships を更新
-- [ ] `src/types/profile.ts` の `ProfileDB` に `sourceAnalysisId` を追加
-- [ ] `src/types/post-type.ts` の `PostTypeDB` に `sourceAnalysisId` を追加
-- [ ] `src/lib/post-type-utils.ts` の `toPostTypeDB` を更新
-- [ ] 既存データに影響がないことを検証
-- [ ] ON DELETE SET NULL の動作を検証
-- [ ] `npm run build` 成功を確認
+- [x] `profiles` テーブルに `source_analysis_id UUID` カラムを追加（FK, ON DELETE SET NULL）
+- [x] `post_types` テーブルに `source_analysis_id UUID` カラムを追加（FK, ON DELETE SET NULL）
+- [x] `src/types/supabase.ts` の `profiles` Row/Insert/Update を更新
+- [x] `src/types/supabase.ts` の `profiles` Relationships を更新
+- [x] `src/types/supabase.ts` の `post_types` Row/Insert/Update を更新
+- [x] `src/types/supabase.ts` の `post_types` Relationships を更新
+- [x] `src/types/profile.ts` の `ProfileDB` に `sourceAnalysisId` を追加
+- [x] `src/types/post-type.ts` の `PostTypeDB` に `sourceAnalysisId` を追加
+- [x] `src/lib/post-type-utils.ts` の `toPostTypeDB` を更新
+- [x] 既存データに影響がないことを検証
+- [x] ON DELETE SET NULL の動作を検証
+- [x] `npm run build` 成功を確認

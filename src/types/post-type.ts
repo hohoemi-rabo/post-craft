@@ -32,6 +32,7 @@ export interface PostTypeDB {
   typePrompt: string | null
   inputMode: 'fields' | 'memo'
   profileId: string | null
+  sourceAnalysisId: string | null
   profileRef?: { id: string; name: string; icon: string } | null
   createdAt: string
   updatedAt: string

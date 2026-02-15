@@ -224,14 +224,14 @@ export type GeneratedConfig = Tables<'generated_configs'>
 
 ## TODO
 
-- [ ] `competitor_analyses` テーブルを作成（CHECK 制約含む）
-- [ ] `generated_configs` テーブルを作成（CHECK 制約含む）
-- [ ] 両テーブルの RLS を有効化し、ポリシーを作成
-- [ ] `user_id` インデックスを両テーブルに作成
-- [ ] `analysis_id` インデックスを `generated_configs` に作成
-- [ ] `src/types/supabase.ts` に `competitor_analyses` の Row/Insert/Update/Relationships を追加
-- [ ] `src/types/supabase.ts` に `generated_configs` の Row/Insert/Update/Relationships を追加
-- [ ] `CompetitorAnalysis`, `GeneratedConfig` の型エイリアスを追加
-- [ ] CHECK 制約の動作を検証
-- [ ] CASCADE 削除の動作を検証
-- [ ] `npm run build` 成功を確認
+- [x] `competitor_analyses` テーブルを作成（CHECK 制約含む）
+- [x] `generated_configs` テーブルを作成（CHECK 制約含む）
+- [x] 両テーブルの RLS を有効化し、ポリシーを作成
+- [x] `user_id` インデックスを両テーブルに作成
+- [x] `analysis_id` インデックスを `generated_configs` に作成
+- [x] `src/types/supabase.ts` に `competitor_analyses` の Row/Insert/Update/Relationships を追加
+- [x] `src/types/supabase.ts` に `generated_configs` の Row/Insert/Update/Relationships を追加
+- [x] `CompetitorAnalysis`, `GeneratedConfig` の型エイリアスを追加
+- [x] CHECK 制約の動作を検証
+- [x] CASCADE 削除の動作を検証
+- [x] `npm run build` 成功を確認

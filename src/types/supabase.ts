@@ -9,6 +9,62 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      competitor_analyses: {
+        Row: {
+          id: string
+          user_id: string
+          source_type: string
+          source_identifier: string
+          source_display_name: string | null
+          raw_data: Json | null
+          analysis_result: Json | null
+          status: string
+          data_source: string
+          post_count: number | null
+          error_message: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          source_type: string
+          source_identifier: string
+          source_display_name?: string | null
+          raw_data?: Json | null
+          analysis_result?: Json | null
+          status?: string
+          data_source?: string
+          post_count?: number | null
+          error_message?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          source_type?: string
+          source_identifier?: string
+          source_display_name?: string | null
+          raw_data?: Json | null
+          analysis_result?: Json | null
+          status?: string
+          data_source?: string
+          post_count?: number | null
+          error_message?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competitor_analyses_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       characters: {
         Row: {
           created_at: string | null
@@ -50,6 +106,61 @@ export type Database = {
           },
         ]
       }
+      generated_configs: {
+        Row: {
+          id: string
+          user_id: string
+          analysis_id: string
+          generated_profile_id: string | null
+          generated_post_type_ids: string[]
+          generation_config: Json | null
+          status: string
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          analysis_id: string
+          generated_profile_id?: string | null
+          generated_post_type_ids?: string[]
+          generation_config?: Json | null
+          status?: string
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          analysis_id?: string
+          generated_profile_id?: string | null
+          generated_post_type_ids?: string[]
+          generation_config?: Json | null
+          status?: string
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "generated_configs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_configs_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "competitor_analyses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_configs_generated_profile_id_fkey"
+            columns: ["generated_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           id: string
@@ -62,6 +173,7 @@ export type Database = {
           required_hashtags: string[]
           is_default: boolean
           sort_order: number
+          source_analysis_id: string | null
           created_at: string | null
           updated_at: string | null
         }
@@ -76,6 +188,7 @@ export type Database = {
           required_hashtags?: string[]
           is_default?: boolean
           sort_order?: number
+          source_analysis_id?: string | null
           created_at?: string | null
           updated_at?: string | null
         }
@@ -90,10 +203,19 @@ export type Database = {
           required_hashtags?: string[]
           is_default?: boolean
           sort_order?: number
+          source_analysis_id?: string | null
           created_at?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_source_analysis_id_fkey"
+            columns: ["source_analysis_id"]
+            isOneToOne: false
+            referencedRelation: "competitor_analyses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       post_types: {
         Row: {
@@ -113,6 +235,7 @@ export type Database = {
           type_prompt: string | null
           input_mode: string
           profile_id: string | null
+          source_analysis_id: string | null
           created_at: string | null
           updated_at: string | null
         }
@@ -133,6 +256,7 @@ export type Database = {
           type_prompt?: string | null
           input_mode?: string
           profile_id?: string | null
+          source_analysis_id?: string | null
           created_at?: string | null
           updated_at?: string | null
         }
@@ -153,6 +277,7 @@ export type Database = {
           type_prompt?: string | null
           input_mode?: string
           profile_id?: string | null
+          source_analysis_id?: string | null
           created_at?: string | null
           updated_at?: string | null
         }
@@ -162,6 +287,13 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_types_source_analysis_id_fkey"
+            columns: ["source_analysis_id"]
+            isOneToOne: false
+            referencedRelation: "competitor_analyses"
             referencedColumns: ["id"]
           },
         ]
@@ -372,3 +504,5 @@ export type PostImage = Tables<'post_images'>
 export type ProfileRow = Tables<'profiles'>
 export type PostTypeRow = Tables<'post_types'>
 export type UserSettingsRow = Tables<'user_settings'>
+export type CompetitorAnalysis = Tables<'competitor_analyses'>
+export type GeneratedConfig = Tables<'generated_configs'>

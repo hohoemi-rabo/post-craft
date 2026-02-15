@@ -12,6 +12,7 @@ export interface ProfileDB {
   requiredHashtags: string[]
   isDefault: boolean
   sortOrder: number
+  sourceAnalysisId: string | null
   createdAt: string
   updatedAt: string
   // JOIN で取得される投稿タイプ数（オプション）

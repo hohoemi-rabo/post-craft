@@ -14,6 +14,7 @@ export function toProfileDB(row: {
   required_hashtags: string[]
   is_default: boolean
   sort_order: number
+  source_analysis_id?: string | null
   created_at: string | null
   updated_at: string | null
   post_types?: { count: number }[]
@@ -29,6 +30,7 @@ export function toProfileDB(row: {
     requiredHashtags: row.required_hashtags ?? [],
     isDefault: row.is_default,
     sortOrder: row.sort_order,
+    sourceAnalysisId: row.source_analysis_id ?? null,
     createdAt: row.created_at ?? '',
     updatedAt: row.updated_at ?? '',
     postTypeCount: row.post_types?.[0]?.count ?? undefined,
