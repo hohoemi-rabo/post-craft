@@ -333,16 +333,16 @@ export async function POST(request: NextRequest) {
 
 ## TODO
 
-- [ ] `src/types/analysis.ts` を作成（InstagramPostData, InstagramProfileData, BlogPostData 等）
-- [ ] `src/lib/csv-parser.ts` を作成
-- [ ] 文字コード自動判定の実装（UTF-8 / Shift-JIS）
-- [ ] CSV パース処理の実装（ヘッダー解析 + フィールドマッピング）
-- [ ] JSON パース処理の実装
-- [ ] バリデーション処理の実装（ファイルサイズ、形式、必須フィールド）
-- [ ] ハッシュタグ抽出ロジックの実装
-- [ ] 投稿数制限の実装（200件上限）
-- [ ] `src/app/api/analysis/upload/route.ts` を作成
-- [ ] FormData からのファイル取得・バリデーション
-- [ ] パース結果の `competitor_analyses` への保存
-- [ ] エラーハンドリング（パースエラー、DBエラー）
-- [ ] `npm run build` 成功を確認
+- [x] `src/types/analysis.ts` を作成（InstagramPostData, InstagramProfileData, BlogPostData 等）
+- [x] `src/lib/csv-parser.ts` を作成
+- [x] 文字コード自動判定の実装（UTF-8 / Shift-JIS）
+- [x] CSV パース処理の実装（ヘッダー解析 + フィールドマッピング）
+- [x] JSON パース処理の実装
+- [x] バリデーション処理の実装（ファイルサイズ、形式、必須フィールド）
+- [x] ハッシュタグ抽出ロジックの実装
+- [x] 投稿数制限の実装（200件上限）
+- [x] `src/app/api/analysis/upload/route.ts` を作成
+- [x] FormData からのファイル取得・バリデーション
+- [x] パース結果の `competitor_analyses` への保存
+- [x] エラーハンドリング（パースエラー、DBエラー）
+- [x] `npm run build` 成功を確認
