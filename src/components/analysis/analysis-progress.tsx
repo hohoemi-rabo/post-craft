@@ -19,6 +19,7 @@ export function AnalysisProgress({ config, onComplete }: AnalysisProgressProps) 
   const [error, setError] = useState<string | null>(null)
   const [isCompleted, setIsCompleted] = useState(false)
   const abortRef = useRef(false)
+  const hasStartedRef = useRef(false)
 
   const hasInstagram = config.sourceTypes.includes('instagram')
   const hasBlog = config.sourceTypes.includes('blog')
@@ -249,13 +250,12 @@ export function AnalysisProgress({ config, onComplete }: AnalysisProgressProps) 
   }, [config, hasInstagram, hasBlog, updateStep, onComplete])
 
   useEffect(() => {
+    if (hasStartedRef.current) return
+    hasStartedRef.current = true
     abortRef.current = false
     startAnalysis()
-
-    return () => {
-      abortRef.current = true
-    }
-  }, [startAnalysis])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className="max-w-lg mx-auto">

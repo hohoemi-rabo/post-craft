@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { AnalysisDeleteButton } from './analysis-delete-button'
 
 interface AnalysisCardProps {
   analysis: {
@@ -19,7 +20,7 @@ export function AnalysisCard({ analysis }: AnalysisCardProps) {
 
   const card = (
     <div
-      className={`bg-white/5 border border-white/10 rounded-xl p-5
+      className={`relative bg-white/5 border border-white/10 rounded-xl p-5
                   transition-all duration-200 ${
                     isClickable ? 'hover:bg-white/10 hover:border-white/20' : ''
                   }`}
@@ -33,14 +34,17 @@ export function AnalysisCard({ analysis }: AnalysisCardProps) {
       {/* 表示名 */}
       <h3 className="text-white font-medium mb-2 truncate">{displayName}</h3>
 
-      {/* メタ情報 */}
-      <div className="flex items-center gap-3 text-xs text-white/50">
-        {analysis.post_count != null && (
-          <span>{analysis.post_count}件</span>
-        )}
-        {analysis.created_at && (
-          <span>{new Date(analysis.created_at).toLocaleDateString('ja-JP')}</span>
-        )}
+      {/* メタ情報 + 削除ボタン */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3 text-xs text-white/50">
+          {analysis.post_count != null && (
+            <span>{analysis.post_count}件</span>
+          )}
+          {analysis.created_at && (
+            <span>{new Date(analysis.created_at).toLocaleDateString('ja-JP')}</span>
+          )}
+        </div>
+        <AnalysisDeleteButton analysisId={analysis.id} />
       </div>
 
       {/* エラーメッセージ */}
