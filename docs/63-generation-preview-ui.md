@@ -428,14 +428,15 @@ export function PostTypePreviewCard({ postType, index }: PostTypePreviewCardProp
 
 ## TODO
 
-- [ ] `src/app/(dashboard)/analysis/[id]/generate/page.tsx` を新規作成（Server Component）
-- [ ] `src/components/analysis/generation-preview.tsx` を新規作成（Client Component）
-- [ ] `src/components/analysis/profile-preview.tsx` を新規作成
-- [ ] `src/components/analysis/posttype-preview-card.tsx` を新規作成
-- [ ] 生成 API の呼び出しロジックを実装
-- [ ] 生成中ローディング表示を実装
-- [ ] 既存 `generated_configs` のデータ表示を実装
-- [ ] 再生成機能を実装
-- [ ] エラーハンドリング表示を実装
-- [ ] レスポンシブデザインを確認
-- [ ] `npm run build` 成功を確認
+- [x] `src/app/(dashboard)/analysis/[id]/generate/page.tsx` を新規作成（Server Component）
+- [x] `src/components/analysis/generation-preview.tsx` を新規作成（Client Component）
+- [x] `src/components/analysis/profile-preview.tsx` を新規作成
+- [x] `src/components/analysis/posttype-preview-card.tsx` を新規作成
+- [x] 生成 API の呼び出しロジックを実装（`POST /api/analysis/${id}/generate`）
+- [x] 生成中ローディング表示を実装（スピナー + メッセージ）
+- [x] 既存 `generated_configs` のデータ表示を実装（Server Component でフェッチ → Client に渡す）
+- [x] 再生成機能を実装（「結果に満足できない場合は再生成」リンク）
+- [x] エラーハンドリング表示を実装
+- [x] レスポンシブデザインを確認（モバイル対応済み）
+- [x] `npm run build` 成功を確認
+- [x] 「承認して適用」「編集してから適用」は #65/#66 で有効化（現在 disabled）
