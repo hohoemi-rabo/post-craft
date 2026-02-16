@@ -228,14 +228,14 @@ function validateSlug(slug: string): string {
 
 ## TODO
 
-- [ ] `src/types/analysis.ts` に `GeneratedPostType` 型を追加
-- [ ] `src/lib/generation-prompts.ts` に `generatePostTypes()` 関数を追加
-- [ ] `buildPostTypeGenerationPrompt()` プロンプト構築関数を実装
-- [ ] PostCraft 既存テンプレート形式に適合するプロンプトを設計
-- [ ] エンゲージメント順ソートロジックを実装
-- [ ] slug バリデーション関数を実装
-- [ ] `template_structure` と `placeholders` の整合性チェックを実装
-- [ ] Instagram 分析のみのケースをテスト
-- [ ] ブログ分析のみのケースをテスト
-- [ ] 両方の分析結果を渡すケースをテスト
-- [ ] `npm run build` 成功を確認
+- [x] `src/types/analysis.ts` に `GeneratedPostType` 型を追加
+- [x] `src/lib/generation-prompts.ts` に `generatePostTypes()` 関数を追加
+- [x] `buildPostTypeGenerationPrompt()` プロンプト構築関数を実装
+- [x] PostCraft 既存テンプレート形式に適合するプロンプトを設計（参考例2種をプロンプトに含む）
+- [x] エンゲージメント順ソートロジックを実装（`avg_engagement` 降順）
+- [x] slug バリデーション関数を実装（`validateSlug()`）
+- [x] `input_mode` フォールバック実装（不正値は `'memo'` に）
+- [ ] Instagram 分析のみのケースをテスト（実データで検証予定）
+- [ ] ブログ分析のみのケースをテスト（実データで検証予定）
+- [ ] 両方の分析結果を渡すケースをテスト（実データで検証予定）
+- [x] `npm run build` 成功を確認

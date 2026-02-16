@@ -129,6 +129,27 @@ export interface GeneratedProfile {
 }
 
 /**
+ * 分析結果から自動生成される投稿タイプデータ
+ */
+export interface GeneratedPostType {
+  name: string              // 例: '季節の和菓子紹介'
+  slug: string              // URL安全な英語スラッグ
+  description: string       // 投稿タイプの説明（50文字以内）
+  icon: string              // 絵文字アイコン
+  template_structure: string // テンプレート本体（プレースホルダー付き）
+  placeholders: Array<{
+    key: string             // テンプレート内の変数名
+    label: string           // UIに表示するラベル
+    placeholder: string     // 入力欄のプレースホルダーテキスト
+    required: boolean
+  }>
+  input_mode: 'fields' | 'memo'
+  min_length: number        // 最小文字数（200〜300）
+  max_length: number        // 最大文字数（300〜500）
+  type_prompt: string       // タイプ別AIプロンプト
+}
+
+/**
  * CSV パース結果
  */
 export interface CsvParseResult {
