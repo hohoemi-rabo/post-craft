@@ -49,6 +49,11 @@ export async function POST(
       generatePostTypes(instagramResult, blogResult, sourceDisplayName),
     ])
 
+    // 必須ハッシュタグを最大4個に制限
+    if (generatedProfile.required_hashtags.length > 4) {
+      generatedProfile.required_hashtags = generatedProfile.required_hashtags.slice(0, 4)
+    }
+
     const supabase = createServerClient()
 
     // 既存の draft を削除（再生成対応）

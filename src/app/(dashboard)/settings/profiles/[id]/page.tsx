@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, use } from 'react'
+import { useState, useEffect, useCallback, useRef, use } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/ui/toast'
@@ -45,6 +45,7 @@ export default function ProfileDetailPage({
   const [isLoadingPostTypes, setIsLoadingPostTypes] = useState(false)
 
   const fetchProfile = useCallback(async () => {
+    if (deletedRef.current) return
     try {
       const res = await fetch(`/api/profiles/${id}`)
       if (!res.ok) throw new Error('Failed to fetch')
@@ -54,7 +55,9 @@ export default function ProfileDetailPage({
       setIcon(data.icon)
       setDescription(data.description || '')
     } catch {
-      showToast('プロフィールの読み込みに失敗しました', 'error')
+      if (!deletedRef.current) {
+        showToast('プロフィールの読み込みに失敗しました', 'error')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -111,6 +114,8 @@ export default function ProfileDetailPage({
     }
   }
 
+  const deletedRef = useRef(false)
+
   const handleDelete = async () => {
     if (!confirm('このプロフィールを削除しますか？関連する投稿タイプも全て削除されます。')) return
 
@@ -121,6 +126,7 @@ export default function ProfileDetailPage({
         const err = await res.json()
         throw new Error(err.error || 'Failed to delete')
       }
+      deletedRef.current = true
       showToast('プロフィールを削除しました', 'success')
       router.push('/settings/profiles')
     } catch (err) {

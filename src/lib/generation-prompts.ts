@@ -73,7 +73,7 @@ function buildProfileGenerationPrompt(
   "description": "（プロフィールの説明。何のためのプロフィールか50文字以内で）",
   "system_prompt_memo": "（分析結果のサマリー。業種、強み、ターゲット、トーンを簡潔に200文字以内で）",
   "system_prompt": "（AI用のシステムプロンプト。以下の要素を含む詳細な指示文、300〜600文字）",
-  "required_hashtags": ["（必須ハッシュタグ3〜5個。#記号なし。ブランド名、地域、業種を含む）"]
+  "required_hashtags": ["（必須ハッシュタグ1〜4個。#記号なし。ブランド名、地域、業種を含む）"]
 }
 
 【system_prompt に含めるべき要素】

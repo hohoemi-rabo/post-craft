@@ -21,9 +21,12 @@ export function PostTypePreviewCard({
   return (
     <div className={`bg-slate-800/50 rounded-xl border ${isEditMode ? 'border-blue-500/30' : 'border-white/10'} overflow-hidden`}>
       {/* ヘッダー（クリックで展開） */}
-      <button
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors text-left min-h-[44px]"
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsExpanded(!isExpanded) } }}
+        className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors text-left min-h-[44px] cursor-pointer"
       >
         <div className="flex items-center gap-3">
           <span className="text-2xl">{postType.icon}</span>
@@ -49,7 +52,7 @@ export function PostTypePreviewCard({
           )}
           <span className="text-white/40">{isExpanded ? '▼' : '▶'}</span>
         </div>
-      </button>
+      </div>
 
       {/* 展開時の詳細（編集モード） */}
       {isExpanded && isEditMode && onUpdate && (
