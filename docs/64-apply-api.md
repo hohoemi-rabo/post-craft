@@ -278,15 +278,15 @@ async function ensureUniqueSlug(
 
 ## TODO
 
-- [ ] `src/app/api/analysis/[id]/apply/route.ts` を新規作成
-- [ ] 認証 + 所有権チェックを実装
-- [ ] `generated_configs` の取得とステータスチェックを実装
-- [ ] オーバーライドデータのマージロジックを実装
-- [ ] `profiles` テーブルへの挿入を実装（`source_analysis_id` 含む）
-- [ ] `post_types` テーブルへの一括挿入を実装（`profile_id`, `source_analysis_id` 含む）
-- [ ] `sort_order` の自動計算を実装
-- [ ] slug 重複チェック + サフィックス付与を実装
-- [ ] `generated_configs` のステータス更新を実装
-- [ ] 投稿タイプ作成失敗時のプロフィール削除（ロールバック）を実装
-- [ ] 各エラーケースの動作を検証
-- [ ] `npm run build` 成功を確認
+- [x] `src/app/api/analysis/[id]/apply/route.ts` を新規作成
+- [x] 認証 + 所有権チェックを実装
+- [x] `generated_configs` の取得とステータスチェックを実装
+- [x] オーバーライドデータのマージロジックを実装
+- [x] `profiles` テーブルへの挿入を実装（`source_analysis_id` 含む）
+- [x] `post_types` テーブルへの一括挿入を実装（`profile_id`, `source_analysis_id` 含む）
+- [x] `sort_order` の自動計算を実装
+- [x] slug 重複チェック + サフィックス付与を実装
+- [x] `generated_configs` のステータス更新を実装
+- [x] 投稿タイプ作成失敗時のプロフィール削除（ロールバック）を実装
+- [x] 各エラーケースの動作を検証
+- [x] `npm run build` 成功を確認
