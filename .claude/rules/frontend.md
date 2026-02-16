@@ -11,10 +11,10 @@ components/
 ├── layout/       # レイアウト (header, footer, sidebar)
 ├── dashboard/    # ダッシュボード専用
 ├── create/       # 投稿作成専用
-├── history/      # 履歴一覧・編集 (post-list, post-card, filter, pagination, delete-button, skeleton, edit-modal等)
+├── history/      # 履歴一覧・編集 (post-list, post-card, post-detail-client, filter, pagination, delete-button, skeleton等)
 ├── analysis/     # 分析機能 (wizard, report, generation-preview, profile-preview, posttype-preview-card等)
-├── characters/   # キャラクター管理専用
-├── settings/     # 設定 (post-type-list, post-type-form, profile-list, profile-form)
+├── characters/   # キャラクター管理 (characters-client等)
+├── settings/     # 設定 (post-type-list, post-type-form, profile-list, profile-detail-client等)
 └── providers/    # Context Providers
 ```
 
@@ -141,6 +141,27 @@ page.tsx (Server) → ヘッダー + フィルター即表示
 - フィルター・ページネーションは URL `searchParams` で管理（`?page=2&postType=tips`）
 - 削除後は `router.refresh()` で Server Component を再実行
 - `<Suspense key={page-postType}>` でフィルター/ページ変更時にスケルトン再表示
+
+### 詳細ページの Server Component + Client Component 分割
+個別データの詳細ページは Server Component でデータ取得し、Client Component にprops で渡す:
+```
+page.tsx (Server) → auth() + Supabase直接クエリ + notFound()
+  └── XxxClient (Client: initialData を props で受け取り)
+       └── useState(initialData) でローカル管理
+```
+
+**実装例**:
+| ページ | Server Component | Client Component |
+|--------|-----------------|-----------------|
+| `/history/[id]` | `page.tsx` (POST_SELECT_QUERY) | `post-detail-client.tsx` |
+| `/settings/profiles/[id]` | `page.tsx` (toProfileDB) | `profile-detail-client.tsx` |
+| `/characters` | `page.tsx` (characters list) | `characters-client.tsx` |
+| `/settings/post-types/[id]` | `page.tsx` (toPostTypeDB) | 既存 `PostTypeForm` |
+
+**ルール**:
+- `useEffect` + `fetch` でのクライアントサイドデータフェッチは禁止（Server Component で取得）
+- ミューテーション後は `router.refresh()` で Server Component を再実行
+- Client Component には `initialData` を props で渡し、`useState(initialData)` で管理
 
 ## フォント
 

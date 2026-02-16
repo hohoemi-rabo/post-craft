@@ -318,6 +318,69 @@ async function DataList({ userId, page }: Props) {
 - 削除等のミューテーション後は `router.refresh()` で Server Component 再実行
 - Client Component には最小限の props のみ渡す（シリアライゼーション最適化）
 
+## Server Component + Client Component パターン（実装例: 詳細ページ）
+
+個別データの詳細ページの推奨構成。Server Component でデータ取得し、Client Component に渡す:
+
+```tsx
+// page.tsx (Server Component) - データ取得のみ
+import { redirect, notFound } from 'next/navigation'
+import { auth } from '@/lib/auth'
+import { createServerClient } from '@/lib/supabase'
+import { DetailClient } from '@/components/xxx/detail-client'
+
+export default async function DetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const session = await auth()
+  if (!session?.user?.id) redirect('/login')
+
+  const { id } = await params
+  const supabase = createServerClient()
+
+  const { data, error } = await supabase
+    .from('table')
+    .select('*')
+    .eq('id', id)
+    .eq('user_id', session.user.id)
+    .single()
+
+  if (error || !data) notFound()
+
+  return <DetailClient initialData={data} />
+}
+
+// detail-client.tsx (Client Component) - インタラクション
+'use client'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+
+export function DetailClient({ initialData }: { initialData: Data }) {
+  const router = useRouter()
+  const [data, setData] = useState(initialData)
+
+  const handleSave = async () => {
+    await fetch(`/api/xxx/${data.id}`, { method: 'PUT', body: ... })
+    router.refresh() // Server Component を再実行
+  }
+  // ...
+}
+```
+
+**ポイント**:
+- `useEffect` + `fetch` でのクライアントサイドデータフェッチは禁止
+- Server Component で `notFound()` を使い、ローディング状態が不要
+- Client Component は `useState(initialData)` で props を初期値に使用
+- ミューテーション後は `router.refresh()` で最新データを取得
+
+**適用済みページ**:
+- `/history/[id]` → `PostDetailClient`
+- `/settings/profiles/[id]` → `ProfileDetailClient`
+- `/characters` → `CharactersClient`
+- `/settings/post-types/[id]` → `PostTypeForm`（既存コンポーネント再利用）
+
 ## パフォーマンス Tips
 
 1. **並列フェッチ** - `Promise.all()` でウォーターフォール回避
@@ -326,3 +389,4 @@ async function DataList({ userId, page }: Props) {
 4. **フォント最適化** - `next/font` 使用
 5. **Streaming** - Suspense で段階的レンダリング
 6. **URL ベースの状態** - `searchParams` でフィルター・ページネーション（ブックマーク・ブラウザバック対応）
+7. **Server Component でデータ取得** - 詳細ページは `useEffect` フェッチではなく Server Component で直接クエリ

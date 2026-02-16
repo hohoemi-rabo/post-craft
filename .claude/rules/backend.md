@@ -194,8 +194,10 @@ CREATE POLICY "Users can CRUD own data" ON posts
 
 **RLS ベストプラクティス**:
 - `(select auth.uid())` を使用（サブクエリでキャッシュされ、行ごとの再評価を防止）
+- 全9テーブルで監査済み: 全ポリシーが `(SELECT auth.uid())` パターンを使用
 - service_role は自動的に RLS をバイパスするため、service_role 用ポリシーは不要
 - 新規テーブル作成時は必ず `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` を実行
+- 新規 FK カラム追加時は必ず対応するインデックスも作成（PostgreSQL は FK に自動でインデックスを作成しない）
 
 ## 認証 (NextAuth.js)
 

@@ -58,10 +58,11 @@ src/
 │   └── publish/           # Instagram投稿（スタンドアロン）
 ├── components/            # UIコンポーネント
 │   ├── analysis/          # 分析機能 (wizard, report, generation-preview, profile-preview, posttype-preview-card等)
+│   ├── characters/        # キャラクター管理 (characters-client等)
 │   ├── create/            # 投稿作成コンポーネント
-│   ├── history/           # 履歴一覧・編集 (post-list, post-card, filter, pagination, delete-button, skeleton, edit-modal等)
+│   ├── history/           # 履歴一覧・編集 (post-list, post-card, post-detail-client, filter, pagination, delete-button, skeleton等)
 │   ├── publish/           # Instagram投稿コンポーネント
-│   ├── settings/          # 設定コンポーネント (post-type-list, post-type-form, profile-list, profile-form)
+│   ├── settings/          # 設定コンポーネント (post-type-list, post-type-form, profile-list, profile-detail-client等)
 │   └── providers/         # Context Providers
 ├── hooks/                 # カスタムフック
 ├── lib/                   # ユーティリティ
@@ -200,6 +201,14 @@ src/
   - `history-delete-button.tsx` (Client): 削除ボタン + 確認UI
   - `history-pagination.tsx` (Server): `<Link>` ベースのページネーション
   - `history-skeleton.tsx` (Server): Suspense フォールバック
+
+### 詳細ページの Server Component + Client Component パターン
+個別データの詳細ページは Server Component (データ取得) + Client Component (インタラクション) で構成。
+
+- **対象ページ**: `/history/[id]`, `/settings/profiles/[id]`, `/settings/post-types/[id]`, `/characters`
+- **Server Component (page.tsx)**: `auth()` → `createServerClient()` → Supabase 直接クエリ → `notFound()` or Client Component にデータ渡し
+- **Client Component**: `initialData` を props で受け取り `useState(initialData)` で管理。useEffect でのフェッチ不要
+- **ミューテーション後**: `router.refresh()` で Server Component を再実行してデータ更新
 
 ### 投稿履歴の編集機能
 履歴詳細ページ (`/history/[id]`) でインライン編集が可能。
