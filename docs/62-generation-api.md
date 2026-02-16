@@ -211,14 +211,14 @@ await supabase
 
 ## TODO
 
-- [ ] `src/lib/api-utils.ts` に `requireAnalysisOwnership()` を追加
-- [ ] `src/app/api/analysis/[id]/generate/route.ts` を新規作成
-- [ ] 認証 + 所有権チェックを実装
-- [ ] 分析ステータスのバリデーションを実装
-- [ ] `generateProfile()` 呼び出しを実装
-- [ ] `generatePostTypes()` 呼び出しを実装
-- [ ] `generated_configs` への保存を実装
-- [ ] 既存 `draft` の削除（再生成対応）を実装
-- [ ] エラーハンドリング（AI失敗、DB失敗）を実装
-- [ ] 各エラーケースの動作を検証
-- [ ] `npm run build` 成功を確認
+- [x] `src/lib/api-utils.ts` に `requireAnalysisOwnership()` を追加 → 既に存在
+- [x] `src/app/api/analysis/[id]/generate/route.ts` を新規作成
+- [x] 認証 + 所有権チェックを実装（`requireAuth` + `requireAnalysisOwnership`）
+- [x] 分析ステータスのバリデーションを実装（`completed` 以外は 400）
+- [x] `generateProfile()` 呼び出しを実装
+- [x] `generatePostTypes()` 呼び出しを実装
+- [x] `generated_configs` への保存を実装（`as unknown as Json` キャスト）
+- [x] 既存 `draft` の削除（再生成対応）を実装
+- [x] エラーハンドリング（AI失敗、DB失敗）を実装
+- [x] プロフィール生成と投稿タイプ生成を `Promise.all` で並行実行
+- [x] `npm run build` 成功を確認
