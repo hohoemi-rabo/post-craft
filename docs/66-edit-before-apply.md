@@ -472,15 +472,15 @@ function handleDeletePostType(index: number) {
 
 ## TODO
 
-- [ ] 編集モード状態管理を `generation-preview.tsx` に追加
-- [ ] `handleStartEdit()`, `handleCancelEdit()` を実装
-- [ ] スティッキーアクションバーを実装
-- [ ] `profile-preview.tsx` に編集モード UI を追加
-- [ ] ハッシュタグ入力コンポーネント（`HashtagInput`）を実装
-- [ ] `posttype-preview-card.tsx` に編集モード UI を追加
-- [ ] プレースホルダーの追加/削除/編集 UI を実装
-- [ ] 投稿タイプ削除機能を実装（最低3個制限）
-- [ ] 編集済みデータで適用 API を呼ぶ処理を実装
-- [ ] 編集モードの視覚的フィードバック（ボーダー色変更等）を実装
-- [ ] レスポンシブデザインを確認
-- [ ] `npm run build` 成功を確認
+- [x] 編集モード状態管理を `generation-preview.tsx` に追加（`isEditMode`, `editedProfile`, `editedPostTypes`）
+- [x] `handleStartEdit()`, `handleCancelEdit()` を実装（deep copy でプレースホルダーも独立コピー）
+- [x] スティッキーアクションバーを実装（`sticky bottom-4` + backdrop-blur + レスポンシブ `flex-col sm:flex-row`）
+- [x] `profile-preview.tsx` に編集モード UI を追加（アイコン・名前・説明・ハッシュタグ・システムプロンプト）
+- [x] ハッシュタグ入力コンポーネント（`HashtagInput`）を実装（Enter キー対応、# 自動除去）
+- [x] `posttype-preview-card.tsx` に編集モード UI を追加（編集時は自動展開、全フィールド編集可能）
+- [x] プレースホルダーの追加/削除/編集 UI を実装（key・label・placeholder の3フィールド、モバイルでは placeholder 非表示）
+- [x] 投稿タイプ削除機能を実装（最低3個制限、トースト通知）
+- [x] 編集済みデータで適用 API を呼ぶ処理を実装（`handleApply` 共通化、`isEditMode` で分岐）
+- [x] 編集モードの視覚的フィードバック（`border-blue-500/30` + 青バナー通知）
+- [x] レスポンシブデザインを確認（sticky bar・プレースホルダー列・ダイアログ全て対応）
+- [x] `npm run build` 成功を確認

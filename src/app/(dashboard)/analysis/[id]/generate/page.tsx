@@ -45,6 +45,7 @@ export default async function GeneratePage({ params }: GeneratePageProps) {
     ? {
         id: existingConfig.id,
         status: existingConfig.status,
+        generated_profile_id: existingConfig.generated_profile_id,
         generation_config: existingConfig.generation_config as unknown as {
           profile: GeneratedProfile
           postTypes: GeneratedPostType[]
