@@ -35,6 +35,15 @@ app/api/
 │       ├── route.ts          # GET, PUT, DELETE
 │       ├── hashtags/route.ts # GET, PUT (プロフィール別必須ハッシュタグ)
 │       └── system-prompt/route.ts # GET, PUT (システムプロンプト)
+├── analysis/
+│   ├── route.ts              # GET (list), POST (create)
+│   ├── upload/route.ts       # POST (CSVアップロード)
+│   ├── blog-crawl/route.ts   # POST (ブログクロール)
+│   └── [id]/
+│       ├── route.ts          # GET, PUT, DELETE
+│       ├── status/route.ts   # GET (分析ステータス確認)
+│       ├── generate/route.ts # POST (プロフィール・投稿タイプ生成)
+│       └── apply/route.ts    # POST (生成結果をDB適用)
 ├── settings/
 │   └── hashtags/route.ts     # GET, PUT (レガシー必須ハッシュタグ設定)
 └── extract/route.ts          # POST (記事抽出)
@@ -259,7 +268,7 @@ export async function DELETE(
 
 ### ヘルパー関数 (`lib/api-utils.ts`)
 
-内部で `checkOwnership<T>()` ヘルパーを使い、4つの所有権チェック関数を提供。
+内部で `checkOwnership<T>()` ヘルパーを使い、5つの所有権チェック関数を提供。
 戻り値は discriminated union 型で、`error` チェック後に data が non-null に絞り込まれる。
 
 ```typescript
@@ -283,6 +292,10 @@ export async function requireProfileOwnership(profileId, userId)
 // 投稿タイプの所有権チェック（PostTypeRow 型）
 export async function requirePostTypeOwnership(postTypeId, userId)
 // → { error: NextResponse, postType: null } | { error: null, postType: PostTypeRow }
+
+// 分析の所有権チェック（CompetitorAnalysisRow 型）
+export async function requireAnalysisOwnership(analysisId, userId)
+// → { error: NextResponse, analysis: null } | { error: null, analysis: CompetitorAnalysisRow }
 ```
 
 ### レガシーパターン（直接チェック）
@@ -313,7 +326,7 @@ export default auth((req) => {
 })
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/create/:path*', '/history/:path*'],
+  matcher: ['/dashboard/:path*', '/create/:path*', '/history/:path*', '/analysis/:path*'],
 }
 ```
 

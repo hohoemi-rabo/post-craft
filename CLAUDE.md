@@ -44,6 +44,11 @@ src/
 │   │   ├── create/        # 投稿作成
 │   │   │   ├── history/       # 履歴 (Server Component + Suspense)
 │   │   ├── characters/    # キャラクター管理
+│   │   ├── analysis/      # 分析機能
+│   │   │   ├── page.tsx           # 分析一覧
+│   │   │   ├── new/page.tsx       # 新規分析ウィザード
+│   │   │   ├── [id]/page.tsx      # 分析詳細レポート
+│   │   │   └── [id]/generate/page.tsx # 生成プレビュー・適用
 │   │   └── settings/      # 設定
 │   │       ├── post-types/ # 投稿タイプ管理
 │   │       ├── profiles/  # プロフィール管理
@@ -52,6 +57,7 @@ src/
 │   ├── api/               # API Routes
 │   └── publish/           # Instagram投稿（スタンドアロン）
 ├── components/            # UIコンポーネント
+│   ├── analysis/          # 分析機能 (wizard, report, generation-preview, profile-preview, posttype-preview-card等)
 │   ├── create/            # 投稿作成コンポーネント
 │   ├── history/           # 履歴一覧・編集 (post-list, post-card, filter, pagination, delete-button, skeleton, edit-modal等)
 │   ├── publish/           # Instagram投稿コンポーネント
@@ -61,6 +67,9 @@ src/
 ├── lib/                   # ユーティリティ
 │   ├── constants.ts       # 共通定数 (TOTAL_HASHTAG_COUNT, IMAGE_UPLOAD)
 │   ├── api-utils.ts       # API認証・所有権チェックヘルパー
+│   ├── analysis-prompts.ts    # 分析AIプロンプト（Instagram・ブログ解析）
+│   ├── analysis-executor.ts   # 分析実行ロジック
+│   ├── generation-prompts.ts  # プロフィール・投稿タイプ自動生成プロンプト
 │   └── ...
 └── types/                 # 型定義
 ```
@@ -87,6 +96,7 @@ src/
 | `post-type.ts` | DB管理の投稿タイプ型 (`PostTypeDB`, `PostTypeFormData`) |
 | `create-flow.ts` | 投稿作成フローの状態・型 |
 | `history-detail.ts` | 履歴詳細ページの型・ユーティリティ (`Post`, `PostTypeRef`, `ProfileRef`) |
+| `analysis.ts` | 分析機能の型 (`InstagramAnalysisResult`, `BlogAnalysisResult`, `GeneratedProfile`, `GeneratedPostType`, `AnalysisSourceType`, `AnalysisStatus`) |
 | `supabase.ts` | Supabase Database 型定義（自動生成） |
 
 ## 主要機能
@@ -217,6 +227,20 @@ src/
 - **投稿ステータス**: ダッシュボード・履歴一覧・詳細に「✅ 投稿済み」/「⏳ 未投稿」バッジ表示。投稿成功時に自動更新
 - **ダッシュボード**: 最近の投稿に投稿タイプ・画像スタイル・プロフィール・投稿ステータスのバッジ表示（履歴一覧と統一）
 - **制約**: Instagram Business/Creator Account 必須
+
+### 分析機能（Phase 4）
+競合のInstagramアカウントやブログ記事を分析し、プロフィールと投稿タイプを自動生成する機能。
+
+- **分析ソース**: Instagram（CSV/手動入力）、ブログ（URL クロール）
+- **分析フロー**: ソース選択 → データ入力 → AI分析実行 → レポート表示
+- **生成フロー**: 分析結果 → プロフィール＋投稿タイプ生成 → プレビュー → 編集（任意） → 適用
+- **DB**: `competitor_analyses`（分析データ）、`generated_configs`（生成設定・適用状態）
+- **ページ**: `/analysis`（一覧）、`/analysis/new`（ウィザード）、`/analysis/[id]`（レポート）、`/analysis/[id]/generate`（生成プレビュー）
+- **API**: `/api/analysis`（CRUD）、`/api/analysis/[id]/generate`（AI生成）、`/api/analysis/[id]/apply`（適用）、`/api/analysis/[id]/status`、`/api/analysis/upload`、`/api/analysis/blog-crawl`
+- **適用**: `generated_configs` のデータを `profiles` + `post_types` テーブルに INSERT、slug 重複時は `-2`, `-3` サフィックス付与、失敗時はロールバック
+- **編集してから適用**: 生成プレビューで各フィールドをインライン編集してから適用可能
+- **コンポーネント**: `analysis-wizard`, `analysis-report`, `generation-preview`, `profile-preview`, `posttype-preview-card` 等
+- **AI分析ライブラリ**: `lib/analysis-prompts.ts`（プロンプト）、`lib/analysis-executor.ts`（実行）、`lib/generation-prompts.ts`（生成プロンプト）
 
 ## ルールファイル
 

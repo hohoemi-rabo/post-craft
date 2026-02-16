@@ -12,6 +12,7 @@ components/
 ├── dashboard/    # ダッシュボード専用
 ├── create/       # 投稿作成専用
 ├── history/      # 履歴一覧・編集 (post-list, post-card, filter, pagination, delete-button, skeleton, edit-modal等)
+├── analysis/     # 分析機能 (wizard, report, generation-preview, profile-preview, posttype-preview-card等)
 ├── characters/   # キャラクター管理専用
 ├── settings/     # 設定 (post-type-list, post-type-form, profile-list, profile-form)
 └── providers/    # Context Providers
@@ -70,12 +71,12 @@ content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"]
 
 ### Button
 ```tsx
-import { Button } from '@/components/ui/button'
+import Button from '@/components/ui/button'
 
 <Button variant="primary">送信</Button>
 <Button variant="secondary">キャンセル</Button>
 <Button variant="ghost">閉じる</Button>
-<Button disabled loading>処理中...</Button>
+<Button loading>処理中...</Button>  {/* loading 中は自動で disabled + スピナー表示 */}
 ```
 
 ### Input / Textarea
@@ -102,8 +103,8 @@ import { Card } from '@/components/ui/card'
 import { useToast } from '@/components/ui/toast'
 
 const { showToast } = useToast()
-showToast({ type: 'success', message: '保存しました' })
-showToast({ type: 'error', message: 'エラーが発生しました' })
+showToast('保存しました', 'success')
+showToast('エラーが発生しました', 'error')
 ```
 
 ### 投稿バッジ表示（ダッシュボード・履歴共通）
