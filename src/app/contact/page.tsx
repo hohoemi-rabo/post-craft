@@ -1,9 +1,12 @@
-'use client'
-
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import Header from '@/components/layout/header'
 import Footer from '@/components/layout/footer'
 import Button from '@/components/ui/button'
+
+export const metadata: Metadata = {
+  title: 'お問い合わせ | Post Craft',
+}
 
 const INSTAGRAM_URL = 'https://www.instagram.com/hohoemi.rabo/'
 

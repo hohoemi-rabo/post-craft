@@ -1,64 +1,34 @@
-'use client'
-
-import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import type { PostTypeDB, Placeholder } from '@/types/post-type'
+import { redirect, notFound } from 'next/navigation'
+import { auth } from '@/lib/auth'
+import { createServerClient } from '@/lib/supabase'
+import { toPostTypeDB } from '@/lib/post-type-utils'
+import type { Placeholder } from '@/types/post-type'
 import { PostTypeForm } from '@/components/settings/post-type-form'
 
-export default function EditPostTypePage() {
-  const params = useParams()
-  const id = params.id as string
+export default async function EditPostTypePage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const session = await auth()
+  if (!session?.user?.id) redirect('/login')
 
-  const [postType, setPostType] = useState<PostTypeDB | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { id } = await params
+  const supabase = createServerClient()
 
-  useEffect(() => {
-    async function fetchPostType() {
-      try {
-        const res = await fetch(`/api/post-types/${id}`)
-        if (!res.ok) {
-          throw new Error('投稿タイプが見つかりません')
-        }
-        const data = await res.json()
-        // Ensure placeholders is an array of Placeholder objects
-        const typedData: PostTypeDB = {
-          ...data,
-          placeholders: (data.placeholders || []) as Placeholder[],
-        }
-        setPostType(typedData)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : '読み込みに失敗しました')
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    fetchPostType()
-  }, [id])
+  const { data, error } = await supabase
+    .from('post_types')
+    .select('*')
+    .eq('id', id)
+    .eq('user_id', session.user.id)
+    .single()
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="h-6 w-64 bg-slate-700 rounded animate-pulse" />
-        <div className="h-10 w-48 bg-slate-700 rounded animate-pulse" />
-        <div className="h-64 bg-white/5 border border-white/10 rounded-2xl animate-pulse" />
-      </div>
-    )
-  }
+  if (error || !data) notFound()
 
-  if (error || !postType) {
-    return (
-      <div className="text-center py-16">
-        <p className="text-red-400 text-lg mb-4">{error || '投稿タイプが見つかりません'}</p>
-        <Link
-          href="/settings/post-types"
-          className="text-blue-400 hover:text-blue-300 transition-colors"
-        >
-          一覧に戻る
-        </Link>
-      </div>
-    )
+  const postType = {
+    ...toPostTypeDB(data),
+    placeholders: (data.placeholders || []) as unknown as Placeholder[],
   }
 
   return (
