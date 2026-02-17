@@ -71,6 +71,7 @@ src/
 │   ├── analysis-prompts.ts    # 分析AIプロンプト（Instagram・ブログ解析）
 │   ├── analysis-executor.ts   # 分析実行ロジック
 │   ├── generation-prompts.ts  # プロフィール・投稿タイプ自動生成プロンプト
+│   ├── blog-crawler.ts        # ブログクロール・サイトマップ探索
 │   └── ...
 └── types/                 # 型定義
 ```
@@ -245,11 +246,24 @@ src/
 - **生成フロー**: 分析結果 → プロフィール＋投稿タイプ生成 → プレビュー → 編集（任意） → 適用
 - **DB**: `competitor_analyses`（分析データ）、`generated_configs`（生成設定・適用状態）
 - **ページ**: `/analysis`（一覧）、`/analysis/new`（ウィザード）、`/analysis/[id]`（レポート）、`/analysis/[id]/generate`（生成プレビュー）
-- **API**: `/api/analysis`（CRUD）、`/api/analysis/[id]/generate`（AI生成）、`/api/analysis/[id]/apply`（適用）、`/api/analysis/[id]/status`、`/api/analysis/upload`、`/api/analysis/blog-crawl`
+- **API**: `/api/analysis`（CRUD）、`/api/analysis/[id]/generate`（AI生成）、`/api/analysis/[id]/apply`（適用）、`/api/analysis/[id]/status`、`/api/analysis/upload`、`/api/analysis/blog-crawl`、`/api/analysis/sitemap-discover`
 - **適用**: `generated_configs` のデータを `profiles` + `post_types` テーブルに INSERT、slug 重複時は `-2`, `-3` サフィックス付与、失敗時はロールバック
 - **編集してから適用**: 生成プレビューで各フィールドをインライン編集してから適用可能
 - **コンポーネント**: `analysis-wizard`, `analysis-report`, `generation-preview`, `profile-preview`, `posttype-preview-card` 等
 - **AI分析ライブラリ**: `lib/analysis-prompts.ts`（プロンプト）、`lib/analysis-executor.ts`（実行）、`lib/generation-prompts.ts`（生成プロンプト）
+- **ブログクロールライブラリ**: `lib/blog-crawler.ts`（サイトマップ探索 `discoverSitemap()` + クロール `crawlBlog()`）
+
+### ブログ分析のサイトマップ探索
+ブログURL入力時にサイトマップを事前探索し、記事取得の確度をユーザーに提示するハイブリッド方式。
+
+- **自動探索**: URL入力 → 「検索」→ `/sitemap.xml` 等5パス + `/robots.txt` の `Sitemap:` ディレクティブを順番に試行
+- **手動入力**: 自動検出失敗時 → サイトマップURLを直接入力 → 「確認」でバリデーション
+- **スキップ**: サイトマップなしで続行 → RSS / リンク巡回フォールバック
+- **API**: `/api/analysis/sitemap-discover`（自動探索 + 手動検証の両対応）
+- **ライブラリ**: `lib/blog-crawler.ts` の `discoverSitemap()`（軽量版: 記事本文は取得しない）
+- **型**: `AnalysisConfig.blog.sitemapUrl?` でウィザード間のデータ引き継ぎ
+- **パイプライン**: `data-input-form` → `analysis-progress` → `blog-crawl` API → `crawlBlog(url, undefined, { sitemapUrl })` で事前発見済みサイトマップを優先使用
+- **UI状態遷移**: `idle` → `loading` → `found` | `not_found` | `skipped`（検索完了まで「分析を開始」無効）
 
 ## ルールファイル
 

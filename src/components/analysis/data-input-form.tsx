@@ -30,6 +30,18 @@ export function DataInputForm({ config, onSubmit, onBack }: DataInputFormProps) 
   const [blogUrl, setBlogUrl] = useState(config.blog?.blogUrl || '')
   const [blogName, setBlogName] = useState(config.blog?.blogName || '')
 
+  // Sitemap discovery state
+  const [discoveryState, setDiscoveryState] = useState<
+    'idle' | 'loading' | 'found' | 'not_found' | 'skipped'
+  >('idle')
+  const [discoveredSitemapUrl, setDiscoveredSitemapUrl] = useState<string | null>(null)
+  const [discoveredArticleCount, setDiscoveredArticleCount] = useState<number | null>(null)
+  const [discoveryStrategy, setDiscoveryStrategy] = useState<string | null>(null)
+  const [manualSitemapUrl, setManualSitemapUrl] = useState('')
+  const [manualSitemapValid, setManualSitemapValid] = useState<boolean | null>(null)
+  const [manualArticleCount, setManualArticleCount] = useState<number | null>(null)
+  const [isValidatingManual, setIsValidatingManual] = useState(false)
+
   const hasInstagram = config.sourceTypes.includes('instagram')
   const hasBlog = config.sourceTypes.includes('blog')
 
@@ -84,9 +96,92 @@ export function DataInputForm({ config, onSubmit, onBack }: DataInputFormProps) 
     if (fileInputRef.current) fileInputRef.current.value = ''
   }, [])
 
+  const isBlogUrlValid = /^https?:\/\/.+/.test(blogUrl.trim())
+
+  // Sitemap discovery handlers
+  const handleBlogUrlChange = useCallback((value: string) => {
+    setBlogUrl(value)
+    if (discoveryState !== 'idle') {
+      setDiscoveryState('idle')
+      setDiscoveredSitemapUrl(null)
+      setDiscoveredArticleCount(null)
+      setDiscoveryStrategy(null)
+      setManualSitemapUrl('')
+      setManualSitemapValid(null)
+      setManualArticleCount(null)
+    }
+  }, [discoveryState])
+
+  const handleDiscover = useCallback(async () => {
+    if (!isBlogUrlValid) return
+    setDiscoveryState('loading')
+    setDiscoveredSitemapUrl(null)
+    setDiscoveredArticleCount(null)
+    setDiscoveryStrategy(null)
+    setManualSitemapUrl('')
+    setManualSitemapValid(null)
+    setManualArticleCount(null)
+
+    try {
+      const res = await fetch('/api/analysis/sitemap-discover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: blogUrl.trim() }),
+      })
+      const data = await res.json()
+      if (data.found) {
+        setDiscoveryState('found')
+        setDiscoveredSitemapUrl(data.sitemapUrl)
+        setDiscoveredArticleCount(data.articleCount)
+        setDiscoveryStrategy(data.strategy)
+      } else {
+        setDiscoveryState('not_found')
+      }
+    } catch {
+      setDiscoveryState('not_found')
+    }
+  }, [isBlogUrlValid, blogUrl])
+
+  const handleValidateManualSitemap = useCallback(async () => {
+    if (!manualSitemapUrl.trim() || !isBlogUrlValid) return
+    setIsValidatingManual(true)
+    setManualSitemapValid(null)
+    setManualArticleCount(null)
+
+    try {
+      const res = await fetch('/api/analysis/sitemap-discover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: blogUrl.trim(),
+          sitemapUrl: manualSitemapUrl.trim(),
+        }),
+      })
+      const data = await res.json()
+      setManualSitemapValid(data.found)
+      if (data.found) {
+        setManualArticleCount(data.articleCount)
+      }
+    } catch {
+      setManualSitemapValid(false)
+    } finally {
+      setIsValidatingManual(false)
+    }
+  }, [manualSitemapUrl, isBlogUrlValid, blogUrl])
+
+  const handleSkipSitemap = useCallback(() => {
+    setDiscoveryState('skipped')
+  }, [])
+
   // Validation
   const isInstagramValid = !hasInstagram || (accountName.trim().length > 0 && file !== null)
-  const isBlogValid = !hasBlog || /^https?:\/\/.+/.test(blogUrl.trim())
+  const isBlogValid = !hasBlog || (
+    isBlogUrlValid && (
+      discoveryState === 'found' ||
+      discoveryState === 'skipped' ||
+      (discoveryState === 'not_found' && manualSitemapValid === true)
+    )
+  )
   const isValid = isInstagramValid && isBlogValid
 
   const handleSubmit = () => {
@@ -105,6 +200,11 @@ export function DataInputForm({ config, onSubmit, onBack }: DataInputFormProps) 
         blog: {
           blogUrl: blogUrl.trim(),
           blogName: blogName.trim(),
+          sitemapUrl: discoveryState === 'found'
+            ? discoveredSitemapUrl || undefined
+            : (discoveryState === 'not_found' && manualSitemapValid)
+              ? manualSitemapUrl.trim()
+              : undefined,
           analysisId: null,
         },
       }),
@@ -212,42 +312,168 @@ export function DataInputForm({ config, onSubmit, onBack }: DataInputFormProps) 
             <span>📝</span> ブログ情報
           </h3>
           <p className="text-sm text-white/50 mb-5">
-            ブログのトップページURLを入力すると、記事を自動で取得します
+            ブログのトップページURLを入力して、サイトマップを検索します
           </p>
 
           <div className="space-y-4">
-            {/* ブログ URL */}
+            {/* ブログ URL + 検索ボタン */}
             <div>
               <label className="block text-sm font-medium text-white/80 mb-1.5">
                 ブログ URL <span className="text-red-400">*</span>
               </label>
-              <input
-                type="url"
-                value={blogUrl}
-                onChange={(e) => setBlogUrl(e.target.value)}
-                placeholder="https://example.com"
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              {blogUrl.length > 0 && !isBlogValid && (
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={blogUrl}
+                  onChange={(e) => handleBlogUrlChange(e.target.value)}
+                  placeholder="https://example.com"
+                  className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <button
+                  onClick={handleDiscover}
+                  disabled={!isBlogUrlValid || discoveryState === 'loading'}
+                  className={`px-4 py-3 rounded-xl font-medium text-sm transition-all min-h-[44px] whitespace-nowrap ${
+                    isBlogUrlValid && discoveryState !== 'loading'
+                      ? 'bg-blue-500 text-white hover:bg-blue-600 cursor-pointer'
+                      : 'bg-white/5 text-white/30 cursor-not-allowed'
+                  }`}
+                >
+                  {discoveryState === 'loading' ? (
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      検索中
+                    </span>
+                  ) : '検索'}
+                </button>
+              </div>
+              {blogUrl.length > 0 && !isBlogUrlValid && (
                 <p className="mt-1.5 text-xs text-yellow-400">
                   http:// または https:// から始まるURLを入力してください
                 </p>
               )}
             </div>
 
+            {/* サイトマップ探索結果 */}
+            {discoveryState === 'found' && (
+              <div className="p-4 rounded-xl border border-green-500/20 bg-green-500/5">
+                <div className="flex items-start gap-2.5">
+                  <span className="text-green-400 text-lg mt-0.5">✓</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-green-300">
+                      サイトマップを発見しました
+                    </p>
+                    <p className="text-xs text-white/40 mt-1 truncate">
+                      {discoveredSitemapUrl}
+                    </p>
+                    <p className="text-xs text-white/50 mt-0.5">
+                      {discoveredArticleCount}件の記事URL
+                      {discoveryStrategy === 'robots.txt' && '（robots.txt から検出）'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {discoveryState === 'not_found' && (
+              <div className="space-y-3">
+                <div className="p-4 rounded-xl border border-yellow-500/20 bg-yellow-500/5">
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-yellow-400 text-lg mt-0.5">⚠</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-yellow-300">
+                        サイトマップが自動検出できませんでした
+                      </p>
+                      <p className="text-xs text-white/40 mt-1">
+                        サイトマップURLを直接入力するか、サイトマップなしで続行できます
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 手動サイトマップURL入力 */}
+                <div>
+                  <label className="block text-xs font-medium text-white/60 mb-1.5">
+                    サイトマップURL（任意）
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      value={manualSitemapUrl}
+                      onChange={(e) => {
+                        setManualSitemapUrl(e.target.value)
+                        setManualSitemapValid(null)
+                        setManualArticleCount(null)
+                      }}
+                      placeholder="https://example.com/sitemap.xml"
+                      className="flex-1 px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <button
+                      onClick={handleValidateManualSitemap}
+                      disabled={!manualSitemapUrl.trim() || isValidatingManual}
+                      className={`px-3 py-2.5 rounded-xl text-sm transition-all min-h-[44px] whitespace-nowrap ${
+                        manualSitemapUrl.trim() && !isValidatingManual
+                          ? 'bg-white/10 text-white hover:bg-white/20 cursor-pointer'
+                          : 'bg-white/5 text-white/30 cursor-not-allowed'
+                      }`}
+                    >
+                      {isValidatingManual ? (
+                        <span className="flex items-center gap-1.5">
+                          <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          確認中
+                        </span>
+                      ) : '確認'}
+                    </button>
+                  </div>
+                  {manualSitemapValid === true && (
+                    <p className="mt-1.5 text-xs text-green-400">
+                      有効なサイトマップです（{manualArticleCount}件の記事URL）
+                    </p>
+                  )}
+                  {manualSitemapValid === false && (
+                    <p className="mt-1.5 text-xs text-red-400">
+                      有効なサイトマップが見つかりませんでした
+                    </p>
+                  )}
+                </div>
+
+                {/* サイトマップなしで続行 */}
+                {manualSitemapValid !== true && (
+                  <button
+                    onClick={handleSkipSitemap}
+                    className="text-xs text-white/40 hover:text-white/60 transition-colors cursor-pointer underline underline-offset-2"
+                  >
+                    サイトマップなしで続行（RSS / リンク巡回で取得）
+                  </button>
+                )}
+              </div>
+            )}
+
+            {discoveryState === 'skipped' && (
+              <div className="p-4 rounded-xl border border-white/10 bg-white/[0.02]">
+                <div className="flex items-start gap-2.5">
+                  <span className="text-white/40 text-lg mt-0.5">ℹ</span>
+                  <p className="text-sm text-white/50">
+                    サイトマップを使わずに RSS / リンク巡回で記事を取得します
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* ブログ名 */}
-            <div>
-              <label className="block text-sm font-medium text-white/80 mb-1.5">
-                ブログ名 <span className="text-white/30 text-xs font-normal">（任意）</span>
-              </label>
-              <input
-                type="text"
-                value={blogName}
-                onChange={(e) => setBlogName(e.target.value)}
-                placeholder="マイブログ"
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
+            {(discoveryState === 'found' || discoveryState === 'skipped' || (discoveryState === 'not_found' && manualSitemapValid === true)) && (
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-1.5">
+                  ブログ名 <span className="text-white/30 text-xs font-normal">（任意）</span>
+                </label>
+                <input
+                  type="text"
+                  value={blogName}
+                  onChange={(e) => setBlogName(e.target.value)}
+                  placeholder="マイブログ"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            )}
           </div>
         </section>
       )}

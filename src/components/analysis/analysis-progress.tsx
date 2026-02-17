@@ -160,6 +160,7 @@ export function AnalysisProgress({ config, onComplete }: AnalysisProgressProps) 
           body: JSON.stringify({
             blogUrl: config.blog.blogUrl,
             blogName: config.blog.blogName,
+            sitemapUrl: config.blog.sitemapUrl,
             analysisId: blogAnalysisId,
           }),
         })

@@ -19,6 +19,7 @@ export interface AnalysisConfig {
   blog?: {
     blogUrl: string
     blogName: string
+    sitemapUrl?: string
     analysisId: string | null
   }
 }

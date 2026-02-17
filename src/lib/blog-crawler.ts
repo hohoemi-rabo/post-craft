@@ -14,6 +14,17 @@ export interface CrawlResult {
   strategy: 'sitemap' | 'rss' | 'link-crawl'
 }
 
+export interface SitemapDiscoveryResult {
+  found: boolean
+  sitemapUrl?: string
+  articleCount?: number
+  strategy: 'sitemap.xml' | 'robots.txt' | 'not_found'
+}
+
+interface CrawlOptions {
+  sitemapUrl?: string
+}
+
 interface CrawlProgress {
   phase: 'discovering' | 'extracting'
   current: number
@@ -23,22 +34,147 @@ interface CrawlProgress {
 type ProgressCallback = (progress: CrawlProgress) => void
 
 /**
+ * ドメインからサイトマップを探索する（軽量版: 記事本文は取得しない）
+ * 自動探索: 既知パス（5種）→ robots.txt の Sitemap ディレクティブ
+ * 手動検証: options.sitemapUrl を直接フェッチして妥当性を確認
+ */
+export async function discoverSitemap(
+  url: string,
+  options?: { sitemapUrl?: string }
+): Promise<SitemapDiscoveryResult> {
+  const baseUrl = normalizeUrl(url)
+
+  // 手動検証モード: 指定されたサイトマップURLを直接検証
+  if (options?.sitemapUrl) {
+    try {
+      const response = await fetchWithTimeout(options.sitemapUrl, FETCH_TIMEOUT)
+      if (response.ok) {
+        const xml = await response.text()
+        if (xml.includes('<urlset') || xml.includes('<sitemapindex')) {
+          const urls = await parseSitemapXml(xml, baseUrl)
+          if (urls.length > 0) {
+            return {
+              found: true,
+              sitemapUrl: options.sitemapUrl,
+              articleCount: urls.length,
+              strategy: 'sitemap.xml',
+            }
+          }
+        }
+      }
+    } catch {
+      // 取得失敗
+    }
+    return { found: false, strategy: 'not_found' }
+  }
+
+  // 自動探索モード
+  const sitemapPaths = [
+    '/sitemap.xml',
+    '/sitemap_index.xml',
+    '/sitemap-posts.xml',
+    '/post-sitemap.xml',
+    '/wp-sitemap.xml',
+  ]
+
+  // Strategy 1: 既知のサイトマップパスを試す
+  for (const path of sitemapPaths) {
+    try {
+      const sitemapUrl = `${baseUrl}${path}`
+      const response = await fetchWithTimeout(sitemapUrl, FETCH_TIMEOUT)
+      if (!response.ok) continue
+
+      const xml = await response.text()
+      if (!xml.includes('<urlset') && !xml.includes('<sitemapindex')) continue
+
+      const urls = await parseSitemapXml(xml, baseUrl)
+      if (urls.length > 0) {
+        return {
+          found: true,
+          sitemapUrl,
+          articleCount: urls.length,
+          strategy: 'sitemap.xml',
+        }
+      }
+    } catch {
+      continue
+    }
+  }
+
+  // Strategy 2: robots.txt の Sitemap ディレクティブ
+  try {
+    const robotsUrl = `${baseUrl}/robots.txt`
+    const response = await fetchWithTimeout(robotsUrl, FETCH_TIMEOUT)
+    if (response.ok) {
+      const text = await response.text()
+      const sitemapUrls = text.split('\n')
+        .filter(line => /^sitemap:/i.test(line.trim()))
+        .map(line => line.replace(/^sitemap:\s*/i, '').trim())
+
+      for (const sitemapUrl of sitemapUrls) {
+        try {
+          const res = await fetchWithTimeout(sitemapUrl, FETCH_TIMEOUT)
+          if (!res.ok) continue
+          const xml = await res.text()
+          if (!xml.includes('<urlset') && !xml.includes('<sitemapindex')) continue
+          const urls = await parseSitemapXml(xml, baseUrl)
+          if (urls.length > 0) {
+            return {
+              found: true,
+              sitemapUrl,
+              articleCount: urls.length,
+              strategy: 'robots.txt',
+            }
+          }
+        } catch {
+          continue
+        }
+      }
+    }
+  } catch {
+    // robots.txt 取得失敗
+  }
+
+  return { found: false, strategy: 'not_found' }
+}
+
+/**
  * ブログ記事を一括取得する
  * 3段階のフォールバック: sitemap.xml → RSS → リンク巡回
  */
 export async function crawlBlog(
   blogUrl: string,
-  onProgress?: ProgressCallback
+  onProgress?: ProgressCallback,
+  options?: CrawlOptions
 ): Promise<CrawlResult> {
   const startTime = Date.now()
   const errors: string[] = []
 
   const baseUrl = normalizeUrl(blogUrl)
 
-  // Strategy 1: sitemap.xml
   onProgress?.({ phase: 'discovering', current: 0, total: 0 })
-  let articleUrls = await trySitemapStrategy(baseUrl)
+
+  let articleUrls: string[] = []
   let strategy: CrawlResult['strategy'] = 'sitemap'
+
+  // 事前発見済みサイトマップがあれば最初に試す
+  if (options?.sitemapUrl) {
+    try {
+      const response = await fetchWithTimeout(options.sitemapUrl, FETCH_TIMEOUT)
+      if (response.ok) {
+        const xml = await response.text()
+        articleUrls = await parseSitemapXml(xml, baseUrl)
+      }
+    } catch {
+      // 取得失敗 → 通常フォールバックへ
+    }
+  }
+
+  // Strategy 1: sitemap.xml
+  if (articleUrls.length === 0) {
+    articleUrls = await trySitemapStrategy(baseUrl)
+    strategy = 'sitemap'
+  }
 
   // Strategy 2: RSS フィード
   if (articleUrls.length === 0) {

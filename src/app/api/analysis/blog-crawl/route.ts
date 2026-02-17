@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { blogUrl, blogName } = body
+    const { blogUrl, blogName, sitemapUrl } = body
     analysisId = body.analysisId
 
     if (!blogUrl) {
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       .eq('id', analysisId)
 
     // ブログクロール実行
-    const result = await crawlBlog(blogUrl)
+    const result = await crawlBlog(blogUrl, undefined, sitemapUrl ? { sitemapUrl } : undefined)
 
     if (result.posts.length === 0) {
       await supabase

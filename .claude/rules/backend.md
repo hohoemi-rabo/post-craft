@@ -38,7 +38,8 @@ app/api/
 ├── analysis/
 │   ├── route.ts              # GET (list), POST (create)
 │   ├── upload/route.ts       # POST (CSVアップロード)
-│   ├── blog-crawl/route.ts   # POST (ブログクロール)
+│   ├── blog-crawl/route.ts   # POST (ブログクロール, sitemapUrl オプション対応)
+│   ├── sitemap-discover/route.ts # POST (サイトマップ自動探索・手動検証)
 │   └── [id]/
 │       ├── route.ts          # GET, PUT, DELETE
 │       ├── status/route.ts   # GET (分析ステータス確認)
@@ -406,6 +407,56 @@ posts テーブル:
 - `FB.login` のコールバックに `async` 関数を渡してはいけない（"Expression is of type asyncfunction" エラー）
 - 非同期処理は `.then()` チェーンで対応
 - HTTPS 必須（localhost では `--experimental-https` オプションが必要）
+
+## ブログクローラー (`lib/blog-crawler.ts`)
+
+### サイトマップ探索 (`discoverSitemap()`)
+ブログURLからサイトマップを軽量に探索する関数。記事本文は取得せず、URLの存在確認と記事数カウントのみ行う。
+
+```typescript
+// 自動探索モード
+const result = await discoverSitemap('https://example.com')
+// → { found: true, sitemapUrl: '...', articleCount: 42, strategy: 'sitemap.xml' }
+
+// 手動検証モード
+const result = await discoverSitemap('https://example.com', {
+  sitemapUrl: 'https://example.com/custom-sitemap.xml'
+})
+```
+
+**自動探索の順序**:
+1. 既知パス5種: `/sitemap.xml`, `/sitemap_index.xml`, `/sitemap-posts.xml`, `/post-sitemap.xml`, `/wp-sitemap.xml`
+2. `/robots.txt` の `Sitemap:` ディレクティブ
+
+**重要**: URL カウントには `parseSitemapXml()` を使用。`isArticleUrl()` のドメインチェックが自動適用されるため、ドメイン不一致のURLは除外される。
+
+### ブログクロール (`crawlBlog()`)
+```typescript
+// 基本（3段階フォールバック: sitemap → RSS → リンク巡回）
+const result = await crawlBlog('https://example.com')
+
+// 事前発見済みサイトマップを優先使用
+const result = await crawlBlog('https://example.com', undefined, {
+  sitemapUrl: 'https://example.com/sitemap.xml'
+})
+```
+
+`options.sitemapUrl` が指定されている場合、そのサイトマップを最初に試し、失敗した場合のみ通常の3段階フォールバックに移行する。
+
+### サイトマップ探索 API
+```typescript
+// POST /api/analysis/sitemap-discover
+// 自動探索: { url: "https://example.com" }
+// 手動検証: { url: "https://example.com", sitemapUrl: "https://example.com/sitemap.xml" }
+// レスポンス: { found: boolean, sitemapUrl?: string, articleCount?: number, strategy: string }
+```
+
+### ブログクロール API
+```typescript
+// POST /api/analysis/blog-crawl
+// { blogUrl, blogName, sitemapUrl?, analysisId }
+// sitemapUrl が指定されていれば crawlBlog() の options.sitemapUrl に渡す
+```
 
 ## キャプション/ハッシュタグ生成ルール
 
