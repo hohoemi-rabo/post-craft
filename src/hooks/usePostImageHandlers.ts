@@ -24,6 +24,7 @@ export function usePostImageHandlers(
                   image_url: url,
                   style: 'uploaded',
                   aspect_ratio: aspectRatio,
+                  character_id: null,
                 },
               ],
             }
@@ -52,6 +53,7 @@ export function usePostImageHandlers(
                   image_url: newImageUrl,
                   style: null,
                   aspect_ratio: '1:1',
+                  character_id: null,
                 },
               ]
         return { ...prev, post_images: updatedImages }
@@ -80,6 +82,7 @@ export function usePostImageHandlers(
                   image_url: newImageUrl,
                   style: 'uploaded',
                   aspect_ratio: newAspectRatio,
+                  character_id: null,
                 },
               ]
         return { ...prev, post_images: updatedImages }
@@ -104,6 +107,7 @@ export function usePostImageHandlers(
                   image_url: url,
                   style: 'uploaded',
                   aspect_ratio: ratio,
+                  character_id: null,
                 },
               ],
             }

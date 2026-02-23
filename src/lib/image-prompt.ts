@@ -15,6 +15,7 @@ export interface MultimodalImagePromptOptions {
   style: ImageStyle
   aspectRatio: AspectRatio
   sceneDescription: string
+  characterDescription?: string
   catchphrase?: string
   backgroundType?: BackgroundType
 }
@@ -130,7 +131,15 @@ export function buildMultimodalImagePrompt(options: MultimodalImagePromptOptions
 
   // Instruction for using reference image
   parts.push('添付した画像のキャラクターを参考にして、同じ人物が登場する新しい画像を生成してください。')
-  parts.push('キャラクターの顔の特徴、髪型、雰囲気をできるだけ維持してください。')
+  parts.push('')
+  parts.push('【キャラクター再現の最重要ルール】')
+  parts.push('- 添付画像の人物の年齢・顔立ち・体型を正確に再現すること')
+  parts.push('- 髪型・髪色を変えないこと')
+  parts.push('- 顔の輪郭、目の形、表情の雰囲気を維持すること')
+  parts.push('- 老けさせたり若返らせたりしないこと（年齢をそのまま保つ）')
+  if (options.characterDescription) {
+    parts.push(`- キャラクターの特徴: ${options.characterDescription}`)
+  }
   parts.push('')
 
   // Aspect ratio instruction

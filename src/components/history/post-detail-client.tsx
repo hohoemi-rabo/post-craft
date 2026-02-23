@@ -434,6 +434,7 @@ export function PostDetailClient({ initialPost }: PostDetailClientProps) {
         caption={editHook.isEditing ? editHook.editedCaption : post.generated_caption}
         currentStyle={firstImage?.style || null}
         currentAspectRatio={firstImage?.aspect_ratio || null}
+        currentCharacterId={firstImage?.character_id || null}
         onRegenerated={imageHandlers.handleImageRegenerated}
       />
 

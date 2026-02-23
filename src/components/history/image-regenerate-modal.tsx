@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import {
   IMAGE_STYLES,
   ASPECT_RATIOS,
@@ -9,6 +10,8 @@ import {
   type AspectRatio,
   type BackgroundType,
 } from '@/lib/image-styles'
+import type { Character } from '@/types/supabase'
+
 interface ImageRegenerateModalProps {
   open: boolean
   onClose: () => void
@@ -17,6 +20,7 @@ interface ImageRegenerateModalProps {
   caption: string
   currentStyle: string | null
   currentAspectRatio: string | null
+  currentCharacterId?: string | null
   onRegenerated: (newImageUrl: string) => void
 }
 
@@ -28,6 +32,7 @@ export function ImageRegenerateModal({
   caption,
   currentStyle,
   currentAspectRatio,
+  currentCharacterId,
   onRegenerated,
 }: ImageRegenerateModalProps) {
   const [style, setStyle] = useState<ImageStyle>(
@@ -40,6 +45,50 @@ export function ImageRegenerateModal({
   const [isGenerating, setIsGenerating] = useState(false)
   const [progress, setProgress] = useState('')
   const [error, setError] = useState('')
+
+  // Character state
+  const [characters, setCharacters] = useState<Character[]>([])
+  const [isLoadingCharacters, setIsLoadingCharacters] = useState(true)
+  const [characterId, setCharacterId] = useState<string | null>(currentCharacterId ?? null)
+  const [useCharacterImage, setUseCharacterImage] = useState(false)
+
+  const selectedStyle = IMAGE_STYLES[style]
+  const selectedCharacter = characters.find(c => c.id === characterId)
+  const canUseCharacterImage = !!(selectedCharacter?.image_url && selectedStyle.supportsCharacter)
+
+  // Fetch characters
+  useEffect(() => {
+    if (!open) return
+    const fetchCharacters = async () => {
+      try {
+        const response = await fetch('/api/characters')
+        if (response.ok) {
+          const data = await response.json()
+          setCharacters(data)
+          // Auto-select default character if none provided
+          if (!currentCharacterId) {
+            const defaultChar = data.find((c: Character) => c.is_default)
+            if (defaultChar) {
+              setCharacterId(defaultChar.id)
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch characters:', error)
+      } finally {
+        setIsLoadingCharacters(false)
+      }
+    }
+    fetchCharacters()
+  }, [open, currentCharacterId])
+
+  // Reset character when switching to a style that doesn't support characters
+  useEffect(() => {
+    if (!selectedStyle.supportsCharacter) {
+      setCharacterId(null)
+      setUseCharacterImage(false)
+    }
+  }, [style, selectedStyle.supportsCharacter])
 
   if (!open) return null
 
@@ -72,6 +121,7 @@ export function ImageRegenerateModal({
 
       // Step 3: Generate image
       setProgress('画像を生成中...')
+      const effectiveUseCharacterImage = canUseCharacterImage ? useCharacterImage : false
       const imageRes = await fetch('/api/generate/image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -82,6 +132,8 @@ export function ImageRegenerateModal({
           catchphrase,
           backgroundType,
           postId,
+          characterId: selectedStyle.supportsCharacter ? characterId : null,
+          useCharacterImage: effectiveUseCharacterImage,
         }),
       })
 
@@ -206,6 +258,86 @@ export function ImageRegenerateModal({
             ))}
           </div>
         </div>
+
+        {/* Character selection (only if style supports it) */}
+        {selectedStyle.supportsCharacter && (
+          <div className="space-y-3 mb-4">
+            <label className="block text-sm font-medium text-slate-300">キャラクター</label>
+            {isLoadingCharacters ? (
+              <div className="h-10 bg-white/5 rounded-xl animate-pulse" />
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => { setCharacterId(null); setUseCharacterImage(false) }}
+                  disabled={isGenerating}
+                  className={`px-3 py-2 rounded-xl border text-sm transition-colors ${
+                    characterId === null
+                      ? 'border-blue-500 bg-blue-500/10'
+                      : 'border-white/10 bg-white/5 hover:border-white/20'
+                  } disabled:opacity-50`}
+                >
+                  <span className="text-slate-300">なし</span>
+                </button>
+                {characters.map((char) => (
+                  <button
+                    key={char.id}
+                    type="button"
+                    onClick={() => setCharacterId(char.id)}
+                    disabled={isGenerating}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-sm transition-colors ${
+                      characterId === char.id
+                        ? 'border-blue-500 bg-blue-500/10'
+                        : 'border-white/10 bg-white/5 hover:border-white/20'
+                    } disabled:opacity-50`}
+                  >
+                    {char.image_url ? (
+                      <div className="w-6 h-6 relative rounded-full overflow-hidden">
+                        <Image
+                          src={char.image_url}
+                          alt={char.name}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs">
+                        👤
+                      </div>
+                    )}
+                    <span className="text-white">{char.name}</span>
+                    {char.is_default && (
+                      <span className="text-xs text-yellow-400">★</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Use character image as reference */}
+            {canUseCharacterImage && (
+              <div className="p-2.5 rounded-xl border border-white/10 bg-white/5">
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={useCharacterImage}
+                    onChange={(e) => setUseCharacterImage(e.target.checked)}
+                    disabled={isGenerating}
+                    className="mt-0.5 w-4 h-4 rounded border-white/20 bg-white/10 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
+                  />
+                  <div>
+                    <div className="text-xs font-medium text-white">
+                      キャラクター画像を参照として使用
+                    </div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">
+                      より似た画像を生成します（マルチモーダルAI使用）
+                    </div>
+                  </div>
+                </label>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Progress / Error */}
         {isGenerating && (

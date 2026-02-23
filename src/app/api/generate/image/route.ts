@@ -88,6 +88,7 @@ export async function POST(request: Request) {
           style,
           aspectRatio,
           sceneDescription,
+          characterDescription,
           catchphrase,
           backgroundType,
         })

@@ -6,6 +6,7 @@ export interface PostImage {
   image_url: string
   style: string | null
   aspect_ratio: string | null
+  character_id: string | null
 }
 
 /**
