@@ -214,7 +214,21 @@ export function PostTypeForm({ mode, initialData, defaultProfileId }: PostTypeFo
           <label className="block text-sm text-slate-400 mb-2">プロフィール</label>
           {isLoadingProfiles ? (
             <div className="h-12 bg-white/5 rounded-xl animate-pulse" />
+          ) : mode === 'edit' ? (
+            /* 編集時: 現在のプロフィールを表示のみ（変更不可） */
+            <div className="flex flex-wrap gap-2">
+              {profiles.filter(p => p.id === profileId).map((profile) => (
+                <div
+                  key={profile.id}
+                  className="px-4 py-2.5 rounded-xl border-2 border-blue-500 bg-blue-600/20 text-white text-sm font-medium ring-1 ring-blue-500/30"
+                >
+                  <span className="mr-1.5">&#10003;</span>
+                  {profile.icon} {profile.name}
+                </div>
+              ))}
+            </div>
           ) : (
+            /* 新規作成時: プロフィールを選択可能 */
             <div className="flex flex-wrap gap-2">
               {profiles.map((profile) => {
                 const isSelected = profileId === profile.id
