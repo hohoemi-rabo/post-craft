@@ -8,8 +8,8 @@ Google Gemini、プロンプト、画像生成のルール。
 |------|--------|--------|
 | 文章生成（キャプション、シーン説明、キャッチコピー等） | `gemini-3-flash-preview` | `geminiFlash` |
 | 画像分析（画像読み取り、キャラクター特徴抽出） | `gemini-3-pro-preview` | `geminiVision` |
-| 画像生成 | `gemini-3-pro-image-preview` | `geminiImageGen` |
-| 画像生成（マルチモーダル） | `gemini-3-pro-image-preview` | `geminiImageGenMultimodal` |
+| 画像生成 | `gemini-3.1-flash-image-preview` | `geminiImageGen` |
+| 画像生成（マルチモーダル） | `gemini-3.1-flash-image-preview` | `geminiImageGenMultimodal` |
 
 ## 文章生成
 
@@ -349,7 +349,7 @@ AIを使うと…
 ### マルチモーダル画像生成
 - `useCharacterImage` オプションで有効化
 - キャラクター画像を参照して一貫性のある画像を生成
-- 同じ `gemini-3-pro-image-preview` モデルを使用
+- 同じ `gemini-3.1-flash-image-preview` モデルを使用
 - 投稿作成フロー・履歴の画像再生成モーダル（`ImageRegenerateModal`）の両方で利用可能
 - **キャラクター再現の安定化**: プロンプトに「キャラクター再現の最重要ルール」セクションを含め、年齢・顔立ち・髪型・体型の保持を明示指示。画像参照に加え `characterDescription` テキストも併用して一貫性を向上
 
@@ -391,12 +391,12 @@ export const geminiVision = genAI.getGenerativeModel({
 
 // 画像生成（テキストのみ）
 export const geminiImageGen = genAI.getGenerativeModel({
-  model: 'gemini-3-pro-image-preview'
+  model: 'gemini-3.1-flash-image-preview'
 })
 
 // 画像生成（マルチモーダル - キャラクター参照）
 export const geminiImageGenMultimodal = genAI.getGenerativeModel({
-  model: 'gemini-3-pro-image-preview'
+  model: 'gemini-3.1-flash-image-preview'
 })
 ```
 

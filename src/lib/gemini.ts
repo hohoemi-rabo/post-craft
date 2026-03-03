@@ -20,13 +20,12 @@ export const geminiVision = genAI.getGenerativeModel({
 
 // Image generation model (text-only)
 export const geminiImageGen = genAI.getGenerativeModel({
-  model: 'gemini-3-pro-image-preview',
+  model: 'gemini-3.1-flash-image-preview',
 })
 
 // Image generation model (multimodal - with reference image)
-// Using the same model as text-only, but with image input
 export const geminiImageGenMultimodal = genAI.getGenerativeModel({
-  model: 'gemini-3-pro-image-preview',
+  model: 'gemini-3.1-flash-image-preview',
 })
 
 // Generate content with retry logic

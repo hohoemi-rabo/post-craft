@@ -69,7 +69,7 @@ export function PostTypeForm({ mode, initialData, defaultProfileId }: PostTypeFo
   const [isSaving, setIsSaving] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
 
-  const validate = (): boolean => {
+  const validate = (options?: { skipMemo?: boolean }): boolean => {
     const newErrors: FormErrors = {}
 
     if (!name.trim()) {
@@ -90,7 +90,7 @@ export function PostTypeForm({ mode, initialData, defaultProfileId }: PostTypeFo
       newErrors.maxLength = '最小文字数以上の値を入力してください'
     }
 
-    if (!userMemo.trim()) {
+    if (!options?.skipMemo && !userMemo.trim()) {
       newErrors.userMemo = 'メモ書きは必須です'
     }
 
@@ -170,7 +170,7 @@ export function PostTypeForm({ mode, initialData, defaultProfileId }: PostTypeFo
 
   // Direct save without AI generation (for editing existing types that already have data)
   const handleDirectSave = async () => {
-    if (!validate()) return
+    if (!validate({ skipMemo: true })) return
 
     // For existing types, allow saving basic info + memo without re-generation
     if (mode !== 'edit' || !initialData) return
