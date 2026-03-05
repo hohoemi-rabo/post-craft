@@ -15,7 +15,7 @@ export const geminiFlash = genAI.getGenerativeModel({
 
 // Vision model (image analysis, character feature extraction)
 export const geminiVision = genAI.getGenerativeModel({
-  model: 'gemini-3-pro-preview',
+  model: 'gemini-3.1-pro-preview',
 })
 
 // Image generation model (text-only)
