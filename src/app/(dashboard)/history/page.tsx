@@ -7,7 +7,7 @@ import { HistoryFilter } from '@/components/history/history-filter'
 import { HistorySkeleton } from '@/components/history/history-skeleton'
 
 interface HistoryPageProps {
-  searchParams: Promise<{ page?: string; postType?: string }>
+  searchParams: Promise<{ postType?: string }>
 }
 
 export default async function HistoryPage({ searchParams }: HistoryPageProps) {
@@ -15,7 +15,6 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
   if (!session?.user?.id) redirect('/login')
 
   const params = await searchParams
-  const page = parseInt(params.page || '1', 10)
   const postType = params.postType || ''
 
   // フィルター用の投稿タイプを取得（軽量クエリ、Suspense外で実行）
@@ -48,10 +47,9 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
       </div>
 
       {/* 投稿一覧: Suspense内、データフェッチ中はスケルトン表示 */}
-      <Suspense key={`${page}-${postType}`} fallback={<HistorySkeleton />}>
+      <Suspense key={postType} fallback={<HistorySkeleton />}>
         <HistoryPostList
           userId={session.user.id}
-          page={page}
           postType={postType}
         />
       </Suspense>

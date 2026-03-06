@@ -1,18 +1,16 @@
 import Link from 'next/link'
 import { createServerClient, POST_SELECT_QUERY } from '@/lib/supabase'
 import type { Post } from '@/types/history-detail'
-import { HistoryPostCard } from './history-post-card'
-import { HistoryPagination } from './history-pagination'
+import { HistoryPostListClient } from './history-post-list-client'
 
 interface HistoryPostListProps {
   userId: string
-  page: number
   postType: string
 }
 
-const LIMIT = 10
+const LIMIT = 20
 
-export async function HistoryPostList({ userId, page, postType }: HistoryPostListProps) {
+export async function HistoryPostList({ userId, postType }: HistoryPostListProps) {
   const supabase = createServerClient()
 
   let query = supabase
@@ -25,10 +23,7 @@ export async function HistoryPostList({ userId, page, postType }: HistoryPostLis
     query = query.eq('post_type', postType)
   }
 
-  const { data, count, error } = await query.range(
-    (page - 1) * LIMIT,
-    page * LIMIT - 1
-  )
+  const { data, count, error } = await query.range(0, LIMIT - 1)
 
   if (error) {
     console.error('Error fetching posts:', error)
@@ -40,7 +35,7 @@ export async function HistoryPostList({ userId, page, postType }: HistoryPostLis
   }
 
   const posts = (data || []) as unknown as Post[]
-  const totalPages = Math.ceil((count || 0) / LIMIT)
+  const totalCount = count || 0
 
   if (posts.length === 0) {
     return (
@@ -65,19 +60,10 @@ export async function HistoryPostList({ userId, page, postType }: HistoryPostLis
   }
 
   return (
-    <>
-      <div className="space-y-4">
-        {posts.map((post) => (
-          <HistoryPostCard key={post.id} post={post} />
-        ))}
-      </div>
-      {totalPages > 1 && (
-        <HistoryPagination
-          currentPage={page}
-          totalPages={totalPages}
-          postType={postType}
-        />
-      )}
-    </>
+    <HistoryPostListClient
+      initialPosts={posts}
+      totalCount={totalCount}
+      postType={postType}
+    />
   )
 }
