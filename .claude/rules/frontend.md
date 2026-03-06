@@ -11,7 +11,7 @@ components/
 ├── layout/       # レイアウト (header, footer, sidebar)
 ├── dashboard/    # ダッシュボード専用
 ├── create/       # 投稿作成専用
-├── history/      # 履歴一覧・編集 (post-list, post-card, post-detail-client, filter, pagination, delete-button, skeleton等)
+├── history/      # 履歴一覧・編集 (post-list, post-list-client, post-card, post-detail-client, filter, delete-button, skeleton等)
 ├── analysis/     # 分析機能 (wizard, report, generation-preview, profile-preview, posttype-preview-card等)
 ├── characters/   # キャラクター管理 (characters-client等)
 ├── settings/     # 設定 (post-type-list, post-type-form, profile-list, profile-detail-client等)
@@ -127,20 +127,22 @@ showToast('エラーが発生しました', 'error')
 
 データ取得には `POST_SELECT_QUERY` を使用し、`post_type_ref`, `profile_ref`, `post_images` を JOIN で取得すること。
 
-### 履歴一覧の Server Component 構成
-履歴一覧 (`/history`) は Server Component + Suspense で実装。インタラクティブ部分のみ Client Component に分離:
+### 履歴一覧の Server Component + 「もっと見る」構成
+履歴一覧 (`/history`) は Server Component で初回20件を取得し、Client Component で追加読み込みを管理:
 ```
 page.tsx (Server) → ヘッダー + フィルター即表示
   └── <Suspense fallback={<HistorySkeleton />}>
-       └── HistoryPostList (Server async: Supabase直接クエリ)
-            ├── HistoryPostCard (Server) × N
-            │    └── HistoryDeleteButton (Client: postId のみ)
-            └── HistoryPagination (Server: <Link>ベース)
+       └── HistoryPostList (Server async: 初回20件をSupabase直接クエリ)
+            └── HistoryPostListClient (Client: 追加読み込み管理)
+                 ├── HistoryPostCard × N
+                 │    └── HistoryDeleteButton (Client: postId のみ)
+                 └── 「もっと見る」ボタン → /api/posts で追加20件取得
 ```
 
-- フィルター・ページネーションは URL `searchParams` で管理（`?page=2&postType=tips`）
-- 削除後は `router.refresh()` で Server Component を再実行
-- `<Suspense key={page-postType}>` でフィルター/ページ変更時にスケルトン再表示
+- フィルターは URL `searchParams` で管理（`?postType=tips`）
+- 「もっと見る」ボタンで `/api/posts` から20件ずつ追加取得
+- 削除後は `router.refresh()` で Server Component を再実行（追加読み込み分はリセット）
+- `<Suspense key={postType}>` でフィルター変更時にスケルトン再表示
 
 ### 詳細ページの Server Component + Client Component 分割
 個別データの詳細ページは Server Component でデータ取得し、Client Component にprops で渡す:

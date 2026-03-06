@@ -314,7 +314,7 @@ async function DataList({ userId, page }: Props) {
 
 **ポイント**:
 - `<Suspense key={...}>` で検索条件変更時にスケルトン再表示
-- ページネーションは `<Link href>` ベース（JS不要）
+- 一覧の追加読み込みは「もっと見る」ボタン + API フェッチ（履歴ページで実装済み）
 - 削除等のミューテーション後は `router.refresh()` で Server Component 再実行
 - Client Component には最小限の props のみ渡す（シリアライゼーション最適化）
 
@@ -388,5 +388,5 @@ export function DetailClient({ initialData }: { initialData: Data }) {
 3. **画像最適化** - `next/image` + LCP画像に `priority`
 4. **フォント最適化** - `next/font` 使用
 5. **Streaming** - Suspense で段階的レンダリング
-6. **URL ベースの状態** - `searchParams` でフィルター・ページネーション（ブックマーク・ブラウザバック対応）
+6. **URL ベースの状態** - `searchParams` でフィルター（ブックマーク・ブラウザバック対応）
 7. **Server Component でデータ取得** - 詳細ページは `useEffect` フェッチではなく Server Component で直接クエリ

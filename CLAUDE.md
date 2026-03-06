@@ -64,7 +64,7 @@ src/
 │   ├── ideas/             # アイデア提案 (ideas-list, idea-card, ideas-filter, ideas-generate-form, ideas-skeleton)
 │   ├── characters/        # キャラクター管理 (characters-client等)
 │   ├── create/            # 投稿作成コンポーネント
-│   ├── history/           # 履歴一覧・編集 (post-list, post-card, post-detail-client, filter, pagination, delete-button, skeleton等)
+│   ├── history/           # 履歴一覧・編集 (post-list, post-list-client, post-card, post-detail-client, filter, delete-button, skeleton等)
 │   ├── publish/           # Instagram投稿コンポーネント
 │   ├── settings/          # 設定コンポーネント (post-type-list, post-type-form, profile-list, profile-detail-client等)
 │   └── providers/         # Context Providers
@@ -198,18 +198,17 @@ src/
 ### 投稿履歴（Server Component + Suspense）
 履歴一覧ページ (`/history`) は Server Component + Suspense アーキテクチャで実装。
 
-- **アーキテクチャ**: Server Component (page.tsx) → Suspense → async Server Component (HistoryPostList)
-- **データフェッチ**: `createServerClient()` + `POST_SELECT_QUERY` で Supabase に直接クエリ（API Route 不要）
-- **状態管理**: URL `searchParams` ベース（`?page=2&postType=tips`）でブックマーク・ブラウザバック対応
-- **ページネーション**: `<Link>` ベース（JS不要）
-- **フィルター**: `HistoryFilter` (Client Component) → `router.push()` でURL更新
-- **削除**: `HistoryDeleteButton` (Client Component) → 既存 DELETE API → `router.refresh()`
+- **アーキテクチャ**: Server Component (page.tsx) → Suspense → async Server Component (HistoryPostList) → Client Component (HistoryPostListClient)
+- **データフェッチ**: 初回20件は `createServerClient()` + `POST_SELECT_QUERY` で Supabase に直接クエリ（API Route 不要）
+- **追加読み込み**: 「もっと見る」ボタンで `/api/posts` から20件ずつ追加取得（Client Component）
+- **フィルター**: `HistoryFilter` (Client Component) → `router.push()` でURL更新（`?postType=tips`）
+- **削除**: `HistoryDeleteButton` (Client Component) → 既存 DELETE API → `router.refresh()`（追加読み込み分はリセット）
 - **コンポーネント分割**:
-  - `history-post-list.tsx` (Server async): データフェッチ + 一覧表示
+  - `history-post-list.tsx` (Server async): 初回20件のデータフェッチ
+  - `history-post-list-client.tsx` (Client): 「もっと見る」ボタン + 追加読み込み管理
   - `history-post-card.tsx` (Server): 投稿カード（バッジ・サムネイル）
   - `history-filter.tsx` (Client): フィルタードロップダウン
   - `history-delete-button.tsx` (Client): 削除ボタン + 確認UI
-  - `history-pagination.tsx` (Server): `<Link>` ベースのページネーション
   - `history-skeleton.tsx` (Server): Suspense フォールバック
 
 ### 詳細ページの Server Component + Client Component パターン
