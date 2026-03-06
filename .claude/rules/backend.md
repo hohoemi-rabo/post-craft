@@ -45,6 +45,9 @@ app/api/
 │       ├── status/route.ts   # GET (分析ステータス確認)
 │       ├── generate/route.ts # POST (プロフィール・投稿タイプ生成)
 │       └── apply/route.ts    # POST (生成結果をDB適用)
+├── ideas/
+│   ├── route.ts              # GET (list by profileId), POST (AI generate)
+│   └── [id]/route.ts         # PATCH (edit), DELETE
 ├── settings/
 │   └── hashtags/route.ts     # GET, PUT (レガシー必須ハッシュタグ設定)
 └── extract/route.ts          # POST (記事抽出)
@@ -299,6 +302,10 @@ export async function requirePostTypeOwnership(postTypeId, userId)
 // 分析の所有権チェック（CompetitorAnalysisRow 型）
 export async function requireAnalysisOwnership(analysisId, userId)
 // → { error: NextResponse, analysis: null } | { error: null, analysis: CompetitorAnalysisRow }
+
+// アイデアの所有権チェック（PostIdeaRow 型）
+export async function requireIdeaOwnership(ideaId, userId)
+// → { error: NextResponse, idea: null } | { error: null, idea: PostIdeaRow }
 ```
 
 ### レガシーパターン（直接チェック）

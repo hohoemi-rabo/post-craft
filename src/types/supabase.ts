@@ -161,6 +161,50 @@ export type Database = {
           },
         ]
       }
+      post_ideas: {
+        Row: {
+          id: string
+          user_id: string
+          profile_id: string
+          title: string
+          description: string
+          is_used: boolean
+          ai_instructions: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          profile_id: string
+          title: string
+          description: string
+          is_used?: boolean
+          ai_instructions?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          profile_id?: string
+          title?: string
+          description?: string
+          is_used?: boolean
+          ai_instructions?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_ideas_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           id: string

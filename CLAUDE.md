@@ -49,6 +49,9 @@ src/
 │   │   │   ├── new/page.tsx       # 新規分析ウィザード
 │   │   │   ├── [id]/page.tsx      # 分析詳細レポート
 │   │   │   └── [id]/generate/page.tsx # 生成プレビュー・適用
+│   │   ├── ideas/         # アイデア提案
+│   │   │   ├── page.tsx           # アイデア一覧
+│   │   │   └── generate/page.tsx  # アイデア生成
 │   │   └── settings/      # 設定
 │   │       ├── post-types/ # 投稿タイプ管理
 │   │       ├── profiles/  # プロフィール管理
@@ -58,6 +61,7 @@ src/
 │   └── publish/           # Instagram投稿（スタンドアロン）
 ├── components/            # UIコンポーネント
 │   ├── analysis/          # 分析機能 (wizard, report, generation-preview, profile-preview, posttype-preview-card等)
+│   ├── ideas/             # アイデア提案 (ideas-list, idea-card, ideas-filter, ideas-generate-form, ideas-skeleton)
 │   ├── characters/        # キャラクター管理 (characters-client等)
 │   ├── create/            # 投稿作成コンポーネント
 │   ├── history/           # 履歴一覧・編集 (post-list, post-card, post-detail-client, filter, pagination, delete-button, skeleton等)
@@ -68,6 +72,7 @@ src/
 ├── lib/                   # ユーティリティ
 │   ├── constants.ts       # 共通定数 (TOTAL_HASHTAG_COUNT, IMAGE_UPLOAD)
 │   ├── api-utils.ts       # API認証・所有権チェックヘルパー
+│   ├── idea-prompts.ts        # アイデア提案AIプロンプト
 │   ├── analysis-prompts.ts    # 分析AIプロンプト（Instagram・ブログ解析）
 │   ├── analysis-executor.ts   # 分析実行ロジック
 │   ├── generation-prompts.ts  # プロフィール・投稿タイプ自動生成プロンプト
@@ -98,6 +103,7 @@ src/
 | `post-type.ts` | DB管理の投稿タイプ型 (`PostTypeDB`, `PostTypeFormData`) |
 | `create-flow.ts` | 投稿作成フローの状態・型 |
 | `history-detail.ts` | 履歴詳細ページの型・ユーティリティ (`Post`, `PostTypeRef`, `ProfileRef`) |
+| `idea.ts` | アイデア提案の型 (`PostIdea`, `PostIdeaRow`, `toPostIdea`) |
 | `analysis.ts` | 分析機能の型 (`InstagramAnalysisResult`, `BlogAnalysisResult`, `GeneratedProfile`, `GeneratedPostType`, `AnalysisSourceType`, `AnalysisStatus`) |
 | `supabase.ts` | Supabase Database 型定義（自動生成） |
 
@@ -267,6 +273,19 @@ src/
 - **型**: `AnalysisConfig.blog.sitemapUrl?` でウィザード間のデータ引き継ぎ
 - **パイプライン**: `data-input-form` → `analysis-progress` → `blog-crawl` API → `crawlBlog(url, undefined, { sitemapUrl })` で事前発見済みサイトマップを優先使用
 - **UI状態遷移**: `idle` → `loading` → `found` | `not_found` | `skipped`（検索完了まで「分析を開始」無効）
+
+### アイデア提案機能
+投稿履歴をAIに分析させ、新しい投稿アイデアを提案する機能。
+
+- **フロー**: プロフィール選択 → （AI追加指示入力）→ AI分析 → 5件のアイデア生成
+- **各アイデア**: タイトル（20文字以内）+ 詳細説明（15行程度）
+- **管理**: 編集、削除、使用済み/未使用トグル
+- **投稿作成連携**: 「この案で投稿作成」→ `/create` にメモ引き継ぎ（使用済みにはしない）
+- **再分析**: いつでも追加生成可能（既存アイデアとの重複回避あり）
+- **DB**: `post_ideas` テーブル（profile_id で紐付け、ON DELETE CASCADE）
+- **ページ**: `/ideas`（一覧）、`/ideas/generate`（生成）
+- **API**: `/api/ideas`（GET一覧 + POST生成）、`/api/ideas/[id]`（PATCH編集 + DELETE削除）
+- **AIプロンプト**: `lib/idea-prompts.ts`（プロフィール情報 + 投稿タイプ + 過去キャプション + 既存アイデアタイトルを入力）
 
 ## ルールファイル
 

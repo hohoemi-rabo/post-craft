@@ -16,6 +16,7 @@ const navItems: NavItem[] = [
   { href: '/history', label: '投稿履歴', icon: '📋' },
   { href: '/characters', label: 'キャラクター', icon: '👤' },
   { href: '/analysis', label: '分析', icon: '🔍' },
+  { href: '/ideas', label: 'アイデア', icon: '💡' },
   {
     href: '/settings',
     label: '設定',

@@ -71,10 +71,10 @@ export default function CreatePage() {
         const { postType, inputText } = JSON.parse(reuseData)
         setFormState((prev) => ({
           ...prev,
-          postType,
+          ...(postType && { postType }),
           inputText,
         }))
-        setStep(2) // Skip to content input step
+        setStep(postType ? 2 : 1) // postType があればステップ2、なければステップ1(タイプ選択)
       } catch {
         // Ignore parse errors
       }

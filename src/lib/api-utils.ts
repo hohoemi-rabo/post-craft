@@ -122,3 +122,15 @@ export async function requireAnalysisOwnership(analysisId: string, userId: strin
   if (result.error) return { error: result.error, analysis: null }
   return { error: null, analysis: result.data }
 }
+
+/**
+ * アイデアの所有権チェック
+ * アイデアが存在しないか、所有者でない場合はエラーレスポンスを返す
+ */
+export async function requireIdeaOwnership(ideaId: string, userId: string) {
+  const result = await checkOwnership<{ id: string; user_id: string; profile_id: string }>(
+    'post_ideas', ideaId, userId, 'id, user_id, profile_id', 'Idea'
+  )
+  if (result.error) return { error: result.error, idea: null }
+  return { error: null, idea: result.data }
+}

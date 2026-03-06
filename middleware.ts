@@ -23,5 +23,6 @@ export const config = {
     '/characters/:path*',
     '/settings/:path*',
     '/analysis/:path*',
+    '/ideas/:path*',
   ],
 }
