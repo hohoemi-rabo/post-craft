@@ -83,7 +83,7 @@ export function IdeaCard({ idea: initialIdea }: IdeaCardProps) {
   const handleCreatePost = () => {
     sessionStorage.setItem(
       'reusePost',
-      JSON.stringify({ inputText: idea.description })
+      JSON.stringify({ inputText: idea.description, ideaId: idea.id })
     )
     router.push(`/create?profileId=${idea.profileId}`)
   }

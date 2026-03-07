@@ -26,6 +26,8 @@ export interface CreateFormState {
   inputMode: 'fields' | 'memo'
   // プロフィール
   profileId: string | null
+  // アイデア参照（投稿完了時に使用済みにする）
+  ideaId: string | null
   // 関連投稿参照
   relatedPostId: string | null
   relatedPostCaption: string | null
@@ -79,6 +81,8 @@ export const INITIAL_FORM_STATE: CreateFormState = {
   inputMode: 'fields',
   // プロフィール
   profileId: null,
+  // アイデア参照
+  ideaId: null,
   // 関連投稿参照
   relatedPostId: null,
   relatedPostCaption: null,

@@ -28,6 +28,20 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
     resetSteps,
   } = useGenerationSteps()
 
+  // アイデアを使用済みにする（投稿保存成功後に呼び出し）
+  const markIdeaAsUsed = useCallback(async (ideaId: string | null) => {
+    if (!ideaId) return
+    try {
+      await fetch(`/api/ideas/${ideaId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isUsed: true }),
+      })
+    } catch {
+      // アイデアの更新失敗は投稿保存に影響させない
+    }
+  }, [])
+
   /**
    * キャプションのみを先に生成（キャッチコピー確認画面用）
    */
@@ -150,6 +164,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
           if (saveRes.ok) {
             const savedPost = await saveRes.json()
             setSavedPostId(savedPost.id)
+            markIdeaAsUsed(formState.ideaId)
           }
           updateStepStatus('save', 'complete')
 
@@ -187,6 +202,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
       generatedHashtagsFromCaption,
       generationSteps,
       initSteps,
+      markIdeaAsUsed,
       onStepChange,
       setGenerationProgress,
       updateStepStatus,
@@ -321,6 +337,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
           if (saveRes.ok) {
             const savedPost = await saveRes.json()
             setSavedPostId(savedPost.id)
+            markIdeaAsUsed(formState.ideaId)
           }
           updateStepStatus('save', 'complete')
         } catch {
@@ -348,7 +365,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
         }
       }
     },
-    [generationSteps, initSteps, onStepChange, setGenerationProgress, updateStepStatus]
+    [generationSteps, initSteps, markIdeaAsUsed, onStepChange, setGenerationProgress, updateStepStatus]
   )
 
   /**

@@ -68,11 +68,12 @@ export default function CreatePage() {
     const reuseData = sessionStorage.getItem('reusePost')
     if (reuseData) {
       try {
-        const { postType, inputText } = JSON.parse(reuseData)
+        const { postType, inputText, ideaId } = JSON.parse(reuseData)
         setFormState((prev) => ({
           ...prev,
           ...(postType && { postType }),
           inputText,
+          ...(ideaId && { ideaId }),
         }))
         setStep(postType ? 2 : 1) // postType があればステップ2、なければステップ1(タイプ選択)
       } catch {
