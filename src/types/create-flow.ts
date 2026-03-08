@@ -24,6 +24,8 @@ export interface CreateFormState {
   imageReadAspectRatio: '1:1' | '4:5' | '16:9'
   // 入力モード
   inputMode: 'fields' | 'memo'
+  // フロータイプ（standard: 通常フロー, image_read: 画像読み取りフロー）
+  flowType: 'standard' | 'image_read'
   // プロフィール
   profileId: string | null
   // アイデア参照（投稿完了時に使用済みにする）
@@ -79,6 +81,8 @@ export const INITIAL_FORM_STATE: CreateFormState = {
   imageReadAspectRatio: '1:1',
   // 入力モード
   inputMode: 'fields',
+  // フロータイプ
+  flowType: 'standard',
   // プロフィール
   profileId: null,
   // アイデア参照

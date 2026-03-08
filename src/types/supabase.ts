@@ -280,6 +280,7 @@ export type Database = {
           input_mode: string
           profile_id: string | null
           source_analysis_id: string | null
+          flow_type: string
           created_at: string | null
           updated_at: string | null
         }
@@ -301,6 +302,7 @@ export type Database = {
           input_mode?: string
           profile_id?: string | null
           source_analysis_id?: string | null
+          flow_type?: string
           created_at?: string | null
           updated_at?: string | null
         }
@@ -322,6 +324,7 @@ export type Database = {
           input_mode?: string
           profile_id?: string | null
           source_analysis_id?: string | null
+          flow_type?: string
           created_at?: string | null
           updated_at?: string | null
         }

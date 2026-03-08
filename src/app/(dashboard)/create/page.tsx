@@ -51,7 +51,7 @@ export default function CreatePage() {
   } = useContentGeneration({ onStepChange: setStep })
 
   // Calculate total steps based on postType and skipImage
-  const baseSteps = formState.postType === 'image_read' ? 4 : formState.skipImage ? 5 : 6
+  const baseSteps = formState.flowType === 'image_read' ? 4 : formState.skipImage ? 5 : 6
 
   // Check for profileId in URL params (from dashboard)
   useEffect(() => {
@@ -93,7 +93,7 @@ export default function CreatePage() {
   }, [])
 
   // Step 1: Select post type
-  const handleSelectPostType = (postTypeId: string, slug: string, name: string, inputMode: 'fields' | 'memo' = 'fields', placeholders: Placeholder[] = []) => {
+  const handleSelectPostType = (postTypeId: string, slug: string, name: string, inputMode: 'fields' | 'memo' = 'fields', placeholders: Placeholder[] = [], flowType: 'standard' | 'image_read' = 'standard') => {
     const builtinType = isBuiltinPostType(slug) ? slug : null
     setFormState((prev) => ({
       ...prev,
@@ -101,6 +101,7 @@ export default function CreatePage() {
       postTypeId,
       postTypeName: name,
       inputMode,
+      flowType,
     }))
     setCurrentPlaceholders(placeholders)
     setStep(2)
@@ -205,7 +206,7 @@ export default function CreatePage() {
       imageReadAspectRatio: selectedAspectRatio,
     }))
     setStep(3)
-    startImageReadGeneration(imageBase64, imageMimeType, text, file, selectedAspectRatio)
+    startImageReadGeneration(imageBase64, imageMimeType, text, file, selectedAspectRatio, formState)
   }
 
   // Determine which step to render
@@ -223,7 +224,7 @@ export default function CreatePage() {
     }
 
     // image_read タイプ専用フロー: 1->2(画像+メモ)->3(生成)->4(結果)
-    if (formState.postType === 'image_read') {
+    if (formState.flowType === 'image_read') {
       switch (step) {
         case 1:
           return <StepPostType profileId={formState.profileId} onSelect={handleSelectPostType} />
@@ -402,7 +403,7 @@ export default function CreatePage() {
 
       <div className="max-w-2xl mx-auto">
         {step > 0 && (
-          <ProgressIndicator currentStep={step} totalSteps={baseSteps} postType={formState.postType} />
+          <ProgressIndicator currentStep={step} totalSteps={baseSteps} flowType={formState.flowType} />
         )}
 
         <div className="p-6 bg-white/5 border border-white/10 rounded-2xl">

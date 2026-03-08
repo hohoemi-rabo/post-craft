@@ -32,6 +32,11 @@ Google Gemini、プロンプト、画像生成のルール。
 | `howto` | 使い方タイプ | 全般 |
 | `image_read` | 画像読み取りタイプ | 全般 |
 
+**フロータイプ (`post_types.flow_type`)**:
+- `standard` (デフォルト): 通常の投稿フロー
+- `image_read`: 画像読み取り専用フロー（4ステップ）。複数プロフィールで利用可能（例: `image_read`, `image_read_biz`）
+- フロー分岐はコード内で `flowType === 'image_read'` で判定（slug文字列比較ではない）
+
 ### テンプレート構造
 
 #### 解決タイプ (solution)

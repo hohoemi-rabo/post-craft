@@ -33,6 +33,7 @@ export interface PostTypeDB {
   inputMode: 'fields' | 'memo'
   profileId: string | null
   sourceAnalysisId: string | null
+  flowType: 'standard' | 'image_read'
   profileRef?: { id: string; name: string; icon: string } | null
   createdAt: string
   updatedAt: string

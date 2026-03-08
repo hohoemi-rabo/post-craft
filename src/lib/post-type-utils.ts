@@ -23,6 +23,7 @@ export function toPostTypeDB(row: PostTypeRow & { profile_ref?: { id: string; na
     inputMode: (row.input_mode === 'memo' ? 'memo' : 'fields') as 'fields' | 'memo',
     profileId: row.profile_id ?? null,
     sourceAnalysisId: row.source_analysis_id ?? null,
+    flowType: (row.flow_type === 'image_read' ? 'image_read' : 'standard') as 'standard' | 'image_read',
     profileRef: row.profile_ref ?? null,
     createdAt: row.created_at ?? '',
     updatedAt: row.updated_at ?? '',

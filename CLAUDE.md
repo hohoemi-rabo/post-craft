@@ -128,6 +128,12 @@ src/
 
 **カスタムタイプ**: ユーザーが自由に追加可能。テンプレート・プレースホルダー・文字数を設定。
 
+**フロータイプ (`flow_type` カラム)**:
+- `standard` (デフォルト): 通常の5-6ステップフロー（内容入力→画像設定→キャッチコピー→生成→完成）
+- `image_read`: 画像読み取り専用の4ステップフロー（画像+メモ→生成→完成）
+- フロー分岐は `PostTypeDB.flowType` / `CreateFormState.flowType` で判定（slug文字列比較ではない）
+- 複数プロフィールに `image_read` フロータイプの投稿タイプを追加可能（例: `image_read`, `image_read_biz`）
+
 **デュアルシステム**:
 - `posts.post_type` (slug文字列): 後方互換用、ビルトインタイプの識別に使用
 - `posts.post_type_id` (UUID FK): `post_types` テーブルへの外部キー（ON DELETE SET NULL）
@@ -141,8 +147,10 @@ src/
 画像スキップ（5ステップ）:
 1. タイプ選択 → 2. 内容入力 → 3. 画像設定 → 4. 生成 → 5. 完成
 
-画像読み取りタイプ（4ステップ）:
+画像読み取りタイプ（4ステップ、`flow_type = 'image_read'`）:
 1. タイプ選択 → 2. 画像アップロード＋メモ入力 → 3. 生成 → 4. 完成
+- フロー分岐は `formState.flowType === 'image_read'` で判定
+- 複数プロフィールで利用可能（例: シニア向け `image_read`、ビジネス向け `image_read_biz`）
 
 ### キャッチコピー機能
 - 投稿内容からAIがキャッチコピーを自動生成

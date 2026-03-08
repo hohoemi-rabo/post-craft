@@ -377,7 +377,8 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
       imageMimeType: string,
       text: string,
       file: File,
-      selectedAspectRatio: '1:1' | '4:5' | '16:9'
+      selectedAspectRatio: '1:1' | '4:5' | '16:9',
+      currentFormState: CreateFormState
     ) => {
       const steps: GenerationStep[] = [
         { id: 'analyze', label: '画像を分析中...', status: 'pending' },
@@ -396,13 +397,14 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            postType: 'image_read',
+            postType: currentFormState.postType || 'image_read',
+            postTypeId: currentFormState.postTypeId,
+            profileId: currentFormState.profileId,
             inputText: text,
             imageBase64,
             imageMimeType,
           }),
         })
-        // Note: image_read is always a built-in type, postTypeId not needed here
 
         if (!captionResponse.ok) {
           const errorData = await captionResponse.json().catch(() => ({}))
@@ -421,7 +423,9 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            postType: 'image_read',
+            postType: currentFormState.postType || 'image_read',
+            postTypeId: currentFormState.postTypeId,
+            profileId: currentFormState.profileId,
             inputText: text,
             sourceUrl: null,
             generatedCaption: captionData.caption,

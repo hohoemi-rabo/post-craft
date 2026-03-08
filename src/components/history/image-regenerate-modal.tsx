@@ -36,7 +36,7 @@ export function ImageRegenerateModal({
   onRegenerated,
 }: ImageRegenerateModalProps) {
   const [style, setStyle] = useState<ImageStyle>(
-    (currentStyle as ImageStyle) || 'manga_male'
+    (currentStyle && currentStyle in IMAGE_STYLES ? currentStyle as ImageStyle : 'manga_male')
   )
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>(
     (currentAspectRatio as AspectRatio) || '1:1'
@@ -52,7 +52,7 @@ export function ImageRegenerateModal({
   const [characterId, setCharacterId] = useState<string | null>(currentCharacterId ?? null)
   const [useCharacterImage, setUseCharacterImage] = useState(false)
 
-  const selectedStyle = IMAGE_STYLES[style]
+  const selectedStyle = IMAGE_STYLES[style] ?? IMAGE_STYLES['manga_male']
   const selectedCharacter = characters.find(c => c.id === characterId)
   const canUseCharacterImage = !!(selectedCharacter?.image_url && selectedStyle.supportsCharacter)
 

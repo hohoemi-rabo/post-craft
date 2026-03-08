@@ -3,7 +3,7 @@
 interface ProgressIndicatorProps {
   currentStep: number
   totalSteps: number
-  postType?: string | null
+  flowType?: 'standard' | 'image_read'
 }
 
 // 6 steps: normal with image (type → content → image settings → catchphrase → generating → result)
@@ -15,15 +15,15 @@ const STEP_LABELS_SKIP_IMAGE = ['タイプ選択', '内容入力', '画像設定
 // 4 steps: image_read (type → image+memo → generating → result)
 const STEP_LABELS_IMAGE_READ = ['タイプ選択', '画像+メモ', '生成', '完成']
 
-function getStepLabels(totalSteps: number, postType?: string | null): string[] {
-  if (postType === 'image_read') return STEP_LABELS_IMAGE_READ
+function getStepLabels(totalSteps: number, flowType?: 'standard' | 'image_read'): string[] {
+  if (flowType === 'image_read') return STEP_LABELS_IMAGE_READ
   if (totalSteps === 6) return STEP_LABELS_WITH_IMAGE
   if (totalSteps === 5) return STEP_LABELS_SKIP_IMAGE
   return STEP_LABELS_WITH_IMAGE
 }
 
-export function ProgressIndicator({ currentStep, totalSteps, postType }: ProgressIndicatorProps) {
-  const stepLabels = getStepLabels(totalSteps, postType)
+export function ProgressIndicator({ currentStep, totalSteps, flowType }: ProgressIndicatorProps) {
+  const stepLabels = getStepLabels(totalSteps, flowType)
 
   return (
     <div className="flex items-center justify-center gap-2 mb-8">

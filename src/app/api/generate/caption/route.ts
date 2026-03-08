@@ -239,7 +239,7 @@ export async function POST(request: Request) {
         charRange,
         typePrompt: dbType.type_prompt || buildCustomTypePrompt(dbType.name, placeholders, charRange),
         hashtagTrend: [],
-        isImageRead: false,
+        isImageRead: dbType.flow_type === 'image_read',
         isMemoMode,
       }
     } else if (postType && POST_TYPES[postType]) {

@@ -6,7 +6,7 @@ import type { Placeholder } from '@/types/post-type'
 
 interface StepPostTypeProps {
   profileId?: string | null
-  onSelect: (postTypeId: string, slug: string, name: string, inputMode: 'fields' | 'memo', placeholders: Placeholder[]) => void
+  onSelect: (postTypeId: string, slug: string, name: string, inputMode: 'fields' | 'memo', placeholders: Placeholder[], flowType: 'standard' | 'image_read') => void
 }
 
 export function StepPostType({ profileId, onSelect }: StepPostTypeProps) {
@@ -45,7 +45,7 @@ export function StepPostType({ profileId, onSelect }: StepPostTypeProps) {
           {activePostTypes.map((type) => (
             <button
               key={type.id}
-              onClick={() => onSelect(type.id, type.slug, type.name, type.inputMode, type.placeholders)}
+              onClick={() => onSelect(type.id, type.slug, type.name, type.inputMode, type.placeholders, type.flowType)}
               className="p-6 bg-white/5 border border-white/10 rounded-xl text-left hover:bg-white/10 hover:border-white/20 transition-all group"
             >
               <div className="text-3xl mb-3">{type.icon}</div>
