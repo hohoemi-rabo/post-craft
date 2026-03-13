@@ -21,7 +21,7 @@ Post Craft プロジェクトのガイドライン。
 | Auth | NextAuth.js + Google OAuth |
 | AI (文章) | Google Gemini Flash (gemini-3-flash-preview) |
 | AI (画像分析) | Google Gemini Pro (gemini-3-pro-preview) |
-| AI (画像) | Google Gemini (gemini-3.1-flash-image-preview) |
+| AI (画像) | Google Gemini (gemini-3-pro-image-preview) |
 | Instagram投稿 | Facebook Graph API v21.0 + FB JS SDK |
 | Hosting | Vercel |
 
