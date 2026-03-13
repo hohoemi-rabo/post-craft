@@ -62,6 +62,7 @@ export function PostTypeForm({ mode, initialData, defaultProfileId }: PostTypeFo
 
   // Memo & generation state
   const [userMemo, setUserMemo] = useState(initialData?.userMemo || '')
+  const [typePrompt, setTypePrompt] = useState(initialData?.typePrompt || '')
   const [generatedData, setGeneratedData] = useState<GeneratedData | null>(null)
 
   const [errors, setErrors] = useState<FormErrors>({})
@@ -188,7 +189,7 @@ export function PostTypeForm({ mode, initialData, defaultProfileId }: PostTypeFo
         isActive,
         inputMode,
         userMemo: userMemo.trim() || undefined,
-        typePrompt: initialData.typePrompt || undefined,
+        typePrompt: typePrompt.trim() || undefined,
         profileId,
       }
 
@@ -381,18 +382,22 @@ export function PostTypeForm({ mode, initialData, defaultProfileId }: PostTypeFo
         <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
           <h2 className="text-lg font-bold text-white">現在の設定</h2>
           <p className="text-sm text-slate-400">
-            現在保存されているテンプレート・入力項目・プロンプトです。変更する場合はメモ書きを編集して「AIで生成してプレビュー」を実行してください。
+            現在保存されているテンプレート・入力項目・プロンプトです。テンプレート構造を変更する場合はメモ書きを編集して「AIで生成してプレビュー」を実行してください。
           </p>
 
-          {/* Type Prompt */}
-          {initialData.typePrompt && (
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium text-slate-400">タイプ別プロンプト</h3>
-              <div className="p-4 bg-slate-800 rounded-xl text-sm text-slate-300 whitespace-pre-wrap max-h-40 overflow-y-auto">
-                {initialData.typePrompt}
-              </div>
-            </div>
-          )}
+          {/* Type Prompt (editable) */}
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-slate-400">タイプ別プロンプト</h3>
+            <textarea
+              value={typePrompt}
+              onChange={(e) => setTypePrompt(e.target.value)}
+              rows={8}
+              className="w-full px-4 py-3 bg-slate-800 border border-white/10 rounded-xl text-sm text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+            />
+            <p className="text-xs text-slate-500">
+              投稿生成AIへの指示文です。生成結果の文体や構成を調整したい場合に編集してください。
+            </p>
+          </div>
 
           {/* Template Structure */}
           <div className="space-y-2">
@@ -482,7 +487,7 @@ export function PostTypeForm({ mode, initialData, defaultProfileId }: PostTypeFo
             disabled={isSaving}
             className="px-6 py-3 border border-white/10 text-white hover:bg-white/5 rounded-xl transition-colors disabled:opacity-50"
           >
-            {isSaving ? '保存中...' : '基本情報のみ保存'}
+            {isSaving ? '保存中...' : '保存'}
           </button>
         )}
       </div>
