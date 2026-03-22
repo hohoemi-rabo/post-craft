@@ -1,7 +1,7 @@
-# Post Craft 仕様書 (Phase 4 完了時点)
+# Post Craft 仕様書
 
-**Version**: Phase 4 Complete
-**Last Updated**: 2026-02-13
+**Version**: Phase 4 完了 + 継続改善
+**Last Updated**: 2026-03-22
 **Framework**: Next.js 15.5.9 (App Router), React 19.1.0, TypeScript 5.x
 
 ---
@@ -17,8 +17,8 @@
 | 認証 | Google OAuth (NextAuth.js v5) + メールホワイトリスト |
 | データベース | Supabase (PostgreSQL) |
 | AI (文章) | Google Gemini Flash (`gemini-3-flash-preview`) |
-| AI (画像分析) | Google Gemini Pro (`gemini-3-pro-preview`) |
-| AI (画像生成) | Google Gemini Image (`gemini-3-pro-image-preview`) |
+| AI (画像分析) | Google Gemini Pro (`gemini-3.1-pro-preview`) |
+| AI (画像生成) | Google Gemini Image (`gemini-3.1-flash-image-preview`) |
 | Instagram | Facebook Graph API v21.0 + FB JS SDK |
 | スタイリング | Tailwind CSS 3.4.17 |
 
@@ -99,9 +99,11 @@
 | `input_mode` | text (`fields` / `memo`) | 入力モード |
 | `sort_order` | integer | 並び順 |
 | `is_active` | boolean (DEFAULT true) | 有効/無効 |
-| `user_memo` | text | ユーザーメモ |
+| `user_memo` | text | ユーザーメモ（AI生成の元） |
 | `type_prompt` | text | タイプ別AIプロンプト |
 | `profile_id` | UUID (FK → profiles.id, ON DELETE SET NULL) | 所属プロフィール |
+| `source_analysis_id` | UUID (FK → competitor_analyses.id) | 分析から生成された場合の元分析ID |
+| `flow_type` | text (DEFAULT 'standard') | フロータイプ (`standard` / `image_read`) |
 | `created_at` | timestamptz | 作成日時 |
 | `updated_at` | timestamptz | 更新日時 |
 
@@ -116,6 +118,11 @@
 | `useful` | お役立ちタイプ | 📖 | 汎用的な便利情報 |
 | `howto` | 使い方タイプ | 📝 | 便利情報＋手順 |
 | `image_read` | 画像読み取り | 📸 | 画像をAIで読み取り投稿文を生成 |
+
+**フロータイプ (`flow_type`)**:
+- `standard` (デフォルト): 通常の5-6ステップフロー
+- `image_read`: 画像読み取り専用の4ステップフロー。複数プロフィールで利用可能（例: `image_read`, `image_read_biz`）
+- フロー分岐は `PostTypeDB.flowType` / `CreateFormState.flowType` で判定（slug文字列比較ではない）
 
 **制限**: ユーザーあたり最大10個
 
@@ -153,7 +160,7 @@
 | `created_at` | timestamptz | 作成日時 |
 | `updated_at` | timestamptz | 更新日時 |
 
-### 2.7 user_settings
+### 2.7 user_settings（レガシー）
 
 | カラム | 型 | 説明 |
 |--------|-----|------|
@@ -169,15 +176,63 @@
 - プロフィール機能導入前のレガシー設定
 - `profileId` 未指定時のフォールバックとして使用
 
-### 2.8 Row Level Security (RLS)
+### 2.8 competitor_analyses（分析機能）
+
+| カラム | 型 | 説明 |
+|--------|-----|------|
+| `id` | UUID (PK) | 分析ID |
+| `user_id` | text (FK → users.id) | ユーザーID |
+| `source_type` | text | ソースタイプ (`instagram` / `blog`) |
+| `source_identifier` | text | ソース識別子（URL等） |
+| `source_display_name` | text | 表示名 |
+| `raw_data` | jsonb | 生データ |
+| `analysis_result` | jsonb | 分析結果 |
+| `status` | text | ステータス（`pending` / `analyzing` / `completed` / `error`） |
+| `data_source` | text | データソース |
+| `post_count` | integer | 投稿数 |
+| `error_message` | text | エラーメッセージ |
+| `created_at` | timestamptz | 作成日時 |
+| `updated_at` | timestamptz | 更新日時 |
+
+### 2.9 generated_configs（生成設定）
+
+| カラム | 型 | 説明 |
+|--------|-----|------|
+| `id` | UUID (PK) | 設定ID |
+| `user_id` | text (FK → users.id) | ユーザーID |
+| `analysis_id` | UUID (FK → competitor_analyses.id) | 元分析ID |
+| `generated_profile_id` | UUID (FK → profiles.id, nullable) | 生成されたプロフィールID |
+| `generated_post_type_ids` | text[] | 生成された投稿タイプIDの配列 |
+| `generation_config` | jsonb | 生成設定 |
+| `status` | text | ステータス |
+| `created_at` | timestamptz | 作成日時 |
+
+### 2.10 post_ideas（アイデア提案）
+
+| カラム | 型 | 説明 |
+|--------|-----|------|
+| `id` | UUID (PK) | アイデアID |
+| `user_id` | text (FK → users.id) | ユーザーID |
+| `profile_id` | UUID (FK → profiles.id, ON DELETE CASCADE) | プロフィールID |
+| `title` | text | タイトル（20文字以内） |
+| `description` | text | 詳細説明（15行程度） |
+| `is_used` | boolean (DEFAULT false) | 使用済みフラグ |
+| `ai_instructions` | text | AI追加指示 |
+| `created_at` | timestamptz | 作成日時 |
+| `updated_at` | timestamptz | 更新日時 |
+
+### 2.11 Row Level Security (RLS)
 
 全テーブルで RLS 有効化:
 ```sql
 CREATE POLICY "Users can CRUD own data" ON <table>
-  FOR ALL USING (auth.uid()::text = user_id::text);
+  FOR ALL USING ((SELECT auth.uid())::text = user_id::text);
 ```
 
-### 2.9 Supabase Storage バケット
+- `(SELECT auth.uid())` パターンで行ごとの再評価を防止
+- service_role は自動的に RLS をバイパス
+
+### 2.12 Supabase Storage バケット
 
 | バケット | 用途 | パス形式 | 公開 |
 |---------|------|---------|------|
@@ -198,8 +253,8 @@ CREATE POLICY "Users can CRUD own data" ON <table>
 
 | Route | Method | リクエスト | レスポンス | 説明 |
 |-------|--------|----------|----------|------|
-| `/api/posts` | GET | `?page=1&limit=10&postType=solution` | `{ posts, total, page, totalPages }` | ページネーション付き一覧 |
-| `/api/posts` | POST | `{ postType, inputText, generatedCaption, ... }` | 完全な投稿データ | 投稿作成 + post_images レコード |
+| `/api/posts` | GET | `?limit=20&offset=0&postType=solution` | `{ posts, hasMore }` | 「もっと見る」方式の一覧取得 |
+| `/api/posts` | POST | `{ postType, postTypeId, profileId, inputText, ... }` | 完全な投稿データ | 投稿作成 + post_images レコード |
 | `/api/posts/[id]` | GET | - | 完全な投稿データ (JOIN込み) | post_images, post_type_ref, profile_ref 含む |
 | `/api/posts/[id]` | PATCH | ホワイトリストフィールド | 更新後の完全データ | 汎用更新 |
 | `/api/posts/[id]` | DELETE | - | `{ success: true }` | Storage画像も削除 |
@@ -217,6 +272,7 @@ CREATE POLICY "Users can CRUD own data" ON <table>
 | `/api/generate/image` | POST | `{ style, aspectRatio, characterId, sceneDescription, useCharacterImage, catchphrase, backgroundType }` | `{ imageUrl }` | AI画像生成 |
 | `/api/generate/scene` | POST | `{ postType, caption }` | `{ sceneDescription }` | シーン説明生成 |
 | `/api/generate/catchphrase` | POST | `{ caption }` | `{ catchphrase }` | キャッチコピー生成 (10-20文字) |
+| `/api/generate/post-type` | POST | `{ name, description, minLength, maxLength, userMemo, inputMode }` | `{ typePrompt, templateStructure, placeholders, samplePost }` | 投稿タイプのAI生成 |
 | `/api/extract` | POST | `{ url }` | `{ title, content }` | ブログ記事抽出 |
 
 ### 3.4 投稿タイプ管理
@@ -229,6 +285,7 @@ CREATE POLICY "Users can CRUD own data" ON <table>
 | `/api/post-types/[id]` | PUT | 更新 |
 | `/api/post-types/[id]` | DELETE | 削除 (`posts.post_type_id` を NULL に) |
 | `/api/post-types/[id]/duplicate` | POST | 複製 |
+| `/api/post-types/reorder` | PUT | 並び替え |
 
 ### 3.5 プロフィール管理
 
@@ -239,10 +296,8 @@ CREATE POLICY "Users can CRUD own data" ON <table>
 | `/api/profiles/[id]` | GET | 詳細取得 |
 | `/api/profiles/[id]` | PUT | 更新 |
 | `/api/profiles/[id]` | DELETE | 削除 (`post_types.profile_id` を NULL に) |
-| `/api/profiles/[id]/hashtags` | GET | 必須ハッシュタグ取得 |
-| `/api/profiles/[id]/hashtags` | PUT | 必須ハッシュタグ更新 |
-| `/api/profiles/[id]/system-prompt` | GET | システムプロンプト取得 |
-| `/api/profiles/[id]/system-prompt` | PUT | システムプロンプト更新 |
+| `/api/profiles/[id]/hashtags` | GET/PUT | 必須ハッシュタグ |
+| `/api/profiles/[id]/system-prompt` | GET/PUT | システムプロンプト |
 
 ### 3.6 キャラクター管理
 
@@ -264,21 +319,45 @@ CREATE POLICY "Users can CRUD own data" ON <table>
 - ダッシュボード: `Content-Type: application/json` + `imageUrl`
 - スタンドアロン: `Content-Type: multipart/form-data` + `image` (File)
 
-### 3.8 設定 (レガシー)
+### 3.8 分析機能
+
+| Route | Method | 説明 |
+|-------|--------|------|
+| `/api/analysis` | GET/POST | 分析一覧 / 新規作成 |
+| `/api/analysis/upload` | POST | CSVアップロード |
+| `/api/analysis/blog-crawl` | POST | ブログクロール (sitemapUrl オプション) |
+| `/api/analysis/sitemap-discover` | POST | サイトマップ自動探索・手動検証 |
+| `/api/analysis/[id]` | GET/PUT/DELETE | 分析詳細CRUD |
+| `/api/analysis/[id]/status` | GET | 分析ステータス確認 |
+| `/api/analysis/[id]/generate` | POST | プロフィール・投稿タイプ生成 |
+| `/api/analysis/[id]/apply` | POST | 生成結果をDB適用 |
+
+### 3.9 アイデア提案
+
+| Route | Method | 説明 |
+|-------|--------|------|
+| `/api/ideas` | GET | 一覧 (`?profileId=xxx`) |
+| `/api/ideas` | POST | AI生成 (`{ profileId, aiInstructions? }`) |
+| `/api/ideas/[id]` | PATCH | 編集 (`{ title?, description?, isUsed? }`) |
+| `/api/ideas/[id]` | DELETE | 削除 |
+
+### 3.10 設定 (レガシー)
 
 | Route | Method | 説明 |
 |-------|--------|------|
 | `/api/settings/hashtags` | GET/PUT | レガシー必須ハッシュタグ |
 | `/api/settings/system-prompt` | GET/PUT | レガシーシステムプロンプト |
 
-### 3.9 認証ヘルパー (`lib/api-utils.ts`)
+### 3.11 認証ヘルパー (`lib/api-utils.ts`)
 
 ```typescript
-requireAuth()                    // → { error, session, userId }
-requirePostOwnership(id, userId) // → { error, post }
+requireAuth()                         // → { error, session, userId }
+requirePostOwnership(id, userId)      // → { error, post }
 requireCharacterOwnership(id, userId) // → { error, character }
 requireProfileOwnership(id, userId)   // → { error, profile }
 requirePostTypeOwnership(id, userId)  // → { error, postType }
+requireAnalysisOwnership(id, userId)  // → { error, analysis }
+requireIdeaOwnership(id, userId)      // → { error, idea }
 ```
 
 ---
@@ -296,9 +375,15 @@ src/app/
 │   ├── layout.tsx                   # サイドバー + モバイルナビ + Provider
 │   ├── dashboard/page.tsx           # ホーム: 最近の投稿 + 統計 (Server Component)
 │   ├── create/page.tsx              # 投稿作成（ステップ制）(Client Component)
-│   ├── history/page.tsx             # 履歴一覧 (Server Component + Suspense)
-│   ├── history/[id]/page.tsx        # 履歴詳細 + インライン編集 (Client Component)
+│   ├── history/page.tsx             # 履歴一覧 (Server Component + Suspense + もっと見る)
+│   ├── history/[id]/page.tsx        # 履歴詳細 + インライン編集
 │   ├── characters/page.tsx          # キャラクター管理
+│   ├── analysis/page.tsx            # 分析一覧
+│   ├── analysis/new/page.tsx        # 新規分析ウィザード
+│   ├── analysis/[id]/page.tsx       # 分析詳細レポート
+│   ├── analysis/[id]/generate/page.tsx # 生成プレビュー・適用
+│   ├── ideas/page.tsx               # アイデア一覧
+│   ├── ideas/generate/page.tsx      # アイデア生成
 │   └── settings/
 │       ├── page.tsx                 # 設定ハブ
 │       ├── hashtags/page.tsx        # ハッシュタグ設定（レガシー）
@@ -319,9 +404,17 @@ src/app/
 
 ```typescript
 // src/middleware.ts
-// /dashboard/*, /create/*, /history/* → 未認証時 /login にリダイレクト
+// 未認証時 /login にリダイレクト
 export const config = {
-  matcher: ['/dashboard/:path*', '/create/:path*', '/history/:path*'],
+  matcher: [
+    '/dashboard/:path*',
+    '/create/:path*',
+    '/history/:path*',
+    '/characters/:path*',
+    '/settings/:path*',
+    '/analysis/:path*',
+    '/ideas/:path*',
+  ],
 }
 ```
 
@@ -337,8 +430,10 @@ export const config = {
 **画像スキップ（5ステップ）**:
 1. タイプ選択 → 2. 内容入力 → 3. 画像設定(スキップ) → 4. 生成中 → 5. 完成
 
-**画像読み取りタイプ（4ステップ）**:
+**画像読み取りタイプ（4ステップ、`flow_type = 'image_read'`）**:
 1. タイプ選択 → 2. 画像アップロード + メモ → 3. 生成中 → 4. 完成
+- フロー分岐は `formState.flowType === 'image_read'` で判定
+- 複数プロフィールで利用可能（例: シニア向け `image_read`、ビジネス向け `image_read_biz`）
 
 **プロフィール選択ステップ**: プロフィールが2つ以上ある場合のみ表示（ステップ0）
 
@@ -351,7 +446,7 @@ export const config = {
 
 ### 5.3 関連投稿参照
 
-- 対象: 全投稿タイプ（`image_read` を除く）
+- 対象: 全投稿タイプ（`image_read` フローを除く）
 - 参照数: 1投稿のみ
 - キャプション: 冒頭に前回の投稿を1文で触れる導入文を自動生成
 - ハッシュタグ: 前回のハッシュタグを優先的に再利用 + 追加生成（計10個）
@@ -396,45 +491,37 @@ export const config = {
 
 ## 6. 投稿履歴
 
-### 6.1 一覧ページ (Server Component + Suspense)
+### 6.1 一覧ページ (Server Component + Suspense + もっと見る)
 
 **アーキテクチャ**:
 ```
 page.tsx (Server Component)
   ├── ヘッダー（静的テキスト: 即表示）
   ├── HistoryFilter (Client: onChange → URL searchParams 更新)
-  └── <Suspense key={page-postType} fallback={<HistorySkeleton />}>
-       └── HistoryPostList (Server async: Supabase直接クエリ)
-            ├── 空状態UI (0件時)
-            ├── HistoryPostCard (Server) × N
-            │    └── HistoryDeleteButton (Client: postId のみ)
-            └── HistoryPagination (Server: <Link>ベース)
+  └── <Suspense key={postType} fallback={<HistorySkeleton />}>
+       └── HistoryPostList (Server async: 初回20件をSupabase直接クエリ)
+            └── HistoryPostListClient (Client: 追加読み込み管理)
+                 ├── HistoryPostCard × N
+                 │    └── HistoryDeleteButton (Client: postId のみ)
+                 └── 「もっと見る」ボタン → /api/posts で追加20件取得
 ```
 
-**URL ベースの状態管理**:
-```
-/history                         → 1ページ目、フィルターなし
-/history?page=2                  → 2ページ目
-/history?postType=tips           → tipsフィルター
-/history?page=2&postType=tips    → 2ページ目 + tipsフィルター
-```
+**データ読み込み**:
+- 初回: Server Component で20件を Supabase 直接クエリ
+- 追加: 「もっと見る」ボタンで `/api/posts?offset=20&limit=20` から20件ずつ追加取得
+- フィルター: URL `searchParams` で管理（`?postType=tips`）
+- 削除後: `router.refresh()` で Server Component 再実行（追加読み込み分はリセット）
 
 **コンポーネント分割**:
 
 | コンポーネント | Server/Client | 機能 |
 |--------------|--------------|------|
-| `history-post-list.tsx` | Server (async) | Supabase直接クエリ + 一覧表示 |
+| `history-post-list.tsx` | Server (async) | 初回20件のデータフェッチ |
+| `history-post-list-client.tsx` | Client | 「もっと見る」ボタン + 追加読み込み管理 |
 | `history-post-card.tsx` | Server | 投稿カード（バッジ・サムネイル） |
 | `history-filter.tsx` | Client | フィルタードロップダウン |
 | `history-delete-button.tsx` | Client | 削除ボタン + 確認UI |
-| `history-pagination.tsx` | Server | `<Link>` ベースのページネーション |
 | `history-skeleton.tsx` | Server | Suspense フォールバック |
-
-**データフェッチ**: `createServerClient()` + `POST_SELECT_QUERY` で Supabase に直接クエリ（API Route 不要）
-
-**ページネーション**: `<Link href>` ベース（JS不要、プリフェッチ対応）
-
-**削除**: `HistoryDeleteButton` → DELETE API → `router.refresh()` で Server Component 再実行
 
 ### 6.2 詳細ページ + インライン編集
 
@@ -471,33 +558,19 @@ page.tsx (Server Component)
 6. POST `/api/instagram/publish` → メディアコンテナ作成 → ポーリング → 公開
 7. 成功 → `instagram_published=true`, `instagram_media_id`, `instagram_published_at` を更新
 
-### 7.2 トークン交換
-
-```
-短期トークン → GET /v21.0/oauth/access_token → 60日長期トークン
-```
-
-### 7.3 メディア公開
-
-```
-1. POST /v21.0/{ig_account_id}/media → container_id
-2. ポーリング (最大120回, 1秒間隔) → status=PUBLISHED
-3. POST /v21.0/{ig_account_id}/media_publish → media_id
-```
-
-### 7.4 統合箇所
+### 7.2 統合箇所
 
 - 投稿作成完了画面（StepResult）
 - 履歴詳細ページ
 - スタンドアロンページ（`/publish`）
 
-### 7.5 Context
+### 7.3 Context
 
 `InstagramPublishProvider` でFB SDK初期化 + ログイン状態をダッシュボード内で共有
 
 ---
 
-## 8. プロフィール機能 (Phase 4)
+## 8. プロフィール機能
 
 ### 8.1 概要
 
@@ -526,21 +599,99 @@ page.tsx (Server Component)
 
 ---
 
-## 9. AI機能詳細
+## 9. 分析機能
 
-### 9.1 使用モデル
+### 9.1 概要
+
+競合のInstagramアカウントやブログ記事を分析し、プロフィールと投稿タイプを自動生成する機能。
+
+### 9.2 分析フロー
+
+1. ソース選択（Instagram CSV/手動入力 or ブログURL）
+2. データ入力
+3. AI分析実行 → レポート表示
+4. プロフィール＋投稿タイプ生成 → プレビュー → 編集（任意） → 適用
+
+### 9.3 ブログ分析のサイトマップ探索
+
+- **自動探索**: URL入力 → `/sitemap.xml` 等5パス + `/robots.txt` を順番に試行
+- **手動入力**: 自動検出失敗時 → サイトマップURLを直接入力 → 検証
+- **スキップ**: サイトマップなしで続行 → RSS / リンク巡回フォールバック
+- **パイプライン**: 事前発見済みサイトマップを `crawlBlog()` の `options.sitemapUrl` に渡して優先使用
+
+### 9.4 適用
+
+- `generated_configs` のデータを `profiles` + `post_types` テーブルに INSERT
+- slug 重複時は `-2`, `-3` サフィックス付与
+- 失敗時はロールバック
+
+---
+
+## 10. アイデア提案機能
+
+### 10.1 概要
+
+投稿履歴をAIに分析させ、新しい投稿アイデアを提案する機能。
+
+### 10.2 フロー
+
+1. プロフィール選択 → （AI追加指示入力）→ AI分析 → 5件のアイデア生成
+2. 各アイデア: タイトル（20文字以内）+ 詳細説明（15行程度）
+
+### 10.3 管理機能
+
+- 編集、削除、使用済み/未使用トグル
+- 再分析: いつでも追加生成可能（既存アイデアとの重複回避あり）
+
+### 10.4 投稿作成連携
+
+- 「この案で投稿作成」→ `/create` にメモ引き継ぎ
+- 投稿完了時に自動で使用済みフラグを設定（`ideaId` を `sessionStorage` → `CreateFormState` → 投稿保存時に `PATCH`）
+
+---
+
+## 11. 投稿タイプ管理
+
+### 11.1 設定画面の構成
+
+**新規作成** (`/settings/post-types/new`):
+1. 基本情報（プロフィール、アイコン、名前、説明、文字数、入力方式）
+2. メモ書き入力 → 「AIで生成してプレビュー」
+3. プレビューモーダル → 保存
+
+**編集** (`/settings/post-types/[id]`):
+1. 基本情報（編集可能）
+2. 現在の設定
+   - タイプ別プロンプト: **直接編集可能**
+   - テンプレート構造: 表示のみ（変更はメモ書き→AI再生成で）
+   - 入力項目: 表示のみ
+3. メモ書き → AI再生成（テンプレート構造ごと作り直す場合）
+4. 「保存」ボタン
+
+### 11.2 AI生成の仕組み
+
+メモ書きからAIが以下を一括生成:
+- `typePrompt`: AIへの指示文（生成ルール）
+- `templateStructure`: 出力フォーマット（見出し・区切り・構成）
+- `placeholders`: テンプレート内の `{変数名}` 定義（fieldsモードのみ）
+
+---
+
+## 12. AI機能詳細
+
+### 12.1 使用モデル
 
 | 用途 | モデル | 変数名 |
 |------|--------|--------|
 | 文章生成 | `gemini-3-flash-preview` | `geminiFlash` |
-| 画像分析 | `gemini-3-pro-preview` | `geminiVision` |
-| 画像生成 | `gemini-3-pro-image-preview` | `geminiImageGen` |
-| 画像生成（マルチモーダル） | `gemini-3-pro-image-preview` | `geminiImageGenMultimodal` |
+| 画像分析 | `gemini-3.1-pro-preview` | `geminiVision` |
+| 画像生成 | `gemini-3.1-flash-image-preview` | `geminiImageGen` |
+| 画像生成（マルチモーダル） | `gemini-3.1-flash-image-preview` | `geminiImageGenMultimodal` |
 
-### 9.2 キャプション生成
+### 12.2 キャプション生成
 
 **投稿タイプ解決パス**:
-1. `postTypeId` あり → `post_types` テーブルから取得（カスタムタイプ対応）
+1. `postTypeId` あり → `post_types` テーブルから取得（カスタムタイプ対応）。`flow_type === 'image_read'` で画像読み取りモードを判定
 2. `postType` あり、`postTypeId` なし → `POST_TYPES` 定数からフォールバック
 
 **生成ルール**:
@@ -554,15 +705,7 @@ page.tsx (Server Component)
 - 表紙タイトル案の自動除去
 - テンプレート前処理でもハッシュタグ行を除去
 
-### 9.3 シーン説明生成
-
-投稿内容から30-50文字のシーン説明を生成し、画像生成プロンプトの基礎にする。
-
-### 9.4 キャッチコピー生成
-
-投稿内容から10-20文字のキャッチコピーを生成。画像内にテキストとして表示。
-
-### 9.5 画像生成フロー
+### 12.3 画像生成フロー
 
 ```
 1. キャプション生成
@@ -573,16 +716,17 @@ page.tsx (Server Component)
 6. Supabase Storage に保存
 ```
 
-### 9.6 キャラクター特徴抽出
+### 12.4 マルチモーダル画像生成
 
-アップロードした画像からGemini Visionで特徴を抽出:
-- 推定年代、性別、髪型・髪色、服装、表情・雰囲気、イラストスタイル、その他の特徴
+- `useCharacterImage` オプションで有効化
+- キャラクター画像を参照して一貫性のある画像を生成
+- プロンプトに「キャラクター再現の最重要ルール」セクションを含め、年齢・顔立ち・髪型・体型の保持を明示
 
 ---
 
-## 10. コンポーネント構成
+## 13. コンポーネント構成
 
-### 10.1 ディレクトリ構成
+### 13.1 ディレクトリ構成
 
 ```
 src/components/
@@ -590,30 +734,32 @@ src/components/
 ├── layout/            # レイアウト (header, footer)
 ├── dashboard/         # ダッシュボード (header, sidebar, mobile-nav)
 ├── create/            # 投稿作成 (step-*, progress-indicator, style-selector等)
-├── history/           # 履歴 (post-list, post-card, filter, pagination, delete-button, skeleton等)
-├── characters/        # キャラクター管理
-├── settings/          # 設定 (post-type-*, profile-*, emoji-picker等)
+├── history/           # 履歴 (post-list, post-list-client, post-card, filter, delete-button, skeleton, image-regenerate-modal等)
+├── analysis/          # 分析 (wizard, report, generation-preview, profile-preview, posttype-preview-card等)
+├── ideas/             # アイデア (ideas-list, idea-card, ideas-filter, ideas-generate-form, ideas-skeleton)
+├── characters/        # キャラクター管理 (characters-client等)
+├── settings/          # 設定 (post-type-form, post-type-list, profile-list, profile-detail-client, emoji-picker等)
 ├── publish/           # Instagram投稿 (modal, login, account-selector等)
 └── providers/         # Context Providers (providers, auth, instagram)
 ```
 
-### 10.2 投稿作成コンポーネント
+### 13.2 投稿作成コンポーネント
 
 | コンポーネント | 説明 |
 |--------------|------|
 | `StepProfileSelect` | プロフィール選択（2つ以上で表示） |
-| `StepPostType` | 投稿タイプ選択 + プロフィールバッジ表示 |
+| `StepPostType` | 投稿タイプ選択（`flowType` パラメータ付き） |
 | `StepContentInput` | 内容入力（fields/memoモード） + 関連投稿参照 |
 | `StepImageSettings` | 画像スタイル・アスペクト比・背景タイプ選択 |
 | `StepImageReadInput` | 画像読み取りタイプ用入力 |
 | `StepCatchphrase` | キャッチコピー確認・編集 |
 | `StepGenerating` | 生成中の進捗表示 |
 | `StepResult` | 完成画面 + Instagram投稿ボタン |
-| `ProgressIndicator` | ステップ進捗バー |
+| `ProgressIndicator` | ステップ進捗バー（`flowType` で表示切替） |
 
 ---
 
-## 11. カスタムフック
+## 14. カスタムフック
 
 | フック | ファイル | 用途 |
 |--------|---------|------|
@@ -629,37 +775,45 @@ src/components/
 
 ---
 
-## 12. 型定義
+## 15. 型定義
 
 | ファイル | 主要な型 |
 |---------|---------|
-| `supabase.ts` | DB型定義（自動生成）: テーブルの Row, Insert, Update 型 |
+| `supabase.ts` | DB型定義（手動管理）: テーブルの Row, Insert, Update 型 |
 | `post.ts` | `PostType` (union), `PostTypeConfig`, `isBuiltinPostType()` |
-| `post-type.ts` | `PostTypeDB`, `PostTypeFormData`, `Placeholder` |
+| `post-type.ts` | `PostTypeDB` (`flowType` 含む), `PostTypeFormData`, `Placeholder` |
 | `profile.ts` | `ProfileDB`, `ProfileFormData` |
-| `create-flow.ts` | `CreateFormState`, `GeneratedResult`, `GenerationStep`, `INITIAL_FORM_STATE` |
+| `create-flow.ts` | `CreateFormState` (`flowType` 含む), `GeneratedResult`, `GenerationStep`, `INITIAL_FORM_STATE` |
 | `history-detail.ts` | `Post`, `PostTypeRef`, `ProfileRef`, `PostImage`, `EditState`, `formatDate()` |
+| `idea.ts` | `PostIdea`, `PostIdeaRow`, `toPostIdea()` |
+| `analysis.ts` | `InstagramAnalysisResult`, `BlogAnalysisResult`, `GeneratedProfile`, `GeneratedPostType`, `AnalysisSourceType`, `AnalysisStatus` |
 | `instagram.ts` | `FacebookAuthResponse`, `InstagramAccount`, `PublishStep`, `ContainerStatusCode` |
 
 ---
 
-## 13. ライブラリユーティリティ
+## 16. ライブラリユーティリティ
 
 | ファイル | 主要なエクスポート |
 |---------|------------------|
 | `supabase.ts` | `supabase` (ブラウザ), `createServerClient()`, `POST_SELECT_QUERY` |
 | `auth.ts` | `auth()`, `signIn()`, `signOut()` |
-| `api-utils.ts` | `requireAuth()`, `requirePostOwnership()` 等 |
-| `gemini.ts` | `geminiFlash`, `geminiVision`, `geminiImageGen`, `generateWithRetry()` |
+| `api-utils.ts` | `requireAuth()`, `requirePostOwnership()`, `requireIdeaOwnership()` 等 |
+| `gemini.ts` | `geminiFlash`, `geminiVision`, `geminiImageGen`, `generateWithRetry()`, `parseJsonResponse()` |
 | `constants.ts` | `TOTAL_HASHTAG_COUNT` (10), `IMAGE_UPLOAD` (サイズ・型制限) |
 | `image-styles.ts` | `IMAGE_STYLES`, `ASPECT_RATIOS`, `BACKGROUND_TYPES`, `getAspectClass()` |
-| `post-types.ts` | `POST_TYPES` (ビルトイン設定), `POST_TYPE_MAX_COUNT` |
+| `post-types.ts` | `POST_TYPES` (ビルトイン設定) |
+| `post-type-utils.ts` | `toPostTypeDB()` (`flow_type` → `flowType` 変換含む), `POST_TYPE_MAX_COUNT` |
 | `instagram.ts` | `exchangeForLongLivedToken()`, `getInstagramAccounts()`, `createMediaContainer()`, `waitAndPublish()` |
 | `image-prompt.ts` | `buildImagePrompt()`, `buildMultimodalImagePrompt()` |
+| `idea-prompts.ts` | アイデア提案AIプロンプト |
+| `analysis-prompts.ts` | 分析AIプロンプト |
+| `analysis-executor.ts` | 分析実行ロジック |
+| `generation-prompts.ts` | プロフィール・投稿タイプ自動生成プロンプト |
+| `blog-crawler.ts` | `discoverSitemap()`, `crawlBlog()` |
 
 ---
 
-## 14. テンプレート構造（ビルトインタイプ）
+## 17. テンプレート構造（ビルトインタイプ）
 
 ### 解決タイプ (solution)
 ```
@@ -787,7 +941,7 @@ AIを使うと…
 
 ---
 
-## 15. 環境変数
+## 18. 環境変数
 
 ```bash
 # 認証
@@ -815,11 +969,10 @@ NEXT_PUBLIC_GA_ID=
 
 ---
 
-## 16. ビルド・開発コマンド
+## 19. ビルド・開発コマンド
 
 ```bash
 npm run dev          # 開発サーバー (Turbopack)
-npm run dev:https    # HTTPS付き開発（Facebook SDK用）
 npm run build        # プロダクションビルド
 npm run start        # プロダクション起動
 npm run lint         # ESLint
@@ -827,7 +980,7 @@ npm run lint         # ESLint
 
 ---
 
-## 17. パフォーマンス目標
+## 20. パフォーマンス目標
 
 | 項目 | 目標 |
 |------|------|
@@ -839,22 +992,19 @@ npm run lint         # ESLint
 
 ---
 
-## 18. セキュリティ
+## 21. セキュリティ
 
 ### 認証
-
 - Google OAuth (NextAuth.js v5) + メールホワイトリスト
 - JWT セッション
 - httpOnly Cookie
 
 ### 認可
-
-- 全テーブルで RLS 有効化
+- 全テーブルで RLS 有効化（`(SELECT auth.uid())` パターン）
 - API ルートで `requireAuth()` + 所有権チェック
 - Service Role Key はサーバーサイドのみ
 
 ### ファイルアップロード
-
 - Supabase Storage に `user_id` 名前空間で保存
 - 認証済みユーザーのみアップロード可能
 - ファイルタイプ・サイズのサーバーサイドバリデーション
@@ -862,10 +1012,9 @@ npm run lint         # ESLint
 
 ---
 
-## 19. UIデザイン
+## 22. UIデザイン
 
 ### テーマ
-
 ダークテーマ:
 - 背景: `slate-950` → `slate-900` グラデーション
 - テキスト: `white` (primary), `slate-400` (secondary)
@@ -873,25 +1022,22 @@ npm run lint         # ESLint
 - プライマリ: `blue-500`
 
 ### レスポンシブ
-
 - モバイルファースト設計
 - モバイル: < 768px
 - タブレット: md (768px+)
 - デスクトップ: lg (1024px+)
 
 ### フォント
-
 - 英語: Poppins
 - 日本語: M PLUS Rounded 1c
 
 ### アイコン
-
 - 絵文字ベース（外部ライブラリ不要）
-- ナビゲーション: 🏠 ✏️ 📋 👤 ⚙️
+- ナビゲーション: 🏠 ✏️ 📋 👤 🔍 💡 ⚙️
 
 ---
 
-## 20. 制限事項・既知の制約
+## 23. 制限事項・既知の制約
 
 | 項目 | 制限 |
 |------|------|
@@ -903,3 +1049,13 @@ npm run lint         # ESLint
 | Instagram投稿 | Business/Creator Account 必須 |
 | Instagram ポーリング | 最大120回（2分） |
 | キャプション文字数 | 200-400文字（ビルトイン）、カスタム設定可 |
+
+---
+
+## 24. 運営情報
+
+| 項目 | URL |
+|------|-----|
+| Instagram | https://www.instagram.com/hohoemi.rabo/ |
+| ホームページ | https://www.hohoemi-rabo.com/ |
+| ポートフォリオ | https://www.masayuki-kiwami.com/works |
