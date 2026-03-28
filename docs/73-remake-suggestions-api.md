@@ -1,6 +1,6 @@
 # 73: リメイク提案API
 
-**ステータス**: 未着手
+**ステータス**: 完了
 **Phase**: 5
 **依存**: #68, #69
 
@@ -23,7 +23,7 @@ AIリメイク提案の生成・取得・更新・削除APIを実装する。
 - `?sourcePostId=xxx` で特定投稿の提案を取得
 - `?context=detail|report` でフィルター
 - `?includeUsed=true` で使用済みも含める
-- 投稿タイプ名・アイコン、プロフィール名をJOINで取得
+- 投稿タイプ名・アイコン、プロフィール名を別途取得して付与
 
 ### 新規: /api/remake/suggestions/[id]/route.ts
 
@@ -39,9 +39,9 @@ AIリメイク提案の生成・取得・更新・削除APIを実装する。
 
 ## Todo
 
-- [ ] src/lib/remake-prompts.ts 作成
-- [ ] POST /api/remake/suggestions 実装（detail + report）
-- [ ] GET /api/remake/suggestions 実装
-- [ ] PATCH /api/remake/suggestions/[id] 実装
-- [ ] DELETE /api/remake/suggestions/[id] 実装
-- [ ] ビルド確認
+- [x] src/lib/remake-prompts.ts 作成
+- [x] POST /api/remake/suggestions 実装（detail + report）
+- [x] GET /api/remake/suggestions 実装
+- [x] PATCH /api/remake/suggestions/[id] 実装
+- [x] DELETE /api/remake/suggestions/[id] 実装
+- [x] ビルド確認
