@@ -63,24 +63,50 @@ export default function CreatePage() {
     const suggestedProfile = params.get('suggestedProfile')
 
     if (remakeFrom) {
-      // リメイクモード: 元投稿データを取得
+      // リメイクモード: 元投稿データ + 提案タイプ情報を取得
       setRemakeLoading(true)
-      fetch(`/api/posts/${remakeFrom}`)
-        .then(res => res.ok ? res.json() : null)
-        .then(post => {
-          if (post) {
-            setFormState((prev) => ({
-              ...prev,
-              isRemakeMode: true,
-              remakeSourceId: post.id,
-              remakeSourceCaption: post.generated_caption,
-              remakeSourcePostType: post.post_type_ref?.name || post.post_type,
-              inputText: post.input_text || '',
-              ...(suggestedProfile && { profileId: suggestedProfile }),
-            }))
-            if (suggestedProfile) {
-              setStep(1)
+      const fetches: Promise<Response>[] = [fetch(`/api/posts/${remakeFrom}`)]
+      // suggestedType がある場合、投稿タイプ一覧も取得してスキップ
+      if (suggestedType) {
+        const profileParam = suggestedProfile ? `?profileId=${suggestedProfile}` : ''
+        fetches.push(fetch(`/api/post-types${profileParam}`))
+      }
+      Promise.all(fetches)
+        .then(async ([postRes, typesRes]) => {
+          const post = postRes.ok ? await postRes.json() : null
+          if (!post) { setRemakeLoading(false); return }
+
+          const newState: Partial<CreateFormState> = {
+            isRemakeMode: true,
+            remakeSourceId: post.id,
+            remakeSourceCaption: post.generated_caption,
+            remakeSourcePostType: post.post_type_ref?.name || post.post_type,
+            inputText: post.input_text || '',
+            ...(suggestedProfile && { profileId: suggestedProfile }),
+          }
+
+          // 提案タイプが指定されている場合、タイプ選択をスキップ
+          if (suggestedType && typesRes?.ok) {
+            const typesData = await typesRes.json()
+            const types = typesData.postTypes || typesData || []
+            const matchedType = types.find((t: { slug: string }) => t.slug === suggestedType)
+            if (matchedType) {
+              const builtinType = isBuiltinPostType(matchedType.slug) ? matchedType.slug : null
+              newState.postType = builtinType
+              newState.postTypeId = matchedType.id
+              newState.postTypeName = matchedType.name
+              newState.inputMode = matchedType.inputMode || matchedType.input_mode || 'memo'
+              newState.flowType = matchedType.flowType || (matchedType.flow_type === 'image_read' ? 'image_read' : 'standard')
+              setCurrentPlaceholders(matchedType.placeholders || [])
             }
+          }
+
+          setFormState((prev) => ({ ...prev, ...newState }))
+
+          if (suggestedType && newState.postTypeId) {
+            setStep(2) // タイプ選択スキップ → 内容入力へ
+          } else if (suggestedProfile) {
+            setStep(1) // プロフィール選択スキップ → タイプ選択へ
           }
           setRemakeLoading(false)
         })
