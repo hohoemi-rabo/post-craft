@@ -224,6 +224,12 @@ export function StepContentInput({
             </div>
           )}
 
+          {remakeSourceCaption && (
+            <p className="text-xs text-slate-400 bg-white/5 border border-white/10 rounded-lg px-3 py-2">
+              💡 元の投稿のメモ書きです。そのままでもOK — AIが新しいタイプに合わせて再構成します。必要に応じて編集もできます。
+            </p>
+          )}
+
           <div className="space-y-2">
             <label className="block text-sm font-medium text-slate-300">
               メモ書き
