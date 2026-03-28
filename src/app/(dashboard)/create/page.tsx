@@ -265,6 +265,16 @@ export default function CreatePage() {
 
   // Determine which step to render
   const renderStep = () => {
+    // リメイクデータ読み込み中
+    if (remakeLoading) {
+      return (
+        <div className="flex flex-col items-center justify-center py-12 gap-3">
+          <span className="animate-spin inline-block w-8 h-8 border-2 border-orange-400/30 border-t-orange-400 rounded-full" />
+          <p className="text-sm text-slate-400">元投稿のデータを読み込み中...</p>
+        </div>
+      )
+    }
+
     // Step 0: Profile selection (only for multiple profiles)
     if (step === 0) {
       if (isLoadingProfiles) {
