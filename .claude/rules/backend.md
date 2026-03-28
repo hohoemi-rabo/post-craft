@@ -48,6 +48,12 @@ app/api/
 ├── ideas/
 │   ├── route.ts              # GET (list by profileId), POST (AI generate)
 │   └── [id]/route.ts         # PATCH (edit), DELETE
+├── remake/
+│   └── suggestions/
+│       ├── route.ts          # GET (list), POST (AI generate)
+│       └── [id]/route.ts     # PATCH (isUsed), DELETE
+├── reports/
+│   └── route.ts              # GET (集計データ, ?period=1m|3m|all)
 ├── settings/
 │   └── hashtags/route.ts     # GET, PUT (レガシー必須ハッシュタグ設定)
 └── extract/route.ts          # POST (記事抽出)
@@ -306,6 +312,10 @@ export async function requireAnalysisOwnership(analysisId, userId)
 // アイデアの所有権チェック（PostIdeaRow 型）
 export async function requireIdeaOwnership(ideaId, userId)
 // → { error: NextResponse, idea: null } | { error: null, idea: PostIdeaRow }
+
+// リメイク提案の所有権チェック
+export async function requireRemakeSuggestionOwnership(suggestionId, userId)
+// → { error: NextResponse, suggestion: null } | { error: null, suggestion: { id, user_id, source_post_id } }
 ```
 
 ### レガシーパターン（直接チェック）

@@ -14,6 +14,8 @@ components/
 ├── history/      # 履歴一覧・編集 (post-list, post-list-client, post-card, post-detail-client, filter, delete-button, skeleton等)
 ├── analysis/     # 分析機能 (wizard, report, generation-preview, profile-preview, posttype-preview-card等)
 ├── characters/   # キャラクター管理 (characters-client等)
+├── remake/       # リメイク機能 (remake-suggestions, remake-suggestion-card, remake-source-info, remake-suggestions-report)
+├── reports/      # 投稿レポート (reports-page-client, period-filter, summary-cards, post-type-chart, profile-chart, frequency-chart, hashtag-ranking)
 ├── settings/     # 設定 (post-type-list, post-type-form, profile-list, profile-detail-client等)
 └── providers/    # Context Providers
 ```
@@ -220,7 +222,8 @@ hooks/
 ├── usePostImageHandlers.ts   # 画像ハンドラ
 ├── usePostTypes.ts           # 投稿タイプ CRUD・並び替え・有効/無効
 ├── useProfiles.ts            # プロフィール CRUD・並び替え
-└── useUserSettings.ts        # ユーザー設定（必須ハッシュタグ等）
+├── useUserSettings.ts        # ユーザー設定（必須ハッシュタグ等）
+└── useRemakeSuggestions.ts   # リメイク提案の取得・生成・削除・使用済み
 ```
 
 ### 命名規則
