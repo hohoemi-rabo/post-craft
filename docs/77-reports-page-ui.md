@@ -1,6 +1,6 @@
 # 77: レポートページUI
 
-**ステータス**: 未着手
+**ステータス**: 完了
 **Phase**: 5
 **依存**: #75, #76
 
@@ -11,7 +11,6 @@
 ## 作業内容
 
 ### 新規ページ: src/app/(dashboard)/reports/page.tsx
-- Client Component（期間フィルターでインタラクティブ）
 
 ### 新規コンポーネント
 
@@ -26,23 +25,16 @@
 | `hashtag-ranking.tsx` | ハッシュタグランキング（横バー + 必須タグ除外トグル） |
 | `reports-skeleton.tsx` | ローディングスケルトン |
 
-### レスポンシブ
-- デスクトップ: 円グラフ2つは横並び、他は全幅
-- モバイル: 全セクション縦並び、サマリーは2×2グリッド
-
-### URL管理
-- `?period=1m|3m|all` で期間フィルターを管理
-
 ## Todo
 
-- [ ] reports/page.tsx 作成
-- [ ] reports-page-client.tsx 作成（データ取得 + レイアウト）
-- [ ] period-filter.tsx 作成
-- [ ] summary-cards.tsx 作成
-- [ ] post-type-chart.tsx 作成（PieChart）
-- [ ] profile-chart.tsx 作成（PieChart）
-- [ ] frequency-chart.tsx 作成（BarChart + 週別/月別切替）
-- [ ] hashtag-ranking.tsx 作成
-- [ ] reports-skeleton.tsx 作成
-- [ ] レスポンシブ対応確認
-- [ ] ビルド確認
+- [x] reports/page.tsx 作成
+- [x] reports-page-client.tsx 作成（データ取得 + レイアウト）
+- [x] period-filter.tsx 作成
+- [x] summary-cards.tsx 作成
+- [x] post-type-chart.tsx 作成（PieChart）
+- [x] profile-chart.tsx 作成（PieChart）
+- [x] frequency-chart.tsx 作成（BarChart + 週別/月別切替）
+- [x] hashtag-ranking.tsx 作成
+- [x] reports-skeleton.tsx 作成
+- [x] レスポンシブ対応確認
+- [x] ビルド確認
