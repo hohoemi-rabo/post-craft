@@ -8,7 +8,7 @@ Post Craft プロジェクトのガイドライン。
 **Post Craft** - メモ書きやブログ記事URLからInstagram投稿素材（キャプション、ハッシュタグ、画像）を自動生成するWebサービス。
 
 - **本番URL**: https://post-craft-rho.vercel.app/
-- **現在のフェーズ**: Phase 4 完了
+- **現在のフェーズ**: Phase 5 完了
 
 ## 技術スタック
 
@@ -52,6 +52,8 @@ src/
 │   │   ├── ideas/         # アイデア提案
 │   │   │   ├── page.tsx           # アイデア一覧
 │   │   │   └── generate/page.tsx  # アイデア生成
+│   │   ├── reports/       # 投稿レポート
+│   │   │   └── page.tsx           # レポートページ（グラフ4種 + リメイクおすすめ）
 │   │   └── settings/      # 設定
 │   │       ├── post-types/ # 投稿タイプ管理
 │   │       ├── profiles/  # プロフィール管理
@@ -65,6 +67,8 @@ src/
 │   ├── characters/        # キャラクター管理 (characters-client等)
 │   ├── create/            # 投稿作成コンポーネント
 │   ├── history/           # 履歴一覧・編集 (post-list, post-list-client, post-card, post-detail-client, filter, delete-button, skeleton等)
+│   ├── remake/            # リメイク機能 (remake-suggestions, remake-suggestion-card, remake-source-info, remake-suggestions-report)
+│   ├── reports/           # 投稿レポート (reports-page-client, period-filter, summary-cards, post-type-chart, profile-chart, frequency-chart, hashtag-ranking)
 │   ├── publish/           # Instagram投稿コンポーネント
 │   ├── settings/          # 設定コンポーネント (post-type-list, post-type-form, profile-list, profile-detail-client等)
 │   └── providers/         # Context Providers
@@ -77,6 +81,8 @@ src/
 │   ├── analysis-executor.ts   # 分析実行ロジック
 │   ├── generation-prompts.ts  # プロフィール・投稿タイプ自動生成プロンプト
 │   ├── blog-crawler.ts        # ブログクロール・サイトマップ探索
+│   ├── remake-prompts.ts      # リメイク提案AIプロンプト
+│   ├── chart-config.ts        # Recharts チャート共通設定
 │   └── ...
 └── types/                 # 型定義
 ```
@@ -94,6 +100,7 @@ src/
 | `usePostTypes` | 投稿タイプの CRUD・並び替え・有効/無効切り替え |
 | `useProfiles` | プロフィールの CRUD・並び替え |
 | `useUserSettings` | ユーザー設定（必須ハッシュタグ等） |
+| `useRemakeSuggestions` | リメイク提案の取得・生成・削除・使用済み |
 
 ### 型定義 (`src/types/`)
 
@@ -105,6 +112,8 @@ src/
 | `history-detail.ts` | 履歴詳細ページの型・ユーティリティ (`Post`, `PostTypeRef`, `ProfileRef`) |
 | `idea.ts` | アイデア提案の型 (`PostIdea`, `PostIdeaRow`, `toPostIdea`) |
 | `analysis.ts` | 分析機能の型 (`InstagramAnalysisResult`, `BlogAnalysisResult`, `GeneratedProfile`, `GeneratedPostType`, `AnalysisSourceType`, `AnalysisStatus`) |
+| `remake.ts` | リメイク提案の型 (`RemakeSuggestion`, `toRemakeSuggestion`) |
+| `reports.ts` | 投稿レポートの型 (`ReportData`, `PeriodFilter`, `TypeBreakdown`, `ProfileBreakdown`) |
 | `supabase.ts` | Supabase Database 型定義（自動生成） |
 
 ## 主要機能
@@ -295,6 +304,29 @@ src/
 - **ページ**: `/ideas`（一覧）、`/ideas/generate`（生成）
 - **API**: `/api/ideas`（GET一覧 + POST生成）、`/api/ideas/[id]`（PATCH編集 + DELETE削除）
 - **AIプロンプト**: `lib/idea-prompts.ts`（プロフィール情報 + 投稿タイプ + 過去キャプション + 既存アイデアタイトルを入力）
+
+### リメイク機能（Phase 5）
+過去の投稿を別の投稿タイプ・プロフィールに変換して新規投稿を作成する機能。
+
+- **起点**: 履歴詳細の「🔄 リメイク」ボタン、またはリメイク提案の「この案でリメイク」
+- **フロー**: `/create?remakeFrom={postId}` でリメイクモード起動 → 元投稿のデータ引き継ぎ → タイプ・プロフィール変更 → キャプション再生成 → 新規投稿として保存
+- **DB**: `posts.remake_source_id`（リメイク元参照、ON DELETE SET NULL）
+- **リメイク提案**: AIが投稿ごとに2件 or 全投稿から3〜5件のリメイク候補を提案
+- **DB**: `remake_suggestions` テーブル（source_post_id, suggested_type_slug, suggested_profile_id, reason, direction）
+- **API**: `/api/remake/suggestions`（GET一覧 + POST生成）、`/api/remake/suggestions/[id]`（PATCH + DELETE）
+- **AIプロンプト**: `lib/remake-prompts.ts`
+- **バッジ**: 履歴一覧・詳細に「🔄 リメイク」バッジ（オレンジ）
+
+### 投稿レポート（Phase 5）
+投稿データを集計・可視化するレポートページ。
+
+- **ページ**: `/reports`（📊 投稿レポート）
+- **サマリー**: 総投稿数、投稿済み、未投稿、今月の投稿
+- **グラフ**: 投稿タイプ別円グラフ、プロフィール別円グラフ、投稿頻度棒グラフ（週別/月別）、ハッシュタグランキング
+- **期間フィルター**: 直近1ヶ月 / 3ヶ月 / 全期間（URL管理: `?period=1m|3m|all`）
+- **リメイクおすすめ**: レポート下部にAIリメイク提案セクション
+- **チャートライブラリ**: Recharts（ダークテーマ対応）
+- **API**: GET `/api/reports?period=1m|3m|all`
 
 ## ルールファイル
 

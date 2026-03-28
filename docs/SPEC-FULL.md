@@ -1,7 +1,7 @@
 # Post Craft 仕様書
 
-**Version**: Phase 4 完了 + 継続改善
-**Last Updated**: 2026-03-22
+**Version**: Phase 5 完了
+**Last Updated**: 2026-03-28
 **Framework**: Next.js 15.5.9 (App Router), React 19.1.0, TypeScript 5.x
 
 ---
@@ -54,6 +54,7 @@
 | `generated_caption` | text | AI生成キャプション |
 | `generated_hashtags` | text[] | ハッシュタグ配列（計10個） |
 | `related_post_id` | UUID (FK → posts.id, ON DELETE SET NULL) | 関連投稿ID |
+| `remake_source_id` | UUID (FK → posts.id, ON DELETE SET NULL) | リメイク元投稿ID |
 | `instagram_published` | boolean (DEFAULT false) | Instagram投稿済みフラグ |
 | `instagram_media_id` | text | InstagramメディアID |
 | `instagram_published_at` | timestamptz | Instagram投稿日時 |
@@ -647,6 +648,75 @@ page.tsx (Server Component)
 
 - 「この案で投稿作成」→ `/create` にメモ引き継ぎ
 - 投稿完了時に自動で使用済みフラグを設定（`ideaId` を `sessionStorage` → `CreateFormState` → 投稿保存時に `PATCH`）
+
+---
+
+## 10.5 リメイク機能 (Phase 5)
+
+### 概要
+過去の投稿を別の投稿タイプ・プロフィールに変換して新規投稿を作成する機能。
+
+### リメイクフロー
+1. 履歴詳細の「🔄 リメイク」ボタン → `/create?remakeFrom={postId}`
+2. 元投稿のデータ（入力テキスト・キャプション）を引き継ぎ
+3. タイプ・プロフィールを変更 → キャプション再生成
+4. 新規投稿として保存（`remake_source_id` で元投稿を記録）
+
+### DB
+- `posts.remake_source_id`: リメイク元参照（UUID FK, ON DELETE SET NULL）
+- `remake_suggestions`: AIリメイク提案テーブル
+
+### remake_suggestions テーブル
+
+| カラム | 型 | 説明 |
+|--------|-----|------|
+| `id` | UUID (PK) | 提案ID |
+| `user_id` | text | ユーザーID |
+| `source_post_id` | UUID (FK → posts.id, ON DELETE CASCADE) | 対象投稿 |
+| `suggested_type_slug` | text | 提案先タイプslug |
+| `suggested_profile_id` | UUID (FK → profiles.id, ON DELETE SET NULL) | 提案先プロフィール |
+| `reason` | text | 提案理由 |
+| `direction` | text | リメイクの方向性 |
+| `is_used` | boolean (DEFAULT false) | 使用済みフラグ |
+| `generated_from` | text (DEFAULT 'detail') | 生成コンテキスト (`detail` / `report`) |
+| `created_at` | timestamptz | 作成日時 |
+| `updated_at` | timestamptz | 更新日時 |
+
+### API
+- `POST /api/remake/suggestions` - AI提案生成（detail: 2件, report: 3-5件）
+- `GET /api/remake/suggestions` - 一覧取得（sourcePostId, context, includeUsed フィルター）
+- `PATCH /api/remake/suggestions/[id]` - 使用済みマーク
+- `DELETE /api/remake/suggestions/[id]` - 削除
+
+---
+
+## 10.6 投稿レポート (Phase 5)
+
+### 概要
+投稿データを集計・可視化するレポートページ。
+
+### ページ
+- `/reports` - Client Component（Recharts でグラフ描画）
+- メニュー: 📊 投稿レポート
+
+### セクション
+1. **サマリーカード**: 総投稿数、投稿済み、未投稿、今月の投稿
+2. **投稿タイプ別**: 円グラフ + 凡例
+3. **プロフィール別**: 円グラフ + 凡例
+4. **投稿頻度**: 棒グラフ（週別/月別切替タブ）
+5. **ハッシュタグランキング**: 横バー TOP15（必須タグ除外トグル）
+6. **リメイクおすすめ**: AI提案セクション
+
+### 期間フィルター
+- `?period=1m|3m|all`（デフォルト: `all`）
+- サマリーの「今月の投稿」とリメイクおすすめは期間フィルター対象外
+
+### API
+- `GET /api/reports?period=1m|3m|all` - 全集計データ一括取得
+
+### チャートライブラリ
+- Recharts（`PieChart`, `BarChart`, `ResponsiveContainer`）
+- ダークテーマ設定: `src/lib/chart-config.ts`
 
 ---
 
