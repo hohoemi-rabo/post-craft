@@ -1,6 +1,6 @@
 # 69: リメイク型定義・ユーティリティ
 
-**ステータス**: 未着手
+**ステータス**: 完了
 **Phase**: 5
 **依存**: #68
 
@@ -12,7 +12,6 @@
 
 ### 新規: src/types/remake.ts
 - `RemakeSuggestion` インターフェース（camelCase）
-- `RemakeSuggestionRow` インターフェース（snake_case）
 - `toRemakeSuggestion()` 変換関数
 
 ### 変更: src/types/create-flow.ts
@@ -28,8 +27,8 @@
 
 ## Todo
 
-- [ ] src/types/remake.ts 作成
-- [ ] CreateFormState にリメイクフィールド追加
-- [ ] history-detail.ts の Post 型更新
-- [ ] api-utils.ts に所有権チェック追加
-- [ ] ビルド確認
+- [x] src/types/remake.ts 作成
+- [x] CreateFormState にリメイクフィールド追加
+- [x] history-detail.ts の Post 型更新
+- [x] api-utils.ts に所有権チェック追加
+- [x] ビルド確認

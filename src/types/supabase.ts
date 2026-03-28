@@ -161,6 +161,63 @@ export type Database = {
           },
         ]
       }
+      remake_suggestions: {
+        Row: {
+          id: string
+          user_id: string
+          source_post_id: string
+          suggested_type_slug: string
+          suggested_profile_id: string | null
+          reason: string
+          direction: string
+          is_used: boolean
+          generated_from: string
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          source_post_id: string
+          suggested_type_slug: string
+          suggested_profile_id?: string | null
+          reason: string
+          direction: string
+          is_used?: boolean
+          generated_from?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          source_post_id?: string
+          suggested_type_slug?: string
+          suggested_profile_id?: string | null
+          reason?: string
+          direction?: string
+          is_used?: boolean
+          generated_from?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "remake_suggestions_source_post_id_fkey"
+            columns: ["source_post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "remake_suggestions_suggested_profile_id_fkey"
+            columns: ["suggested_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_ideas: {
         Row: {
           id: string
@@ -439,6 +496,7 @@ export type Database = {
           post_type: string
           post_type_id: string | null
           profile_id: string | null
+          remake_source_id: string | null
           source_url: string | null
           updated_at: string | null
           user_id: string | null
@@ -455,6 +513,7 @@ export type Database = {
           post_type: string
           post_type_id?: string | null
           profile_id?: string | null
+          remake_source_id?: string | null
           source_url?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -471,6 +530,7 @@ export type Database = {
           post_type?: string
           post_type_id?: string | null
           profile_id?: string | null
+          remake_source_id?: string | null
           source_url?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -553,3 +613,4 @@ export type PostTypeRow = Tables<'post_types'>
 export type UserSettingsRow = Tables<'user_settings'>
 export type CompetitorAnalysis = Tables<'competitor_analyses'>
 export type GeneratedConfig = Tables<'generated_configs'>
+export type RemakeSuggestionRow = Tables<'remake_suggestions'>

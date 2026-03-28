@@ -30,6 +30,11 @@ export interface CreateFormState {
   profileId: string | null
   // アイデア参照（投稿完了時に使用済みにする）
   ideaId: string | null
+  // リメイクモード
+  isRemakeMode: boolean
+  remakeSourceId: string | null
+  remakeSourceCaption: string | null
+  remakeSourcePostType: string | null
   // 関連投稿参照
   relatedPostId: string | null
   relatedPostCaption: string | null
@@ -87,6 +92,11 @@ export const INITIAL_FORM_STATE: CreateFormState = {
   profileId: null,
   // アイデア参照
   ideaId: null,
+  // リメイクモード
+  isRemakeMode: false,
+  remakeSourceId: null,
+  remakeSourceCaption: null,
+  remakeSourcePostType: null,
   // 関連投稿参照
   relatedPostId: null,
   relatedPostCaption: null,

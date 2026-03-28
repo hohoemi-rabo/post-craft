@@ -48,6 +48,13 @@ export interface Post {
   instagram_published: boolean
   instagram_published_at: string | null
   related_post_id: string | null
+  remake_source_id: string | null
+  remake_source: {
+    id: string
+    post_type: string
+    generated_caption: string
+    created_at: string
+  } | null
 }
 
 /**

@@ -134,3 +134,14 @@ export async function requireIdeaOwnership(ideaId: string, userId: string) {
   if (result.error) return { error: result.error, idea: null }
   return { error: null, idea: result.data }
 }
+
+/**
+ * リメイク提案の所有権チェック
+ */
+export async function requireRemakeSuggestionOwnership(suggestionId: string, userId: string) {
+  const result = await checkOwnership<{ id: string; user_id: string; source_post_id: string }>(
+    'remake_suggestions', suggestionId, userId, 'id, user_id, source_post_id', 'Remake suggestion'
+  )
+  if (result.error) return { error: result.error, suggestion: null }
+  return { error: null, suggestion: result.data }
+}

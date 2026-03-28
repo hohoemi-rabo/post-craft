@@ -1,6 +1,6 @@
 # 68: Phase 5 DBマイグレーション
 
-**ステータス**: 未着手
+**ステータス**: 完了
 **Phase**: 5
 **依存**: なし
 
@@ -25,9 +25,9 @@ Phase 5 に必要なDB変更を実施する。
 
 ## Todo
 
-- [ ] posts テーブルに remake_source_id カラム追加
-- [ ] remake_suggestions テーブル作成
-- [ ] RLS ポリシー設定
-- [ ] インデックス作成
-- [ ] supabase.ts 型定義更新
-- [ ] ビルド確認
+- [x] posts テーブルに remake_source_id カラム追加
+- [x] remake_suggestions テーブル作成
+- [x] RLS ポリシー設定
+- [x] インデックス作成
+- [x] supabase.ts 型定義更新
+- [x] ビルド確認
