@@ -128,7 +128,7 @@ export async function POST(request: Request) {
           caption: post.generated_caption,
           createdAt: post.created_at || '',
         },
-        (postTypes || []).map(pt => ({ slug: pt.slug, name: pt.name, icon: pt.icon })),
+        (postTypes || []).map(pt => ({ slug: pt.slug, name: pt.name, icon: pt.icon, profileId: pt.profile_id })),
         (profiles || []).map(p => ({ id: p.id, name: p.name, icon: p.icon }))
       )
     } else {
@@ -154,7 +154,7 @@ export async function POST(request: Request) {
 
       prompt = buildReportSuggestionPrompt(
         postSummaries,
-        (postTypes || []).map(pt => ({ slug: pt.slug, name: pt.name, icon: pt.icon })),
+        (postTypes || []).map(pt => ({ slug: pt.slug, name: pt.name, icon: pt.icon, profileId: pt.profile_id })),
         (profiles || []).map(p => ({ id: p.id, name: p.name, icon: p.icon }))
       )
     }

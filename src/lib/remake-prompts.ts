@@ -11,12 +11,38 @@ interface PostTypeInfo {
   slug: string
   name: string
   icon: string
+  profileId: string | null
 }
 
 interface ProfileInfo {
   id: string
   name: string
   icon: string
+}
+
+/**
+ * プロフィール別に投稿タイプをグルーピングして表示
+ */
+function buildProfileTypeList(postTypes: PostTypeInfo[], profiles: ProfileInfo[]): string {
+  const profileMap = new Map(profiles.map(p => [p.id, p]))
+  const grouped = new Map<string, PostTypeInfo[]>()
+
+  for (const pt of postTypes) {
+    const key = pt.profileId || 'none'
+    if (!grouped.has(key)) grouped.set(key, [])
+    grouped.get(key)!.push(pt)
+  }
+
+  const lines: string[] = []
+  for (const [profileId, types] of grouped) {
+    const profile = profileId !== 'none' ? profileMap.get(profileId) : null
+    const profileLabel = profile ? `${profile.icon} ${profile.name} (id: ${profile.id})` : '未分類'
+    lines.push(`■ ${profileLabel}`)
+    for (const pt of types) {
+      lines.push(`  - ${pt.icon} ${pt.name} (slug: ${pt.slug})`)
+    }
+  }
+  return lines.join('\n')
 }
 
 /**
@@ -42,23 +68,17 @@ export function buildDetailSuggestionPrompt(
   parts.push('---')
   parts.push('')
 
-  parts.push('【利用可能な投稿タイプ】')
-  for (const pt of postTypes) {
-    parts.push(`- ${pt.icon} ${pt.name} (slug: ${pt.slug})`)
-  }
-  parts.push('')
-
-  parts.push('【利用可能なプロフィール】')
-  for (const p of profiles) {
-    parts.push(`- ${p.icon} ${p.name} (id: ${p.id})`)
-  }
+  parts.push('【利用可能な投稿タイプ（プロフィール別）】')
+  parts.push(buildProfileTypeList(postTypes, profiles))
   parts.push('')
 
   parts.push('【生成ルール】')
   parts.push('- 元の投稿と同じタイプ・プロフィールの組み合わせは避ける')
+  parts.push('- 【重要】suggestedTypeSlug と suggestedProfileId は、上記リストに実在する組み合わせのみを使用すること')
+  parts.push('- 投稿タイプは必ずそのプロフィールに所属するものを選ぶこと（別プロフィールのタイプは指定しない）')
   parts.push('- 各提案に以下を含める:')
   parts.push('  - suggestedTypeSlug: 提案する投稿タイプのslug')
-  parts.push('  - suggestedProfileId: 提案するプロフィールのID')
+  parts.push('  - suggestedProfileId: そのタイプが所属するプロフィールのID')
   parts.push('  - reason: なぜこのリメイクが効果的か（100文字程度）')
   parts.push('  - direction: どんな切り口で書き換えるか（100文字程度）')
   parts.push('')
@@ -92,16 +112,8 @@ export function buildReportSuggestionPrompt(
   }
   parts.push('')
 
-  parts.push('【利用可能な投稿タイプ】')
-  for (const pt of postTypes) {
-    parts.push(`- ${pt.icon} ${pt.name} (slug: ${pt.slug})`)
-  }
-  parts.push('')
-
-  parts.push('【利用可能なプロフィール】')
-  for (const p of profiles) {
-    parts.push(`- ${p.icon} ${p.name} (id: ${p.id})`)
-  }
+  parts.push('【利用可能な投稿タイプ（プロフィール別）】')
+  parts.push(buildProfileTypeList(postTypes, profiles))
   parts.push('')
 
   parts.push('【選定基準】')
@@ -111,10 +123,12 @@ export function buildReportSuggestionPrompt(
   parts.push('')
 
   parts.push('【生成ルール】')
+  parts.push('- 【重要】suggestedTypeSlug と suggestedProfileId は、上記リストに実在する組み合わせのみを使用すること')
+  parts.push('- 投稿タイプは必ずそのプロフィールに所属するものを選ぶこと（別プロフィールのタイプは指定しない）')
   parts.push('- 各提案に以下を含める:')
   parts.push('  - sourcePostId: 元投稿のID')
   parts.push('  - suggestedTypeSlug: 提案する投稿タイプのslug')
-  parts.push('  - suggestedProfileId: 提案するプロフィールのID')
+  parts.push('  - suggestedProfileId: そのタイプが所属するプロフィールのID')
   parts.push('  - reason: なぜこのリメイクが効果的か（100文字程度）')
   parts.push('  - direction: どんな切り口で書き換えるか（100文字程度）')
   parts.push('')
