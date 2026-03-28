@@ -18,6 +18,8 @@ interface GenerateCaptionRequest {
   imageMimeType?: string
   relatedPostCaption?: string
   relatedPostHashtags?: string[]
+  remakeSourceCaption?: string
+  remakeSourcePostType?: string
 }
 
 interface GenerateCaptionResponse {
@@ -201,7 +203,7 @@ export async function POST(request: Request) {
 
   try {
     const body: GenerateCaptionRequest = await request.json()
-    const { postType, postTypeId, profileId, inputText, sourceUrl, imageBase64, imageMimeType, relatedPostCaption, relatedPostHashtags } = body
+    const { postType, postTypeId, profileId, inputText, sourceUrl, imageBase64, imageMimeType, relatedPostCaption, relatedPostHashtags, remakeSourceCaption, remakeSourcePostType } = body
 
     // Resolve post type configuration
     let resolved: ResolvedPostType
@@ -351,7 +353,18 @@ ${cleanTemplate}
 【文字数目安】
 ${resolved.charRange.min}〜${resolved.charRange.max}文字
 
-${relatedPostCaption ? `【関連する前回の投稿】
+${remakeSourceCaption ? `【リメイク元の投稿】
+タイプ: ${remakeSourcePostType || '不明'}
+キャプション:
+---
+${remakeSourceCaption}
+---
+
+上記の投稿を「${resolved.name}」のフォーマットでリメイクしてください。
+元の投稿の内容・要点を活かしつつ、新しいタイプのテンプレート構造に合わせて再構成してください。
+同じ文章のコピーにならないよう、表現や切り口を変えてください。
+
+` : ''}${relatedPostCaption ? `【関連する前回の投稿】
 ${relatedPostCaption}
 
 【関連投稿の参照ルール】
@@ -395,7 +408,18 @@ ${resolved.requiredFields.join(', ')}
 【任意変数】
 ${resolved.optionalFields.length > 0 ? resolved.optionalFields.join(', ') : 'なし'}
 
-${relatedPostCaption ? `【関連する前回の投稿】
+${remakeSourceCaption ? `【リメイク元の投稿】
+タイプ: ${remakeSourcePostType || '不明'}
+キャプション:
+---
+${remakeSourceCaption}
+---
+
+上記の投稿を「${resolved.name}」のフォーマットでリメイクしてください。
+元の投稿の内容・要点を活かしつつ、新しいタイプのテンプレート構造に合わせて再構成してください。
+同じ文章のコピーにならないよう、表現や切り口を変えてください。
+
+` : ''}${relatedPostCaption ? `【関連する前回の投稿】
 ${relatedPostCaption}
 
 【関連投稿の参照ルール】

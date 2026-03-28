@@ -16,6 +16,8 @@ interface StepResultProps {
   onCreateNew: () => void
   isRegenerating?: boolean
   postId?: string
+  remakeSourceId?: string | null
+  remakeSourcePostType?: string | null
 }
 
 export function StepResult({
@@ -27,6 +29,8 @@ export function StepResult({
   onCreateNew,
   isRegenerating,
   postId,
+  remakeSourceId,
+  remakeSourcePostType,
 }: StepResultProps) {
   const [editedCaption, setEditedCaption] = useState(caption)
   const [selectedHashtags, setSelectedHashtags] = useState<Set<string>>(() => new Set(hashtags))
@@ -75,6 +79,22 @@ export function StepResult({
           投稿素材が生成されました。編集してInstagramに投稿しましょう。
         </p>
       </div>
+
+      {/* リメイク元情報 */}
+      {remakeSourceId && (
+        <div className="flex items-center justify-center gap-2 text-sm">
+          <span className="text-orange-400">🔄 リメイク元:</span>
+          {remakeSourcePostType && (
+            <span className="text-slate-400">{remakeSourcePostType}</span>
+          )}
+          <a
+            href={`/history/${remakeSourceId}`}
+            className="text-blue-400 hover:text-blue-300 transition-colors"
+          >
+            元投稿を見る →
+          </a>
+        </div>
+      )}
 
       <div className={`grid ${effectiveImageUrl ? 'md:grid-cols-2' : ''} gap-6`}>
         {/* Image section */}

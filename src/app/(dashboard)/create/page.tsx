@@ -53,11 +53,39 @@ export default function CreatePage() {
   // Calculate total steps based on postType and skipImage
   const baseSteps = formState.flowType === 'image_read' ? 4 : formState.skipImage ? 5 : 6
 
-  // Check for profileId in URL params (from dashboard)
+  // Check for URL params (profileId, remakeFrom)
+  const [remakeLoading, setRemakeLoading] = useState(false)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const urlProfileId = params.get('profileId')
-    if (urlProfileId) {
+    const remakeFrom = params.get('remakeFrom')
+    const suggestedType = params.get('suggestedType')
+    const suggestedProfile = params.get('suggestedProfile')
+
+    if (remakeFrom) {
+      // リメイクモード: 元投稿データを取得
+      setRemakeLoading(true)
+      fetch(`/api/posts/${remakeFrom}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(post => {
+          if (post) {
+            setFormState((prev) => ({
+              ...prev,
+              isRemakeMode: true,
+              remakeSourceId: post.id,
+              remakeSourceCaption: post.generated_caption,
+              remakeSourcePostType: post.post_type_ref?.name || post.post_type,
+              inputText: post.input_text || '',
+              ...(suggestedProfile && { profileId: suggestedProfile }),
+            }))
+            if (suggestedProfile) {
+              setStep(1)
+            }
+          }
+          setRemakeLoading(false)
+        })
+        .catch(() => setRemakeLoading(false))
+    } else if (urlProfileId) {
       setFormState((prev) => ({ ...prev, profileId: urlProfileId }))
       setStep(1)
     }
@@ -227,7 +255,7 @@ export default function CreatePage() {
     if (formState.flowType === 'image_read') {
       switch (step) {
         case 1:
-          return <StepPostType profileId={formState.profileId} onSelect={handleSelectPostType} />
+          return <StepPostType profileId={formState.profileId} remakeSourcePostType={formState.remakeSourcePostType} onSelect={handleSelectPostType} />
         case 2:
           return (
             <StepImageReadInput
@@ -253,6 +281,8 @@ export default function CreatePage() {
               onCreateNew={handleCreateNew}
               postId={savedPostId ?? undefined}
               isRegenerating={false}
+              remakeSourceId={formState.remakeSourceId}
+              remakeSourcePostType={formState.remakeSourcePostType}
             />
           ) : null
         default:
@@ -264,7 +294,7 @@ export default function CreatePage() {
       // skipImage flow: 1->2->3->4(generating)->5(result)
       switch (step) {
         case 1:
-          return <StepPostType profileId={formState.profileId} onSelect={handleSelectPostType} />
+          return <StepPostType profileId={formState.profileId} remakeSourcePostType={formState.remakeSourcePostType} onSelect={handleSelectPostType} />
         case 2:
           return (formState.postType || formState.postTypeId) ? (
             <StepContentInput
@@ -275,6 +305,7 @@ export default function CreatePage() {
               initialRelatedPostId={formState.relatedPostId}
               inputMode={formState.inputMode}
               placeholders={currentPlaceholders}
+              remakeSourceCaption={formState.remakeSourceCaption}
               onSubmit={handleContentSubmit}
               onBack={handleBack}
             />
@@ -313,6 +344,8 @@ export default function CreatePage() {
               onCreateNew={handleCreateNew}
               postId={savedPostId ?? undefined}
               isRegenerating={isRegenerating}
+              remakeSourceId={formState.remakeSourceId}
+              remakeSourcePostType={formState.remakeSourcePostType}
             />
           ) : null
         default:
@@ -322,7 +355,7 @@ export default function CreatePage() {
       // Normal flow: 1->2->3->4(catchphrase)->5(generating)->6(result)
       switch (step) {
         case 1:
-          return <StepPostType profileId={formState.profileId} onSelect={handleSelectPostType} />
+          return <StepPostType profileId={formState.profileId} remakeSourcePostType={formState.remakeSourcePostType} onSelect={handleSelectPostType} />
         case 2:
           return (formState.postType || formState.postTypeId) ? (
             <StepContentInput
@@ -333,6 +366,7 @@ export default function CreatePage() {
               initialRelatedPostId={formState.relatedPostId}
               inputMode={formState.inputMode}
               placeholders={currentPlaceholders}
+              remakeSourceCaption={formState.remakeSourceCaption}
               onSubmit={handleContentSubmit}
               onBack={handleBack}
             />
@@ -396,10 +430,30 @@ export default function CreatePage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
-          新規作成
+          {formState.isRemakeMode ? '🔄 リメイク投稿を作成' : '新規作成'}
         </h1>
-        <p className="text-slate-400">Instagram投稿素材を作成します</p>
+        <p className="text-slate-400">
+          {formState.isRemakeMode
+            ? '投稿タイプやプロフィールを変えて、新しい投稿を作りましょう'
+            : 'Instagram投稿素材を作成します'}
+        </p>
       </div>
+
+      {/* リメイクモード: 元投稿の概要 */}
+      {formState.isRemakeMode && formState.remakeSourceCaption && (
+        <div className="max-w-2xl mx-auto p-4 bg-orange-500/10 border border-orange-500/20 rounded-xl">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-sm font-medium text-orange-400">🔄 元の投稿</span>
+            {formState.remakeSourcePostType && (
+              <span className="text-xs text-slate-400">{formState.remakeSourcePostType}</span>
+            )}
+          </div>
+          <p className="text-sm text-slate-300 line-clamp-2">
+            {formState.remakeSourceCaption.slice(0, 100)}
+            {formState.remakeSourceCaption.length > 100 ? '...' : ''}
+          </p>
+        </div>
+      )}
 
       <div className="max-w-2xl mx-auto">
         {step > 0 && (

@@ -14,6 +14,7 @@ interface StepContentInputProps {
   initialRelatedPostId?: string | null
   inputMode?: 'fields' | 'memo'
   placeholders?: Placeholder[]
+  remakeSourceCaption?: string | null
   onSubmit: (text: string, url: string, relatedPost?: RelatedPostData | null) => void
   onBack: () => void
 }
@@ -50,6 +51,7 @@ export function StepContentInput({
   initialRelatedPostId,
   inputMode = 'fields',
   placeholders = [],
+  remakeSourceCaption,
   onSubmit,
   onBack,
 }: StepContentInputProps) {
@@ -57,6 +59,7 @@ export function StepContentInput({
   const [url, setUrl] = useState(initialUrl)
   const [isExtracting, setIsExtracting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showRemakeCaption, setShowRemakeCaption] = useState(false)
 
   // Fields mode state
   const [fieldValues, setFieldValues] = useState<Record<string, string>>(() => {
@@ -202,6 +205,25 @@ export function StepContentInput({
       ) : (
         /* Memo mode: single textarea (existing behavior) */
         <>
+          {/* リメイク元キャプション参照 */}
+          {remakeSourceCaption && (
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={() => setShowRemakeCaption(!showRemakeCaption)}
+                className="flex items-center gap-2 text-sm text-orange-400 hover:text-orange-300 transition-colors"
+              >
+                <span>🔄 元の投稿のキャプション（参考）</span>
+                <span className="text-xs">{showRemakeCaption ? '▲' : '▼'}</span>
+              </button>
+              {showRemakeCaption && (
+                <div className="p-4 bg-orange-500/5 border border-orange-500/10 rounded-xl text-sm text-slate-300 whitespace-pre-wrap max-h-48 overflow-y-auto">
+                  {remakeSourceCaption}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="space-y-2">
             <label className="block text-sm font-medium text-slate-300">
               メモ書き

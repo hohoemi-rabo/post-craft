@@ -58,6 +58,8 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
             inputText: formState.inputText,
             relatedPostCaption: formState.relatedPostCaption || undefined,
             relatedPostHashtags: formState.relatedPostHashtags || undefined,
+            remakeSourceCaption: formState.remakeSourceCaption || undefined,
+            remakeSourcePostType: formState.remakeSourcePostType || undefined,
           }),
         })
 
@@ -159,6 +161,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
               imageStyle,
               aspectRatio,
               relatedPostId: formState.relatedPostId || null,
+              remakeSourceId: formState.remakeSourceId || null,
             }),
           })
           if (saveRes.ok) {
@@ -248,6 +251,8 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
             inputText: formState.inputText,
             relatedPostCaption: formState.relatedPostCaption || undefined,
             relatedPostHashtags: formState.relatedPostHashtags || undefined,
+            remakeSourceCaption: formState.remakeSourceCaption || undefined,
+            remakeSourcePostType: formState.remakeSourcePostType || undefined,
           }),
         })
 
@@ -332,6 +337,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
               imageStyle: skipImage ? null : style,
               aspectRatio: skipImage ? null : aspectRatio,
               relatedPostId: formState.relatedPostId || null,
+              remakeSourceId: formState.remakeSourceId || null,
             }),
           })
           if (saveRes.ok) {

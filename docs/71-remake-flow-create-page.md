@@ -1,6 +1,6 @@
 # 71: リメイク投稿作成フロー
 
-**ステータス**: 未着手
+**ステータス**: 完了
 **Phase**: 5
 **依存**: #69, #70
 
@@ -21,25 +21,27 @@
 - 「別のタイプを選ぶと、同じ内容を違う切り口で投稿できます」案内
 
 ### StepContentInput（変更）
-- リメイクモード時に元投稿の入力テキストをプリセット
-- 元投稿のキャプションを折りたたみで参照表示
+- リメイクモード時に元投稿のキャプションを折りたたみで参照表示
+
+### キャプション生成API（変更）
+- `remakeSourceCaption`, `remakeSourcePostType` パラメータ追加
+- リメイクプロンプト（メモモード・フィールドモード両対応）
 
 ### useContentGeneration（変更）
-- リメイクモード時のキャプション生成ロジック
-- AIプロンプトにリメイク元のキャプション + 「新しいタイプで再構成してください」指示を追加
+- キャプション生成時にリメイク情報を送信
+- 投稿保存時に `remakeSourceId` を送信
 
 ### StepResult（変更）
-- リメイクモード時に「リメイク元」情報を表示
-- 元投稿へのリンク
+- リメイクモード時に「リメイク元」情報を表示 + 元投稿へのリンク
 
 ## Todo
 
-- [ ] URLパラメータ処理（remakeFrom, suggestedType, suggestedProfile）
-- [ ] 元投稿データ取得・formState セット
-- [ ] リメイクモードのヘッダーUI
-- [ ] StepPostType の元タイプバッジ
-- [ ] StepContentInput の元投稿プリセット + キャプション参照
-- [ ] useContentGeneration のリメイクプロンプト
-- [ ] StepResult のリメイク元表示
-- [ ] 投稿保存時に remake_source_id を送信
-- [ ] ビルド確認
+- [x] URLパラメータ処理（remakeFrom, suggestedType, suggestedProfile）
+- [x] 元投稿データ取得・formState セット
+- [x] リメイクモードのヘッダーUI
+- [x] StepPostType の元タイプバッジ
+- [x] StepContentInput の元投稿プリセット + キャプション参照
+- [x] useContentGeneration のリメイクプロンプト
+- [x] StepResult のリメイク元表示
+- [x] 投稿保存時に remake_source_id を送信
+- [x] ビルド確認

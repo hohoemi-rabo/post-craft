@@ -6,10 +6,11 @@ import type { Placeholder } from '@/types/post-type'
 
 interface StepPostTypeProps {
   profileId?: string | null
+  remakeSourcePostType?: string | null
   onSelect: (postTypeId: string, slug: string, name: string, inputMode: 'fields' | 'memo', placeholders: Placeholder[], flowType: 'standard' | 'image_read') => void
 }
 
-export function StepPostType({ profileId, onSelect }: StepPostTypeProps) {
+export function StepPostType({ profileId, remakeSourcePostType, onSelect }: StepPostTypeProps) {
   const { activePostTypes, isLoading, error } = usePostTypes(profileId)
 
   return (
@@ -19,7 +20,9 @@ export function StepPostType({ profileId, onSelect }: StepPostTypeProps) {
           どんな投稿を作りますか？
         </h2>
         <p className="text-slate-400 text-sm">
-          投稿の目的に合わせてタイプを選択してください
+          {remakeSourcePostType
+            ? '別のタイプを選ぶと、同じ内容を違う切り口で投稿できます'
+            : '投稿の目的に合わせてタイプを選択してください'}
         </p>
       </div>
 
@@ -51,6 +54,11 @@ export function StepPostType({ profileId, onSelect }: StepPostTypeProps) {
               <div className="text-3xl mb-3">{type.icon}</div>
               <h3 className="font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">
                 {type.name}
+                {remakeSourcePostType && type.name === remakeSourcePostType && (
+                  <span className="ml-2 text-xs bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded-full font-normal">
+                    元の投稿
+                  </span>
+                )}
               </h3>
               <p className="text-sm text-slate-400">{type.description}</p>
             </button>
