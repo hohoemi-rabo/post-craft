@@ -1,6 +1,6 @@
 # 74: リメイク提案UI（履歴詳細）
 
-**ステータス**: 未着手
+**ステータス**: 完了
 **Phase**: 5
 **依存**: #73
 
@@ -28,14 +28,14 @@
 - 「この案でリメイク」ボタン → `/create?remakeFrom={postId}&suggestedType={slug}&suggestedProfile={profileId}`
 - 「削除」ボタン
 
-### 変更: history/[id]/page.tsx (or post-detail-client.tsx)
-- リメイク提案セクションを投稿詳細の下に追加
+### 変更: post-detail-client.tsx
+- リメイク提案セクションを投稿詳細の下に追加（編集モード時は非表示）
 
 ## Todo
 
-- [ ] useRemakeSuggestions フック作成
-- [ ] remake-suggestion-card.tsx 作成
-- [ ] remake-suggestions.tsx 作成
-- [ ] 履歴詳細ページに提案セクション追加
-- [ ] 「この案でリメイク」の遷移動作確認
-- [ ] ビルド確認
+- [x] useRemakeSuggestions フック作成
+- [x] remake-suggestion-card.tsx 作成
+- [x] remake-suggestions.tsx 作成
+- [x] 履歴詳細ページに提案セクション追加
+- [x] 「この案でリメイク」の遷移動作確認
+- [x] ビルド確認

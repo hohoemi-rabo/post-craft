@@ -12,6 +12,7 @@ import { AspectRatioCropModal } from '@/components/history/aspect-ratio-crop-mod
 import { useRouter } from 'next/navigation'
 import { type Post, formatDate, formatHashtag } from '@/types/history-detail'
 import { RemakeSourceInfo } from '@/components/remake/remake-source-info'
+import { RemakeSuggestions } from '@/components/remake/remake-suggestions'
 import { usePostEdit } from '@/hooks/usePostEdit'
 import { useCopyActions } from '@/hooks/useCopyActions'
 import { usePostActions } from '@/hooks/usePostActions'
@@ -433,6 +434,11 @@ export function PostDetailClient({ initialPost }: PostDetailClientProps) {
           sourceCaption={post.remake_source.generated_caption}
           sourceCreatedAt={post.remake_source.created_at}
         />
+      )}
+
+      {/* リメイク提案セクション */}
+      {!editHook.isEditing && (
+        <RemakeSuggestions sourcePostId={post.id} />
       )}
 
       {/* Post type change modal */}
