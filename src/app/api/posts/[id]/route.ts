@@ -65,6 +65,7 @@ export async function PATCH(
       'instagram_media_id',
       'related_post_id',
       'profile_id',
+      'remake_source_id',
     ]
 
     const updateData: Record<string, unknown> = {}

@@ -1,6 +1,6 @@
 # 70: 既存投稿APIのリメイク対応
 
-**ステータス**: 未着手
+**ステータス**: 完了
 **Phase**: 5
 **依存**: #68
 
@@ -18,16 +18,12 @@
 - ホワイトリストに `remake_source_id` 追加
 
 ### GET /api/posts, GET /api/posts/[id]
-- SELECT クエリに `remake_source:posts!remake_source_id(id, post_type, generated_caption, created_at)` を追加
-- `POST_SELECT_QUERY` の更新（既存のJOINに追加）
-
-### 履歴一覧の Server Component
-- `history-post-list.tsx` のクエリも更新
+- `POST_SELECT_QUERY` に `remake_source:posts!remake_source_id(id, post_type, generated_caption, created_at)` を追加
 
 ## Todo
 
-- [ ] POST /api/posts に remakeSourceId 対応
-- [ ] PATCH /api/posts/[id] ホワイトリスト追加
-- [ ] GET レスポンスに remake_source JOIN 追加
-- [ ] POST_SELECT_QUERY 更新
-- [ ] ビルド確認
+- [x] POST /api/posts に remakeSourceId 対応
+- [x] PATCH /api/posts/[id] ホワイトリスト追加
+- [x] GET レスポンスに remake_source JOIN 追加
+- [x] POST_SELECT_QUERY 更新
+- [x] ビルド確認

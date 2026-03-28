@@ -73,6 +73,7 @@ export async function POST(request: Request) {
       aspectRatio,
       relatedPostId,
       profileId,
+      remakeSourceId,
     } = body
 
     // Validation
@@ -98,6 +99,7 @@ export async function POST(request: Request) {
         generated_hashtags: generatedHashtags || [],
         related_post_id: relatedPostId || null,
         profile_id: profileId || null,
+        remake_source_id: remakeSourceId || null,
       })
       .select()
       .single()
