@@ -10,6 +10,7 @@ import { ProfileChart } from './profile-chart'
 import { FrequencyChart } from './frequency-chart'
 import { HashtagRanking } from './hashtag-ranking'
 import { ReportsSkeleton } from './reports-skeleton'
+import { RemakeSuggestionsReport } from '@/components/remake/remake-suggestions-report'
 
 export function ReportsPageClient() {
   const searchParams = useSearchParams()
@@ -76,6 +77,7 @@ export function ReportsPageClient() {
 
           <FrequencyChart data={data.frequency} />
           <HashtagRanking data={data.hashtagRanking} />
+          <RemakeSuggestionsReport />
         </div>
       )}
     </div>

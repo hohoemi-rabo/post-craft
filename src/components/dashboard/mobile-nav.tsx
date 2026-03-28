@@ -9,6 +9,7 @@ const navItems = [
   { href: '/history', label: '履歴', icon: '📋' },
   { href: '/analysis', label: '分析', icon: '🔍' },
   { href: '/ideas', label: 'アイデア', icon: '💡' },
+  { href: '/reports', label: 'レポート', icon: '📊' },
   { href: '/characters', label: 'キャラ', icon: '👤' },
   { href: '/settings', label: '設定', icon: '⚙️' },
 ]
