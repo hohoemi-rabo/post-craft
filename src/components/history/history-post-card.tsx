@@ -58,6 +58,11 @@ export function HistoryPostCard({ post }: HistoryPostCardProps) {
             <span className="text-xs text-slate-500">
               {formatDate(post.created_at)}
             </span>
+            {post.remake_source_id && (
+              <span className="px-2 py-0.5 bg-orange-500/20 text-orange-400 text-xs rounded-full">
+                🔄 リメイク
+              </span>
+            )}
             {post.instagram_published ? (
               <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">
                 ✅ 投稿済み

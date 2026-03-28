@@ -9,7 +9,9 @@ import { ImageUploader } from '@/components/ui/image-uploader'
 import { PostTypeChangeModal } from '@/components/history/post-edit-modal'
 import { ImageRegenerateModal } from '@/components/history/image-regenerate-modal'
 import { AspectRatioCropModal } from '@/components/history/aspect-ratio-crop-modal'
+import { useRouter } from 'next/navigation'
 import { type Post, formatDate, formatHashtag } from '@/types/history-detail'
+import { RemakeSourceInfo } from '@/components/remake/remake-source-info'
 import { usePostEdit } from '@/hooks/usePostEdit'
 import { useCopyActions } from '@/hooks/useCopyActions'
 import { usePostActions } from '@/hooks/usePostActions'
@@ -20,6 +22,7 @@ interface PostDetailClientProps {
 }
 
 export function PostDetailClient({ initialPost }: PostDetailClientProps) {
+  const router = useRouter()
   const [post, setPost] = useState<Post | null>(initialPost)
 
   // Edit mode hook
@@ -80,12 +83,20 @@ export function PostDetailClient({ initialPost }: PostDetailClientProps) {
             </button>
           </div>
         ) : (
-          <button
-            onClick={editHook.startEdit}
-            className="px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg transition-colors text-sm"
-          >
-            ✏️ 編集
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={editHook.startEdit}
+              className="px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg transition-colors text-sm"
+            >
+              ✏️ 編集
+            </button>
+            <button
+              onClick={() => router.push(`/create?remakeFrom=${post.id}`)}
+              className="px-4 py-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 rounded-lg transition-colors text-sm"
+            >
+              🔄 リメイク
+            </button>
+          </div>
         )}
       </div>
 
@@ -411,6 +422,16 @@ export function PostDetailClient({ initialPost }: PostDetailClientProps) {
           postId={post.id}
           aspectRatio={(firstImage.aspect_ratio || '1:1') as AspectRatio}
           onPublishSuccess={imageHandlers.handleInstagramPublishSuccess}
+        />
+      )}
+
+      {/* リメイク元情報 */}
+      {post.remake_source_id && post.remake_source && (
+        <RemakeSourceInfo
+          sourceId={post.remake_source.id}
+          sourcePostType={post.remake_source.post_type}
+          sourceCaption={post.remake_source.generated_caption}
+          sourceCreatedAt={post.remake_source.created_at}
         />
       )}
 

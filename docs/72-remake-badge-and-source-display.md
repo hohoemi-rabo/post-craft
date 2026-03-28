@@ -1,6 +1,6 @@
 # 72: リメイクバッジ・リメイク元表示
 
-**ステータス**: 未着手
+**ステータス**: 完了
 **Phase**: 5
 **依存**: #70
 
@@ -29,8 +29,8 @@
 
 ## Todo
 
-- [ ] history-post-card.tsx にリメイクバッジ追加
-- [ ] remake-source-info.tsx コンポーネント作成
-- [ ] post-detail-client.tsx にリメイク元情報セクション追加
-- [ ] 履歴詳細に「リメイク」ボタン追加
-- [ ] ビルド確認
+- [x] history-post-card.tsx にリメイクバッジ追加
+- [x] remake-source-info.tsx コンポーネント作成
+- [x] post-detail-client.tsx にリメイク元情報セクション追加
+- [x] 履歴詳細に「リメイク」ボタン追加
+- [x] ビルド確認
