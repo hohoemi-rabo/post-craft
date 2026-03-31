@@ -74,24 +74,21 @@ export function buildImagePrompt(options: ImagePromptOptions): string {
 
   const parts: string[] = []
 
-  // Aspect ratio instruction
+  // [スタイル] アスペクト比 + ベーススタイル
   parts.push(getAspectRatioInstruction(options.aspectRatio))
-
-  // Base style prompt
   parts.push(styleConfig.basePrompt)
 
-  // Background instruction based on type
+  // [場所/背景] 背景指示
   const backgroundInstruction = getBackgroundInstruction(options.style, options.backgroundType, options.sceneDescription)
   if (backgroundInstruction) {
     parts.push(backgroundInstruction)
   }
 
-  // Character description (if supported)
+  // [題材] キャラクター
   if (styleConfig.supportsCharacter) {
     if (options.characterDescription) {
       parts.push(`メインの人物キャラクター（${options.characterDescription}）を中央に配置。`)
     } else {
-      // Default character based on style
       if (options.style === 'manga_male') {
         parts.push('メインの人物キャラクター（30-40代の親しみやすい男性、カジュアルビジネススタイル）を中央に配置。')
       } else if (options.style === 'manga_female') {
@@ -102,20 +99,20 @@ export function buildImagePrompt(options: ImagePromptOptions): string {
     }
   }
 
-  // Scene description
+  // [アクション + シナリオ] シーン描写
   parts.push(`シーン: ${options.sceneDescription}`)
 
-  // Catchphrase text instruction
+  // テキスト配置（括弧で囲む + フォント指定）
   if (options.catchphrase) {
     parts.push('')
-    parts.push('【重要】以下のテキストを画像内に目立つように配置してください:')
-    parts.push(`「${options.catchphrase}」`)
+    parts.push('【重要】以下のテキストを画像内にレンダリングしてください:')
+    parts.push(`テキスト: 「${options.catchphrase}」`)
     parts.push('')
     parts.push('テキストの条件:')
-    parts.push('- 読みやすい日本語フォント')
-    parts.push('- 画像の上部または中央に大きく配置')
-    parts.push('- 背景とコントラストがはっきりした色')
-    parts.push('- 文字が切れないように余白を確保')
+    parts.push('- 白い太字のゴシック体フォント')
+    parts.push('- 画像の上部に大きく配置')
+    parts.push('- 背景とのコントラストを確保するためにドロップシャドウまたは半透明の帯を追加')
+    parts.push('- 文字が切れないように十分な余白を確保')
   }
 
   return parts.join('\n')
@@ -129,50 +126,49 @@ export function buildMultimodalImagePrompt(options: MultimodalImagePromptOptions
 
   const parts: string[] = []
 
-  // Instruction for using reference image
+  // [参照画像] + [関係の指示]
   parts.push('添付した画像のキャラクターを参考にして、同じ人物が登場する新しい画像を生成してください。')
+  parts.push('添付画像のキャラクターの外見を正確に再現し、新しいシナリオに配置します。')
   parts.push('')
-  parts.push('【キャラクター再現の最重要ルール】')
-  parts.push('- 添付画像の人物の年齢・顔立ち・体型を正確に再現すること')
-  parts.push('- 髪型・髪色を変えないこと')
-  parts.push('- 顔の輪郭、目の形、表情の雰囲気を維持すること')
-  parts.push('- 老けさせたり若返らせたりしないこと（年齢をそのまま保つ）')
+  parts.push('【キャラクター再現ルール】')
+  parts.push('- 添付画像の人物の年齢・顔立ち・体型を正確に再現する')
+  parts.push('- 髪型・髪色を変えない')
+  parts.push('- 顔の輪郭、目の形、表情の雰囲気を維持する')
+  parts.push('- 老けさせたり若返らせたりしない')
   if (options.characterDescription) {
-    parts.push(`- キャラクターの特徴: ${options.characterDescription}`)
+    parts.push(`- キャラクターの特徴テキスト: ${options.characterDescription}`)
   }
   parts.push('')
 
-  // Aspect ratio instruction
+  // [スタイル] アスペクト比 + ベーススタイル
   parts.push(getAspectRatioInstruction(options.aspectRatio))
-
-  // Base style prompt
   parts.push(styleConfig.basePrompt)
 
-  // Background instruction based on type
+  // [場所/背景]
   const backgroundInstruction = getBackgroundInstruction(options.style, options.backgroundType, options.sceneDescription)
   if (backgroundInstruction) {
     parts.push(backgroundInstruction)
   }
 
-  // Character placement
+  // キャラクター配置
   if (styleConfig.supportsCharacter) {
-    parts.push('参照画像のキャラクターを中央に配置。')
+    parts.push('参照画像のキャラクターを画面の中央に配置。')
   }
 
-  // Scene description
+  // [新しいシナリオ]
   parts.push(`シーン: ${options.sceneDescription}`)
 
-  // Catchphrase text instruction
+  // テキスト配置
   if (options.catchphrase) {
     parts.push('')
-    parts.push('【重要】以下のテキストを画像内に目立つように配置してください:')
-    parts.push(`「${options.catchphrase}」`)
+    parts.push('【重要】以下のテキストを画像内にレンダリングしてください:')
+    parts.push(`テキスト: 「${options.catchphrase}」`)
     parts.push('')
     parts.push('テキストの条件:')
-    parts.push('- 読みやすい日本語フォント')
-    parts.push('- 画像の上部または中央に大きく配置')
-    parts.push('- 背景とコントラストがはっきりした色')
-    parts.push('- 文字が切れないように余白を確保')
+    parts.push('- 白い太字のゴシック体フォント')
+    parts.push('- 画像の上部に大きく配置')
+    parts.push('- 背景とのコントラストを確保するためにドロップシャドウまたは半透明の帯を追加')
+    parts.push('- 文字が切れないように十分な余白を確保')
   }
 
   return parts.join('\n')
@@ -213,24 +209,24 @@ export function buildIllustrationWithTextPrompt(options: IllustrationPromptOptio
   parts.push(getAspectRatioInstruction(options.aspectRatio))
 
   // Base style
-  parts.push('フラットデザインのイラスト風、ポップで明るい色使い。')
-  parts.push('シンプルでかわいらしい雰囲気、2Dイラストスタイル。')
-  parts.push('人物、キャラクター、顔、手、体は絶対に含めないでください。')
-  parts.push('アイコン、シンボル、抽象的な図形、風景イラストのみで表現。')
+  parts.push('フラットデザインのイラスト風で描かれた、ポップで明るい色使いの画像。')
+  parts.push('シンプルでかわいらしい雰囲気の2Dイラストスタイル。')
+  parts.push('アイコン・シンボル・抽象的な図形・風景イラストのみで表現。')
+  parts.push('人物、キャラクター、顔、手、体は絶対に含めない。')
 
   // Scene description
   parts.push(`テーマ: ${options.sceneDescription}`)
 
   // Text instruction
   parts.push('')
-  parts.push('【重要】以下のテキストを画像内に目立つように配置してください:')
-  parts.push(`「${options.catchphrase}」`)
+  parts.push('【重要】以下のテキストを画像内にレンダリングしてください:')
+  parts.push(`テキスト: 「${options.catchphrase}」`)
   parts.push('')
   parts.push('テキストの条件:')
-  parts.push('- 読みやすい日本語フォント')
+  parts.push('- 白い太字のゴシック体フォント')
   parts.push('- 画像の中央または上部に大きく配置')
-  parts.push('- 背景とコントラストがはっきりした色')
-  parts.push('- 文字が切れないように余白を確保')
+  parts.push('- 背景とのコントラストを確保するためにドロップシャドウまたは半透明の帯を追加')
+  parts.push('- 文字が切れないように十分な余白を確保')
 
   return parts.join('\n')
 }
@@ -266,17 +262,17 @@ export function buildRealisticImagePrompt(options: RealisticImagePromptOptions):
   }
 
   parts.push('')
-  parts.push('Style: Photorealistic, high quality, professional photography style.')
-  parts.push('The image should look like a real photograph with natural lighting and realistic textures.')
+  parts.push('プロの写真家が撮影したような、高品質でフォトリアリスティックな画像。')
+  parts.push('自然光とリアルな質感で、実際の写真のように仕上げる。')
+  parts.push('被写界深度を浅く（f/2.8）して、被写体を際立たせる。')
   parts.push('')
 
   // Scene description
-  parts.push(`Scene: ${options.sceneDescription}`)
+  parts.push(`シーン: ${options.sceneDescription}`)
   parts.push('')
 
-  // Important: No text in image for OpenAI (will overlay text separately if needed)
-  parts.push('Important: Do NOT include any text, letters, words, or typography in the image.')
-  parts.push('The image should be purely visual without any text elements.')
+  // No text in image
+  parts.push('テキスト、文字、ロゴは画像に含めない。純粋にビジュアルのみで表現する。')
 
   return parts.join('\n')
 }

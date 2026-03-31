@@ -32,10 +32,10 @@ export const IMAGE_STYLES: Record<ImageStyle, StyleConfig> = {
     name: 'マンガ風（男性）',
     description: 'テック・ビジネス系、鮮やかな配色',
     icon: '👨‍💼',
-    basePrompt: `日本のマンガ・アニメ調のイラストスタイル。
-テック系・ビジネス系のサムネイル画像。
-鮮やかでカラフルな配色、グラデーション背景。
-プロフェッショナルだけど親しみやすい雰囲気。`,
+    basePrompt: `日本のマンガ・アニメ調のイラストスタイルで描かれた、テック・ビジネス系のSNSサムネイル画像。
+鮮やかでカラフルな配色とグラデーション背景で、プロフェッショナルだけど親しみやすい雰囲気を演出。
+ミディアムショットの構図で、キャラクターを画面の中央に配置。
+ソフトボックスを使ったスタジオ風のフラットな照明で、顔や表情がはっきり見えるようにする。`,
     supportsCharacter: true,
   },
   manga_female: {
@@ -43,10 +43,10 @@ export const IMAGE_STYLES: Record<ImageStyle, StyleConfig> = {
     name: 'マンガ風（女性）',
     description: 'クリエイティブ系、パステル調',
     icon: '👩‍💼',
-    basePrompt: `日本のマンガ・アニメ調のイラストスタイル。
-クリエイティブ系・スタートアップ系のサムネイル画像。
-パステル調やソフトなグラデーション背景。
-スタイリッシュでトレンド感のある雰囲気。`,
+    basePrompt: `日本のマンガ・アニメ調のイラストスタイルで描かれた、クリエイティブ系のSNSサムネイル画像。
+パステル調やソフトなグラデーション背景で、スタイリッシュでトレンド感のある雰囲気を演出。
+ミディアムショットの構図で、キャラクターを画面の中央に配置。
+柔らかく明るい自然光風の照明で、温かみのある仕上がりにする。`,
     supportsCharacter: true,
   },
   pixel_art: {
@@ -54,10 +54,9 @@ export const IMAGE_STYLES: Record<ImageStyle, StyleConfig> = {
     name: 'ピクセルアート',
     description: 'レトロゲーム風、サイバー背景',
     icon: '👾',
-    basePrompt: `ピクセルアート・ドット絵スタイル。
-レトロゲーム風のかわいいちびキャラクター。
-サイバー・デジタルな背景。
-8bit/16bitゲームの雰囲気。`,
+    basePrompt: `ピクセルアート・ドット絵スタイルで描かれた、レトロゲーム風のSNSサムネイル画像。
+かわいいちびキャラクターが画面中央にいる、サイバー・デジタルな世界観。
+8bit/16bitゲームの雰囲気で、ネオンブルーのグリッド背景と光るエフェクト。`,
     supportsCharacter: true,
   },
   illustration: {
@@ -65,11 +64,9 @@ export const IMAGE_STYLES: Record<ImageStyle, StyleConfig> = {
     name: 'イラスト（人物なし）',
     description: 'フラットデザイン、図形のみ',
     icon: '🎨',
-    basePrompt: `フラットデザインのイラスト風、ポップで明るい色使い。
-テキストは含めない、ビジュアルのみ。
-シンプルでかわいらしい雰囲気、2Dイラストスタイル。
-人物、キャラクター、顔、手、体は絶対に含めないでください。
-アイコン、シンボル、抽象的な図形、風景イラストのみで表現。`,
+    basePrompt: `フラットデザインのイラスト風で描かれた、ポップで明るい色使いのSNSサムネイル画像。
+シンプルでかわいらしい雰囲気の2Dイラストスタイルで、アイコン・シンボル・抽象的な図形・風景イラストのみで表現。
+人物、キャラクター、顔、手、体は絶対に含めない。テキストも含めない。`,
     supportsCharacter: false,
   },
   realistic: {
@@ -77,9 +74,9 @@ export const IMAGE_STYLES: Record<ImageStyle, StyleConfig> = {
     name: 'リアル（写真風）',
     description: '写真のようなリアルな画像',
     icon: '📷',
-    basePrompt: `Photorealistic, high quality, professional photography style.
-Natural lighting and realistic textures.
-The image should look like a real photograph.`,
+    basePrompt: `プロの写真家が撮影したような、高品質でフォトリアリスティックな画像。
+自然光とリアルな質感で、実際の写真のように見える仕上がり。
+ミディアムショットの構図で、被写界深度を浅くして背景をぼかし、被写体を際立たせる。`,
     supportsCharacter: false,
   },
 }
