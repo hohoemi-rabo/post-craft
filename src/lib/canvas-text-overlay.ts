@@ -7,11 +7,13 @@ const FONT_FAMILY = '"Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif'
 const MAX_WIDTH_RATIO = 0.85
 const MAX_BAND_HEIGHT_RATIO = 0.35
 
-export function getOutputDimensions(aspectRatio: '1:1' | '4:5' | '16:9'): { width: number; height: number } {
+export function getOutputDimensions(aspectRatio: string): { width: number; height: number } {
   switch (aspectRatio) {
     case '1:1': return { width: 1080, height: 1080 }
     case '4:5': return { width: 1080, height: 1350 }
+    case '9:16': return { width: 1080, height: 1920 }
     case '16:9': return { width: 1080, height: 608 }
+    default: return { width: 1080, height: 1080 }
   }
 }
 

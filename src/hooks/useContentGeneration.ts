@@ -437,7 +437,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
         // Step 1: Canvas でテキスト合成
         updateStepStatus('composite', 'loading')
         const aspectRatio = currentFormState.imageReadAspectRatio || '1:1'
-        const { width, height } = getOutputDimensions(aspectRatio as '1:1' | '4:5' | '16:9')
+        const { width, height } = getOutputDimensions(aspectRatio)
         const imageDataUrl = `data:${currentFormState.uploadedImageMimeType};base64,${currentFormState.uploadedImageBase64}`
         const compositedBlob = await compositeTextOnImage(imageDataUrl, catchphrase, width, height)
         const compositedFile = blobToFile(compositedBlob, `composited-${Date.now()}.jpg`)

@@ -142,7 +142,7 @@ export function ImageRegenerateModal({
     try {
       // Step 1: Fetch original image and composite catchphrase
       setProgress('キャッチコピーを合成中...')
-      const ar = (currentAspectRatio || '1:1') as '1:1' | '4:5' | '16:9'
+      const ar = currentAspectRatio || '1:1'
       const { width, height } = getOutputDimensions(ar)
       const compositedBlob = await compositeTextOnImage(effectiveOriginalUrl, catchphrase.trim(), width, height)
       const compositedFile = blobToFile(compositedBlob, `recomposited-${Date.now()}.jpg`)
