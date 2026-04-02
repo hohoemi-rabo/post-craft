@@ -462,6 +462,7 @@ export function PostDetailClient({ initialPost }: PostDetailClientProps) {
         currentStyle={firstImage?.style || null}
         currentAspectRatio={firstImage?.aspect_ratio || null}
         currentCharacterId={firstImage?.character_id || null}
+        originalImageUrl={firstImage?.prompt || null}
         onRegenerated={imageHandlers.handleImageRegenerated}
       />
 

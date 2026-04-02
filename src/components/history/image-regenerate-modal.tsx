@@ -10,6 +10,7 @@ import {
   type AspectRatio,
   type BackgroundType,
 } from '@/lib/image-styles'
+import { compositeTextOnImage, blobToFile, getOutputDimensions } from '@/lib/canvas-text-overlay'
 import type { Character } from '@/types/supabase'
 
 interface ImageRegenerateModalProps {
@@ -21,6 +22,7 @@ interface ImageRegenerateModalProps {
   currentStyle: string | null
   currentAspectRatio: string | null
   currentCharacterId?: string | null
+  originalImageUrl?: string | null
   onRegenerated: (newImageUrl: string) => void
 }
 
@@ -33,8 +35,12 @@ export function ImageRegenerateModal({
   currentStyle,
   currentAspectRatio,
   currentCharacterId,
+  originalImageUrl,
   onRegenerated,
 }: ImageRegenerateModalProps) {
+  const isUploadedMode = currentStyle === 'uploaded' && !!originalImageUrl
+
+  // AI generation state
   const [style, setStyle] = useState<ImageStyle>(
     (currentStyle && currentStyle in IMAGE_STYLES ? currentStyle as ImageStyle : 'manga_male')
   )
@@ -52,20 +58,23 @@ export function ImageRegenerateModal({
   const [characterId, setCharacterId] = useState<string | null>(currentCharacterId ?? null)
   const [useCharacterImage, setUseCharacterImage] = useState(false)
 
+  // Uploaded mode: catchphrase state
+  const [catchphrase, setCatchphrase] = useState('')
+  const [isGeneratingCatchphrase, setIsGeneratingCatchphrase] = useState(false)
+
   const selectedStyle = IMAGE_STYLES[style] ?? IMAGE_STYLES['manga_male']
   const selectedCharacter = characters.find(c => c.id === characterId)
   const canUseCharacterImage = !!(selectedCharacter?.image_url && selectedStyle.supportsCharacter)
 
-  // Fetch characters
+  // Fetch characters (AI mode only)
   useEffect(() => {
-    if (!open) return
+    if (!open || isUploadedMode) return
     const fetchCharacters = async () => {
       try {
         const response = await fetch('/api/characters')
         if (response.ok) {
           const data = await response.json()
           setCharacters(data)
-          // Auto-select default character if none provided
           if (!currentCharacterId) {
             const defaultChar = data.find((c: Character) => c.is_default)
             if (defaultChar) {
@@ -80,7 +89,14 @@ export function ImageRegenerateModal({
       }
     }
     fetchCharacters()
-  }, [open, currentCharacterId])
+  }, [open, currentCharacterId, isUploadedMode])
+
+  // Auto-generate catchphrase on open (uploaded mode)
+  useEffect(() => {
+    if (!open || !isUploadedMode || catchphrase) return
+    handleGenerateCatchphrase()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, isUploadedMode])
 
   // Reset character when switching to a style that doesn't support characters
   useEffect(() => {
@@ -92,6 +108,72 @@ export function ImageRegenerateModal({
 
   if (!open) return null
 
+  // --- Uploaded mode: catchphrase generation ---
+  const handleGenerateCatchphrase = async () => {
+    setIsGeneratingCatchphrase(true)
+    try {
+      const res = await fetch('/api/generate/catchphrase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ caption }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setCatchphrase(data.catchphrase || '')
+      }
+    } catch (err) {
+      console.error('Catchphrase generation error:', err)
+    } finally {
+      setIsGeneratingCatchphrase(false)
+    }
+  }
+
+  // --- Uploaded mode: re-composite ---
+  const handleRecomposite = async () => {
+    if (!catchphrase.trim() || !originalImageUrl) return
+
+    setIsGenerating(true)
+    setError('')
+
+    try {
+      // Step 1: Fetch original image and composite catchphrase
+      setProgress('キャッチコピーを合成中...')
+      const ar = (currentAspectRatio || '1:1') as '1:1' | '4:5' | '16:9'
+      const { width, height } = getOutputDimensions(ar)
+      const compositedBlob = await compositeTextOnImage(originalImageUrl, catchphrase.trim(), width, height)
+      const compositedFile = blobToFile(compositedBlob, `recomposited-${Date.now()}.jpg`)
+
+      // Step 2: Upload composited image (replace existing, preserve original URL in prompt)
+      setProgress('画像をアップロード中...')
+      const uploadFormData = new FormData()
+      uploadFormData.append('image', compositedFile)
+      uploadFormData.append('replace', 'true')
+      uploadFormData.append('aspectRatio', ar)
+      uploadFormData.append('prompt', originalImageUrl)
+
+      const uploadRes = await fetch(`/api/posts/${postId}/image`, {
+        method: 'POST',
+        body: uploadFormData,
+      })
+
+      if (!uploadRes.ok) {
+        throw new Error('画像のアップロードに失敗しました')
+      }
+
+      const { imageUrl: newImageUrl } = await uploadRes.json()
+
+      onRegenerated(newImageUrl)
+      onClose()
+    } catch (err) {
+      console.error('Recomposite error:', err)
+      setError(err instanceof Error ? err.message : '再合成に失敗しました')
+    } finally {
+      setIsGenerating(false)
+      setProgress('')
+    }
+  }
+
+  // --- AI mode: full regeneration ---
   const handleRegenerate = async () => {
     setIsGenerating(true)
     setError('')
@@ -117,7 +199,7 @@ export function ImageRegenerateModal({
         body: JSON.stringify({ caption }),
       })
       const catchphraseData = await catchphraseRes.json()
-      const catchphrase = catchphraseData.catchphrase || ''
+      const generatedCatchphrase = catchphraseData.catchphrase || ''
 
       // Step 3: Generate image
       setProgress('画像を生成中...')
@@ -129,7 +211,7 @@ export function ImageRegenerateModal({
           style,
           aspectRatio,
           sceneDescription,
-          catchphrase,
+          catchphrase: generatedCatchphrase,
           backgroundType,
           postId,
           characterId: selectedStyle.supportsCharacter ? characterId : null,
@@ -171,6 +253,77 @@ export function ImageRegenerateModal({
     }
   }
 
+  // --- Uploaded mode UI ---
+  if (isUploadedMode) {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto">
+          <h3 className="text-lg font-bold text-white mb-4">📷 キャッチコピーを再合成</h3>
+          <p className="text-sm text-slate-400 mb-4">
+            元の写真はそのまま維持し、キャッチコピーのテキストだけを変更します。
+          </p>
+
+          {/* Catchphrase input */}
+          <div className="space-y-2 mb-4">
+            <label className="block text-sm font-medium text-slate-300">キャッチコピー</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={catchphrase}
+                onChange={(e) => setCatchphrase(e.target.value.slice(0, 30))}
+                maxLength={30}
+                placeholder="キャッチコピーを入力..."
+                disabled={isGenerating}
+                className="flex-1 px-3 py-2.5 bg-slate-800 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50"
+              />
+              <button
+                type="button"
+                onClick={handleGenerateCatchphrase}
+                disabled={isGenerating || isGeneratingCatchphrase}
+                className="px-3 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl transition-colors disabled:opacity-50 text-xs whitespace-nowrap"
+              >
+                {isGeneratingCatchphrase ? '生成中...' : '🔄 再生成'}
+              </button>
+            </div>
+            <p className="text-xs text-slate-500 text-right">{catchphrase.length}/30</p>
+          </div>
+
+          {/* Progress / Error */}
+          {isGenerating && (
+            <div className="flex items-center gap-2 mb-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+              <div className="w-4 h-4 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+              <span className="text-sm text-blue-300">{progress}</span>
+            </div>
+          )}
+
+          {error && (
+            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+              <p className="text-sm text-red-400">{error}</p>
+            </div>
+          )}
+
+          <div className="flex gap-2">
+            <button
+              onClick={onClose}
+              disabled={isGenerating}
+              className="flex-1 px-4 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl transition-colors disabled:opacity-50 text-sm"
+            >
+              キャンセル
+            </button>
+            <button
+              onClick={handleRecomposite}
+              disabled={isGenerating || !catchphrase.trim()}
+              className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors disabled:opacity-50 text-sm"
+            >
+              {isGenerating ? '合成中...' : '再合成する'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // --- AI mode UI ---
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto">

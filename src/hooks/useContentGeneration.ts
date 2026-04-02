@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import type { CreateFormState, GeneratedResult, GenerationStep } from '@/types/create-flow'
 import type { ImageStyle, AspectRatio } from '@/lib/image-styles'
-import { compositeTextOnImage, blobToFile, getOutputDimensions } from '@/lib/canvas-text-overlay'
+import { compositeTextOnImage, blobToFile, base64ToBlob, getOutputDimensions } from '@/lib/canvas-text-overlay'
 import { useGenerationSteps } from './useGenerationSteps'
 
 interface UseContentGenerationOptions {
@@ -474,10 +474,17 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
         updateStepStatus('save', 'complete')
         setGenerationProgress(60)
 
-        // Step 3: 合成画像をアップロード
+        // Step 3: 合成画像 + 元画像をアップロード
         updateStepStatus('upload', 'loading')
         const uploadFormData = new FormData()
         uploadFormData.append('image', compositedFile)
+
+        // 元画像（テキストなし）も一緒に送信して保存
+        if (currentFormState.uploadedImageBase64 && currentFormState.uploadedImageMimeType) {
+          const originalBlob = base64ToBlob(currentFormState.uploadedImageBase64, currentFormState.uploadedImageMimeType)
+          const originalFile = blobToFile(originalBlob, `original-${Date.now()}.jpg`)
+          uploadFormData.append('originalImage', originalFile)
+        }
 
         const uploadRes = await fetch(`/api/posts/${savedPost.id}/image`, {
           method: 'POST',

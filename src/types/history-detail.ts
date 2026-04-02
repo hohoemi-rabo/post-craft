@@ -7,6 +7,7 @@ export interface PostImage {
   style: string | null
   aspect_ratio: string | null
   character_id: string | null
+  prompt: string | null
 }
 
 /**

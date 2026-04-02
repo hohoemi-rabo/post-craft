@@ -121,3 +121,13 @@ export async function compositeTextOnImage(
 export function blobToFile(blob: Blob, filename: string): File {
   return new File([blob], filename, { type: blob.type })
 }
+
+export function base64ToBlob(base64: string, mimeType: string): Blob {
+  const byteString = atob(base64)
+  const ab = new ArrayBuffer(byteString.length)
+  const ia = new Uint8Array(ab)
+  for (let i = 0; i < byteString.length; i++) {
+    ia[i] = byteString.charCodeAt(i)
+  }
+  return new Blob([ab], { type: mimeType })
+}

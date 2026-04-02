@@ -35,6 +35,8 @@ export async function POST(
   const file = formData.get('image') as File | null
   const replace = formData.get('replace') === 'true'
   const aspectRatio = (formData.get('aspectRatio') as string) || '1:1'
+  const originalImage = formData.get('originalImage') as File | null
+  const promptValue = (formData.get('prompt') as string) || ''
 
   if (!file) {
     return NextResponse.json({ error: 'Image file is required' }, { status: 400 })
@@ -96,6 +98,28 @@ export async function POST(
 
     const imageUrl = urlData.publicUrl
 
+    // Upload original (un-composited) image if provided
+    let originalImageUrl = promptValue
+    if (originalImage && originalImage.size > 0) {
+      const origBuffer = Buffer.from(await originalImage.arrayBuffer())
+      const origExt = originalImage.type.split('/')[1] === 'jpeg' ? 'jpg' : originalImage.type.split('/')[1]
+      const origFileName = `${userId}/originals/${Date.now()}.${origExt}`
+
+      const { error: origUploadError } = await supabase.storage
+        .from('generated-images')
+        .upload(origFileName, origBuffer, {
+          contentType: originalImage.type,
+          upsert: false,
+        })
+
+      if (!origUploadError) {
+        const { data: origUrlData } = supabase.storage
+          .from('generated-images')
+          .getPublicUrl(origFileName)
+        originalImageUrl = origUrlData.publicUrl
+      }
+    }
+
     // Create post_images record
     const { error: insertError } = await supabase
       .from('post_images')
@@ -104,7 +128,7 @@ export async function POST(
         image_url: imageUrl,
         style: 'uploaded',
         aspect_ratio: aspectRatio,
-        prompt: '',
+        prompt: originalImageUrl,
       })
 
     if (insertError) {
