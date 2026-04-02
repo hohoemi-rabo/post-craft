@@ -5,8 +5,7 @@
 
 const FONT_FAMILY = '"Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif'
 const MAX_WIDTH_RATIO = 0.85
-const BAND_OPACITY = 0.7
-const MAX_BAND_HEIGHT_RATIO = 0.3
+const MAX_BAND_HEIGHT_RATIO = 0.35
 
 export function getOutputDimensions(aspectRatio: '1:1' | '4:5' | '16:9'): { width: number; height: number } {
   switch (aspectRatio) {
@@ -38,11 +37,11 @@ function splitText(
 }
 
 function calculateFontSize(canvasWidth: number, textLength: number): number {
-  const baseFontSize = canvasWidth / 12
-  const minFontSize = canvasWidth / 20
+  const baseFontSize = canvasWidth / 10
+  const minFontSize = canvasWidth / 18
 
-  if (textLength <= 12) return baseFontSize
-  const scaled = baseFontSize * (12 / textLength)
+  if (textLength <= 10) return baseFontSize
+  const scaled = baseFontSize * (10 / textLength)
   return Math.max(scaled, minFontSize)
 }
 
@@ -67,7 +66,7 @@ export async function compositeTextOnImage(
 
   // Calculate font size and prepare text
   const fontSize = calculateFontSize(canvasWidth, catchphrase.length)
-  ctx.font = `bold ${fontSize}px ${FONT_FAMILY}`
+  ctx.font = `900 ${fontSize}px ${FONT_FAMILY}`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
 
@@ -75,36 +74,46 @@ export async function compositeTextOnImage(
   const lines = splitText(ctx, catchphrase, maxTextWidth)
 
   // Calculate band dimensions
-  const lineHeight = fontSize * 1.5
-  const padding = fontSize * 0.8
+  const lineHeight = fontSize * 1.6
+  const padding = fontSize * 1.0
   let bandHeight = lineHeight * lines.length + padding * 2
   const maxBandHeight = canvasHeight * MAX_BAND_HEIGHT_RATIO
   bandHeight = Math.min(bandHeight, maxBandHeight)
 
-  // Draw semi-transparent dark band at top
-  ctx.fillStyle = `rgba(0, 0, 0, ${BAND_OPACITY})`
+  // Draw gradient band at top (pop style: dark with subtle blue accent)
+  const gradient = ctx.createLinearGradient(0, 0, 0, bandHeight)
+  gradient.addColorStop(0, 'rgba(15, 23, 42, 0.85)')
+  gradient.addColorStop(0.7, 'rgba(30, 41, 59, 0.8)')
+  gradient.addColorStop(1, 'rgba(30, 41, 59, 0)')
+  ctx.fillStyle = gradient
   ctx.fillRect(0, 0, canvasWidth, bandHeight)
-
-  // Draw text with strong drop shadow
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.9)'
-  ctx.shadowBlur = 8
-  ctx.shadowOffsetX = 3
-  ctx.shadowOffsetY = 3
-  ctx.fillStyle = '#FFFFFF'
 
   const centerX = canvasWidth / 2
   const totalTextHeight = lineHeight * lines.length
   const startY = (bandHeight - totalTextHeight) / 2 + lineHeight / 2
+  const strokeWidth = Math.max(fontSize / 12, 3)
 
   lines.forEach((line, i) => {
-    ctx.fillText(line, centerX, startY + i * lineHeight)
-  })
+    const y = startY + i * lineHeight
 
-  // Reset shadow
-  ctx.shadowColor = 'transparent'
-  ctx.shadowBlur = 0
-  ctx.shadowOffsetX = 0
-  ctx.shadowOffsetY = 0
+    // Text stroke (outline) for pop effect
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)'
+    ctx.lineWidth = strokeWidth
+    ctx.lineJoin = 'round'
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.6)'
+    ctx.shadowBlur = 12
+    ctx.shadowOffsetX = 0
+    ctx.shadowOffsetY = 4
+    ctx.strokeText(line, centerX, y)
+
+    // Fill text (white)
+    ctx.shadowColor = 'transparent'
+    ctx.shadowBlur = 0
+    ctx.shadowOffsetX = 0
+    ctx.shadowOffsetY = 0
+    ctx.fillStyle = '#FFFFFF'
+    ctx.fillText(line, centerX, y)
+  })
 
   return new Promise((resolve, reject) => {
     canvas.toBlob(
