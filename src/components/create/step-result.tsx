@@ -128,22 +128,24 @@ export function StepResult({
           </div>
         )}
 
-        {imageUrl && onRegenerateImage && (
+        {imageUrl && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium text-slate-300">
-                生成画像
+                {onRegenerateImage ? '生成画像' : '投稿画像'}
               </label>
-              <button
-                type="button"
-                onClick={onRegenerateImage}
-                disabled={isRegenerating}
-                className={`text-xs px-3 py-1 bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg transition-colors ${
-                  isRegenerating ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              >
-                {isRegenerating ? '生成中...' : '🔄 再生成'}
-              </button>
+              {onRegenerateImage && (
+                <button
+                  type="button"
+                  onClick={onRegenerateImage}
+                  disabled={isRegenerating}
+                  className={`text-xs px-3 py-1 bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg transition-colors ${
+                    isRegenerating ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                >
+                  {isRegenerating ? '生成中...' : '🔄 再生成'}
+                </button>
+              )}
             </div>
             <div
               className={`relative ${aspectClass} max-w-xs mx-auto bg-white/5 border border-white/10 rounded-xl overflow-hidden`}
