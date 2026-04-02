@@ -11,7 +11,7 @@ interface FrequencyChartProps {
 
 type Tab = 'weekly' | 'monthly'
 
-export function FrequencyChart({ data }: FrequencyChartProps) {
+export default function FrequencyChart({ data }: FrequencyChartProps) {
   const [tab, setTab] = useState<Tab>('weekly')
 
   const chartData = tab === 'weekly'

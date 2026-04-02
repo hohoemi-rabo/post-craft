@@ -8,7 +8,7 @@ interface PostTypeChartProps {
   data: TypeBreakdown[]
 }
 
-export function PostTypeChart({ data }: PostTypeChartProps) {
+export default function PostTypeChart({ data }: PostTypeChartProps) {
   if (data.length === 0) {
     return (
       <div className="p-6 bg-white/5 border border-white/10 rounded-xl">

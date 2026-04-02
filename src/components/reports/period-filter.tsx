@@ -1,10 +1,10 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import type { PeriodFilter } from '@/types/reports'
 
 interface PeriodFilterProps {
   value: PeriodFilter
-  onChange: (period: PeriodFilter) => void
 }
 
 const OPTIONS: { value: PeriodFilter; label: string }[] = [
@@ -13,13 +13,21 @@ const OPTIONS: { value: PeriodFilter; label: string }[] = [
   { value: 'all', label: '全期間' },
 ]
 
-export function PeriodFilterComponent({ value, onChange }: PeriodFilterProps) {
+export function PeriodFilterComponent({ value }: PeriodFilterProps) {
+  const router = useRouter()
+
+  const handleChange = (newPeriod: PeriodFilter) => {
+    const params = new URLSearchParams()
+    if (newPeriod !== 'all') params.set('period', newPeriod)
+    router.push(`/reports${params.toString() ? `?${params}` : ''}`)
+  }
+
   return (
     <div className="flex gap-1 bg-white/5 border border-white/10 rounded-lg p-1">
       {OPTIONS.map(opt => (
         <button
           key={opt.value}
-          onClick={() => onChange(opt.value)}
+          onClick={() => handleChange(opt.value)}
           className={`px-3 py-1.5 text-xs rounded-md transition-colors ${
             value === opt.value
               ? 'bg-blue-600 text-white'
