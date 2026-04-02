@@ -39,7 +39,6 @@ export function ImageRegenerateModal({
   onRegenerated,
 }: ImageRegenerateModalProps) {
   const isUploadedMode = currentStyle === 'uploaded'
-  const canRecomposite = isUploadedMode && !!originalImageUrl
 
   // AI generation state
   const [style, setStyle] = useState<ImageStyle>(
@@ -62,6 +61,10 @@ export function ImageRegenerateModal({
   // Uploaded mode: catchphrase state
   const [catchphrase, setCatchphrase] = useState('')
   const [isGeneratingCatchphrase, setIsGeneratingCatchphrase] = useState(false)
+  const [uploadedOriginalUrl, setUploadedOriginalUrl] = useState<string | null>(null)
+
+  const effectiveOriginalUrl = originalImageUrl || uploadedOriginalUrl
+  const canRecomposite = isUploadedMode && !!effectiveOriginalUrl
 
   const selectedStyle = IMAGE_STYLES[style] ?? IMAGE_STYLES['manga_male']
   const selectedCharacter = characters.find(c => c.id === characterId)
@@ -94,7 +97,7 @@ export function ImageRegenerateModal({
 
   // Auto-generate catchphrase on open (uploaded mode)
   useEffect(() => {
-    if (!open || !isUploadedMode || !canRecomposite || catchphrase) return
+    if (!open || !isUploadedMode || catchphrase) return
     handleGenerateCatchphrase()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, isUploadedMode])
@@ -131,7 +134,7 @@ export function ImageRegenerateModal({
 
   // --- Uploaded mode: re-composite ---
   const handleRecomposite = async () => {
-    if (!catchphrase.trim() || !originalImageUrl) return
+    if (!catchphrase.trim() || !effectiveOriginalUrl) return
 
     setIsGenerating(true)
     setError('')
@@ -141,7 +144,7 @@ export function ImageRegenerateModal({
       setProgress('キャッチコピーを合成中...')
       const ar = (currentAspectRatio || '1:1') as '1:1' | '4:5' | '16:9'
       const { width, height } = getOutputDimensions(ar)
-      const compositedBlob = await compositeTextOnImage(originalImageUrl, catchphrase.trim(), width, height)
+      const compositedBlob = await compositeTextOnImage(effectiveOriginalUrl, catchphrase.trim(), width, height)
       const compositedFile = blobToFile(compositedBlob, `recomposited-${Date.now()}.jpg`)
 
       // Step 2: Upload composited image (replace existing, preserve original URL in prompt)
@@ -150,7 +153,7 @@ export function ImageRegenerateModal({
       uploadFormData.append('image', compositedFile)
       uploadFormData.append('replace', 'true')
       uploadFormData.append('aspectRatio', ar)
-      uploadFormData.append('prompt', originalImageUrl)
+      uploadFormData.append('prompt', effectiveOriginalUrl)
 
       const uploadRes = await fetch(`/api/posts/${postId}/image`, {
         method: 'POST',
@@ -264,11 +267,41 @@ export function ImageRegenerateModal({
             元の写真はそのまま維持し、キャッチコピーのテキストだけを変更します。
           </p>
 
-          {!canRecomposite && (
-            <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
-              <p className="text-sm text-amber-400">
-                この投稿は元画像が保存されていないため、再合成できません。新しく投稿を作成してください。
-              </p>
+          {/* Photo upload for posts without stored original */}
+          {!originalImageUrl && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-slate-300 mb-2">元の写真を選択</label>
+              {uploadedOriginalUrl ? (
+                <div className="flex items-center gap-3 p-3 bg-green-500/10 border border-green-500/20 rounded-xl">
+                  <span className="text-green-400 text-sm">✅ 写真を読み込みました</span>
+                  <button
+                    type="button"
+                    onClick={() => setUploadedOriginalUrl(null)}
+                    className="text-xs text-slate-400 hover:text-white"
+                  >
+                    変更
+                  </button>
+                </div>
+              ) : (
+                <label className="block p-4 border-2 border-dashed border-white/20 hover:border-white/40 rounded-xl cursor-pointer transition-colors bg-white/5">
+                  <div className="text-center">
+                    <p className="text-sm text-white mb-1">クリックして写真を選択</p>
+                    <p className="text-xs text-slate-400">キャッチコピーを合成する元の写真を選んでください</p>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        const url = URL.createObjectURL(file)
+                        setUploadedOriginalUrl(url)
+                      }
+                    }}
+                  />
+                </label>
+              )}
             </div>
           )}
 
