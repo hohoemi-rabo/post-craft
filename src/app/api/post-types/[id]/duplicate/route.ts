@@ -64,6 +64,11 @@ export async function POST(
         max_length: postType!.max_length,
         sort_order: nextSortOrder,
         is_active: postType!.is_active,
+        user_memo: postType!.user_memo,
+        type_prompt: postType!.type_prompt,
+        input_mode: postType!.input_mode,
+        profile_id: postType!.profile_id,
+        flow_type: postType!.flow_type,
       })
       .select()
       .single()

@@ -58,6 +58,7 @@ export function PostTypeForm({ mode, initialData, defaultProfileId }: PostTypeFo
   const [minLength, setMinLength] = useState(initialData?.minLength ?? 200)
   const [maxLength, setMaxLength] = useState(initialData?.maxLength ?? 400)
   const [inputMode, setInputMode] = useState<'fields' | 'memo'>(initialData?.inputMode ?? 'fields')
+  const [flowType, setFlowType] = useState<'standard' | 'image_read'>(initialData?.flowType ?? 'standard')
   const [isActive, setIsActive] = useState(initialData?.isActive ?? true)
 
   // Memo & generation state
@@ -151,6 +152,7 @@ export function PostTypeForm({ mode, initialData, defaultProfileId }: PostTypeFo
         userMemo: userMemo.trim(),
         typePrompt: generatedData.typePrompt,
         profileId,
+        flowType,
       }
 
       if (mode === 'new') {
@@ -191,6 +193,7 @@ export function PostTypeForm({ mode, initialData, defaultProfileId }: PostTypeFo
         userMemo: userMemo.trim() || undefined,
         typePrompt: typePrompt.trim() || undefined,
         profileId,
+        flowType,
       }
 
       await updatePostType(initialData.id, formData)
@@ -354,6 +357,42 @@ export function PostTypeForm({ mode, initialData, defaultProfileId }: PostTypeFo
               <span className="text-xs text-slate-500">（テキストエリア）</span>
             </label>
           </div>
+        </div>
+
+        {/* Flow Type */}
+        <div>
+          <label className="block text-sm text-slate-400 mb-2">フロータイプ</label>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="flowType"
+                value="standard"
+                checked={flowType === 'standard'}
+                onChange={() => setFlowType('standard')}
+                className="w-4 h-4 text-blue-600 bg-slate-800 border-white/10"
+              />
+              <span className="text-sm text-white">標準フロー</span>
+              <span className="text-xs text-slate-500">（テキスト入力で生成）</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="flowType"
+                value="image_read"
+                checked={flowType === 'image_read'}
+                onChange={() => setFlowType('image_read')}
+                className="w-4 h-4 text-blue-600 bg-slate-800 border-white/10"
+              />
+              <span className="text-sm text-white">画像読取フロー</span>
+              <span className="text-xs text-slate-500">（画像＋メモで生成）</span>
+            </label>
+          </div>
+          {flowType === 'image_read' && (
+            <p className="text-xs text-amber-400/80 mt-2">
+              投稿作成時に画像をアップロードし、AIが画像内容を読み取ってキャプションを生成します。
+            </p>
+          )}
         </div>
 
         {/* Active toggle (edit mode only) */}

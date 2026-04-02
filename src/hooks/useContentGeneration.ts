@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import type { CreateFormState, GeneratedResult, GenerationStep } from '@/types/create-flow'
 import type { ImageStyle, AspectRatio } from '@/lib/image-styles'
+import { compositeTextOnImage, blobToFile, getOutputDimensions } from '@/lib/canvas-text-overlay'
 import { useGenerationSteps } from './useGenerationSteps'
 
 interface UseContentGenerationOptions {
@@ -375,30 +376,16 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
   )
 
   /**
-   * 画像読み取りタイプの生成処理
+   * 画像読み取りタイプ: キャプションのみ生成（キャッチコピー確認画面用）
    */
-  const startImageReadGeneration = useCallback(
+  const startImageReadCaptionOnly = useCallback(
     async (
       imageBase64: string,
       imageMimeType: string,
       text: string,
-      file: File,
-      selectedAspectRatio: '1:1' | '4:5' | '16:9',
       currentFormState: CreateFormState
     ) => {
-      const steps: GenerationStep[] = [
-        { id: 'analyze', label: '画像を分析中...', status: 'pending' },
-        { id: 'caption', label: '投稿文を生成中...', status: 'pending' },
-        { id: 'upload', label: '画像をアップロード中...', status: 'pending' },
-        { id: 'save', label: '保存中...', status: 'pending' },
-      ]
-      initSteps(steps)
-
       try {
-        // Step 1 & 2: 画像分析 + キャプション生成（API内で同時実行）
-        updateStepStatus('analyze', 'loading')
-        updateStepStatus('caption', 'loading')
-
         const captionResponse = await fetch('/api/generate/caption', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -418,13 +405,45 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
         }
 
         const captionData = await captionResponse.json()
-        updateStepStatus('analyze', 'complete')
-        updateStepStatus('caption', 'complete')
-        setGenerationProgress(50)
+        setGeneratedCaption(captionData.caption)
+        setGeneratedHashtagsFromCaption(captionData.hashtags || [])
+      } catch (error) {
+        console.error('Caption generation error:', error)
+        alert('キャプション生成に失敗しました。もう一度お試しください。')
+        onStepChange(2)
+      }
+    },
+    [onStepChange]
+  )
 
-        // Step 3: 投稿を保存（画像URLはまだnull）
-        updateStepStatus('upload', 'loading')
+  /**
+   * 画像読み取りタイプ: キャッチコピー確定後の合成・保存処理
+   */
+  const startImageReadWithCatchphrase = useCallback(
+    async (
+      catchphrase: string,
+      currentFormState: CreateFormState
+    ) => {
+      const steps: GenerationStep[] = [
+        { id: 'composite', label: 'キャッチコピーを合成中...', status: 'pending' },
+        { id: 'save', label: '投稿を保存中...', status: 'pending' },
+        { id: 'upload', label: '画像をアップロード中...', status: 'pending' },
+      ]
+      initSteps(steps)
 
+      try {
+        // Step 1: Canvas でテキスト合成
+        updateStepStatus('composite', 'loading')
+        const aspectRatio = currentFormState.imageReadAspectRatio || '1:1'
+        const { width, height } = getOutputDimensions(aspectRatio as '1:1' | '4:5' | '16:9')
+        const imageDataUrl = `data:${currentFormState.uploadedImageMimeType};base64,${currentFormState.uploadedImageBase64}`
+        const compositedBlob = await compositeTextOnImage(imageDataUrl, catchphrase, width, height)
+        const compositedFile = blobToFile(compositedBlob, `composited-${Date.now()}.jpg`)
+        updateStepStatus('composite', 'complete')
+        setGenerationProgress(33)
+
+        // Step 2: 投稿を保存
+        updateStepStatus('save', 'loading')
         const saveRes = await fetch('/api/posts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -432,13 +451,13 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
             postType: currentFormState.postType || 'image_read',
             postTypeId: currentFormState.postTypeId,
             profileId: currentFormState.profileId,
-            inputText: text,
+            inputText: currentFormState.inputText,
             sourceUrl: null,
-            generatedCaption: captionData.caption,
-            generatedHashtags: captionData.hashtags || [],
+            generatedCaption: generatedCaption,
+            generatedHashtags: generatedHashtagsFromCaption,
             imageUrl: null,
             imageStyle: 'uploaded',
-            aspectRatio: selectedAspectRatio,
+            aspectRatio,
           }),
         })
 
@@ -448,11 +467,14 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
 
         const savedPost = await saveRes.json()
         setSavedPostId(savedPost.id)
-        setGenerationProgress(70)
+        markIdeaAsUsed(currentFormState.ideaId)
+        updateStepStatus('save', 'complete')
+        setGenerationProgress(60)
 
-        // Step 4: 画像をアップロード
+        // Step 3: 合成画像をアップロード
+        updateStepStatus('upload', 'loading')
         const uploadFormData = new FormData()
-        uploadFormData.append('image', file)
+        uploadFormData.append('image', compositedFile)
 
         const uploadRes = await fetch(`/api/posts/${savedPost.id}/image`, {
           method: 'POST',
@@ -465,19 +487,15 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
 
         const { imageUrl } = await uploadRes.json()
         updateStepStatus('upload', 'complete')
-        setGenerationProgress(90)
-
-        // Step 5: 完了
-        updateStepStatus('save', 'complete')
         setGenerationProgress(100)
 
         setGeneratedResult({
-          caption: captionData.caption,
-          hashtags: captionData.hashtags || [],
+          caption: generatedCaption,
+          hashtags: generatedHashtagsFromCaption,
           imageUrl,
         })
 
-        setTimeout(() => onStepChange(4), 500)
+        setTimeout(() => onStepChange(5), 500)
       } catch (error) {
         console.error('Generation error:', error)
         const currentStep = generationSteps.find((s) => s.status === 'loading')
@@ -490,7 +508,16 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
         }
       }
     },
-    [generationSteps, initSteps, onStepChange, setGenerationProgress, updateStepStatus]
+    [
+      generatedCaption,
+      generatedHashtagsFromCaption,
+      generationSteps,
+      initSteps,
+      markIdeaAsUsed,
+      onStepChange,
+      setGenerationProgress,
+      updateStepStatus,
+    ]
   )
 
   /**
@@ -578,7 +605,8 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
     generateCaptionFirst,
     startGenerationWithCaption,
     startGeneration,
-    startImageReadGeneration,
+    startImageReadCaptionOnly,
+    startImageReadWithCatchphrase,
     regenerateImage,
     resetGeneration,
     setGeneratedCaption,

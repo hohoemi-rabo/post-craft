@@ -44,14 +44,15 @@ export default function CreatePage() {
     generateCaptionFirst,
     startGenerationWithCaption,
     startGeneration,
-    startImageReadGeneration,
+    startImageReadCaptionOnly,
+    startImageReadWithCatchphrase,
     regenerateImage,
     resetGeneration,
     setGeneratedCaption,
   } = useContentGeneration({ onStepChange: setStep })
 
   // Calculate total steps based on postType and skipImage
-  const baseSteps = formState.flowType === 'image_read' ? 4 : formState.skipImage ? 5 : 6
+  const baseSteps = formState.flowType === 'image_read' ? 5 : formState.skipImage ? 5 : 6
 
   // Check for URL params (profileId, remakeFrom)
   const [remakeLoading, setRemakeLoading] = useState(false)
@@ -251,16 +252,31 @@ export default function CreatePage() {
     file: File,
     selectedAspectRatio: '1:1' | '4:5' | '16:9'
   ) => {
-    setFormState((prev) => ({
-      ...prev,
+    const newFormState = {
+      ...formState,
       inputText: text,
       uploadedImageFile: file,
       uploadedImageBase64: imageBase64,
       uploadedImageMimeType: imageMimeType,
       imageReadAspectRatio: selectedAspectRatio,
-    }))
+    }
+    setFormState(newFormState)
     setStep(3)
-    startImageReadGeneration(imageBase64, imageMimeType, text, file, selectedAspectRatio, formState)
+    await startImageReadCaptionOnly(imageBase64, imageMimeType, text, newFormState)
+  }
+
+  // image_read タイプ用: キャッチコピー確定後
+  const handleImageReadCatchphraseSubmit = (catchphrase: string) => {
+    const newFormState = { ...formState, catchphrase }
+    setFormState(newFormState)
+    setStep(4)
+    startImageReadWithCatchphrase(catchphrase, newFormState)
+  }
+
+  // image_read タイプ用: キャッチコピーから戻る
+  const handleImageReadCatchphraseBack = () => {
+    setStep(2)
+    setGeneratedCaption('')
   }
 
   // Determine which step to render
@@ -287,7 +303,7 @@ export default function CreatePage() {
       return <StepProfileSelect onSelect={handleSelectProfile} />
     }
 
-    // image_read タイプ専用フロー: 1->2(画像+メモ)->3(生成)->4(結果)
+    // image_read タイプ専用フロー: 1->2(画像+メモ)->3(キャッチコピー)->4(生成)->5(結果)
     if (formState.flowType === 'image_read') {
       switch (step) {
         case 1:
@@ -300,13 +316,26 @@ export default function CreatePage() {
             />
           )
         case 3:
+          return generatedCaption ? (
+            <StepCatchphrase
+              caption={generatedCaption}
+              onSubmit={handleImageReadCatchphraseSubmit}
+              onBack={handleImageReadCatchphraseBack}
+            />
+          ) : (
+            <StepGenerating
+              steps={[{ id: 'caption', label: '投稿文を生成中...', status: 'loading' }]}
+              progress={50}
+            />
+          )
+        case 4:
           return (
             <StepGenerating
               steps={generationSteps}
               progress={generationProgress}
             />
           )
-        case 4:
+        case 5:
           return generatedResult ? (
             <StepResult
               caption={generatedResult.caption}

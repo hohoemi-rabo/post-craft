@@ -12,8 +12,8 @@ const STEP_LABELS_WITH_IMAGE = ['タイプ選択', '内容入力', '画像設定
 // 5 steps: skip image (type → content → image settings → generating → result)
 const STEP_LABELS_SKIP_IMAGE = ['タイプ選択', '内容入力', '画像設定', '生成', '完成']
 
-// 4 steps: image_read (type → image+memo → generating → result)
-const STEP_LABELS_IMAGE_READ = ['タイプ選択', '画像+メモ', '生成', '完成']
+// 5 steps: image_read (type → image+memo → catchphrase → generating → result)
+const STEP_LABELS_IMAGE_READ = ['タイプ選択', '画像+メモ', 'キャッチコピー', '生成', '完成']
 
 function getStepLabels(totalSteps: number, flowType?: 'standard' | 'image_read'): string[] {
   if (flowType === 'image_read') return STEP_LABELS_IMAGE_READ

@@ -77,6 +77,7 @@ export async function PUT(
     if (body.typePrompt !== undefined) updateData.type_prompt = body.typePrompt?.trim() || null
     if (body.inputMode !== undefined) updateData.input_mode = body.inputMode === 'memo' ? 'memo' : 'fields'
     if (body.profileId !== undefined) updateData.profile_id = body.profileId || null
+    if (body.flowType !== undefined) updateData.flow_type = body.flowType === 'image_read' ? 'image_read' : 'standard'
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })

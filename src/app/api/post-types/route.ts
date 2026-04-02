@@ -73,6 +73,7 @@ export async function POST(request: Request) {
       typePrompt,
       inputMode,
       profileId,
+      flowType,
     } = body
 
     // Validation
@@ -149,6 +150,7 @@ export async function POST(request: Request) {
         type_prompt: typePrompt?.trim() || null,
         input_mode: inputMode === 'memo' ? 'memo' : 'fields',
         profile_id: profileId || null,
+        flow_type: flowType === 'image_read' ? 'image_read' : 'standard',
       })
       .select()
       .single()

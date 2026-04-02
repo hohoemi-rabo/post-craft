@@ -56,4 +56,5 @@ export interface PostTypeFormData {
   typePrompt?: string
   inputMode: 'fields' | 'memo'
   profileId?: string
+  flowType?: 'standard' | 'image_read'
 }
