@@ -250,7 +250,8 @@ export default function CreatePage() {
     imageMimeType: string,
     text: string,
     file: File,
-    selectedAspectRatio: '1:1' | '4:5' | '16:9'
+    selectedAspectRatio: '1:1' | '4:5' | '16:9',
+    relatedPost?: import('@/components/create/related-post-selector').RelatedPostData | null
   ) => {
     const newFormState = {
       ...formState,
@@ -259,6 +260,9 @@ export default function CreatePage() {
       uploadedImageBase64: imageBase64,
       uploadedImageMimeType: imageMimeType,
       imageReadAspectRatio: selectedAspectRatio,
+      relatedPostId: relatedPost?.id || null,
+      relatedPostCaption: relatedPost?.caption || null,
+      relatedPostHashtags: relatedPost?.hashtags || null,
     }
     setFormState(newFormState)
     setStep(3)
@@ -313,6 +317,8 @@ export default function CreatePage() {
             <StepImageReadInput
               onSubmit={handleImageReadSubmit}
               onBack={handleBack}
+              profileId={formState.profileId}
+              initialRelatedPostId={formState.relatedPostId}
             />
           )
         case 3:

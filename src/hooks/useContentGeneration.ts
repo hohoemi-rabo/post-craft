@@ -396,6 +396,8 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
             inputText: text,
             imageBase64,
             imageMimeType,
+            relatedPostCaption: currentFormState.relatedPostCaption || undefined,
+            relatedPostHashtags: currentFormState.relatedPostHashtags || undefined,
           }),
         })
 
@@ -458,6 +460,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
             imageUrl: null,
             imageStyle: 'uploaded',
             aspectRatio,
+            relatedPostId: currentFormState.relatedPostId || null,
           }),
         })
 

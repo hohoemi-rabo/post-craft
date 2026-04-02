@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { IMAGE_UPLOAD } from '@/lib/constants'
+import { RelatedPostSelector, type RelatedPostData } from './related-post-selector'
 
 type ImageReadAspectRatio = '1:1' | '4:5' | '16:9'
 
@@ -18,11 +19,13 @@ const ASPECT_RATIO_OPTIONS: AspectRatioOption[] = [
 ]
 
 interface StepImageReadInputProps {
-  onSubmit: (imageBase64: string, imageMimeType: string, text: string, file: File, aspectRatio: ImageReadAspectRatio) => void
+  onSubmit: (imageBase64: string, imageMimeType: string, text: string, file: File, aspectRatio: ImageReadAspectRatio, relatedPost?: RelatedPostData | null) => void
   onBack: () => void
+  profileId?: string | null
+  initialRelatedPostId?: string | null
 }
 
-export function StepImageReadInput({ onSubmit, onBack }: StepImageReadInputProps) {
+export function StepImageReadInput({ onSubmit, onBack, profileId, initialRelatedPostId }: StepImageReadInputProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [originalPreview, setOriginalPreview] = useState<string | null>(null)
   const [croppedPreview, setCroppedPreview] = useState<string | null>(null)
@@ -34,6 +37,21 @@ export function StepImageReadInput({ onSubmit, onBack }: StepImageReadInputProps
   const [isProcessing, setIsProcessing] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  // Related post state
+  const [relatedEnabled, setRelatedEnabled] = useState(!!initialRelatedPostId)
+  const [selectedRelatedPostId, setSelectedRelatedPostId] = useState<string | null>(initialRelatedPostId || null)
+  const [relatedPostData, setRelatedPostData] = useState<RelatedPostData | null>(null)
+
+  const handleRelatedSelect = useCallback((post: RelatedPostData) => {
+    setSelectedRelatedPostId(post.id)
+    setRelatedPostData(post)
+  }, [])
+
+  const handleRelatedDeselect = useCallback(() => {
+    setSelectedRelatedPostId(null)
+    setRelatedPostData(null)
+  }, [])
 
   // Canvas API で画像をクロップ
   const cropImage = useCallback((imageSrc: string, ratio: ImageReadAspectRatio) => {
@@ -186,7 +204,7 @@ export function StepImageReadInput({ onSubmit, onBack }: StepImageReadInputProps
       return
     }
     // クロップ済み画像のBase64とMIMEタイプを送信
-    onSubmit(croppedBase64, 'image/jpeg', text, selectedFile, aspectRatio)
+    onSubmit(croppedBase64, 'image/jpeg', text, selectedFile, aspectRatio, relatedEnabled ? relatedPostData : null)
   }
 
   const isValid = selectedFile !== null && croppedBase64 !== '' && !isProcessing
@@ -357,6 +375,16 @@ export function StepImageReadInput({ onSubmit, onBack }: StepImageReadInputProps
           <span>{text.length} / 2000</span>
         </div>
       </div>
+
+      {/* 関連投稿セレクタ */}
+      <RelatedPostSelector
+        enabled={relatedEnabled}
+        onToggle={setRelatedEnabled}
+        selectedPostId={selectedRelatedPostId}
+        onSelect={handleRelatedSelect}
+        onDeselect={handleRelatedDeselect}
+        profileId={profileId}
+      />
 
       {/* ナビゲーション */}
       <div className="flex justify-between pt-4">
