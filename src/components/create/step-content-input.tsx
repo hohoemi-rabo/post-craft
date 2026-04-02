@@ -15,6 +15,7 @@ interface StepContentInputProps {
   inputMode?: 'fields' | 'memo'
   placeholders?: Placeholder[]
   remakeSourceCaption?: string | null
+  profileId?: string | null
   onSubmit: (text: string, url: string, relatedPost?: RelatedPostData | null) => void
   onBack: () => void
 }
@@ -52,6 +53,7 @@ export function StepContentInput({
   inputMode = 'fields',
   placeholders = [],
   remakeSourceCaption,
+  profileId,
   onSubmit,
   onBack,
 }: StepContentInputProps) {
@@ -299,6 +301,7 @@ export function StepContentInput({
           selectedPostId={selectedRelatedPostId}
           onSelect={handleRelatedSelect}
           onDeselect={handleRelatedDeselect}
+          profileId={profileId}
         />
       )}
 

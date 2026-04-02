@@ -12,6 +12,7 @@ export async function GET(request: Request) {
   const page = parseInt(searchParams.get('page') || '1')
   const limit = parseInt(searchParams.get('limit') || '10')
   const postType = searchParams.get('postType') as PostType | null
+  const profileId = searchParams.get('profileId')
 
   const supabase = createServerClient()
 
@@ -24,6 +25,10 @@ export async function GET(request: Request) {
 
     if (postType) {
       query = query.eq('post_type', postType)
+    }
+
+    if (profileId) {
+      query = query.eq('profile_id', profileId)
     }
 
     const { data, error, count } = await query.range(

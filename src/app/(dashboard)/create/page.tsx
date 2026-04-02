@@ -342,6 +342,7 @@ export default function CreatePage() {
               inputMode={formState.inputMode}
               placeholders={currentPlaceholders}
               remakeSourceCaption={formState.remakeSourceCaption}
+              profileId={formState.profileId}
               onSubmit={handleContentSubmit}
               onBack={handleBack}
             />
@@ -403,6 +404,7 @@ export default function CreatePage() {
               inputMode={formState.inputMode}
               placeholders={currentPlaceholders}
               remakeSourceCaption={formState.remakeSourceCaption}
+              profileId={formState.profileId}
               onSubmit={handleContentSubmit}
               onBack={handleBack}
             />
