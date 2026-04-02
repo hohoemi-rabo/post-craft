@@ -273,9 +273,10 @@ export async function POST(request: Request) {
       )
     }
 
-    if (resolved.isImageRead && (!imageBase64 || !imageMimeType)) {
+    // image_read で画像なしの場合（履歴からの再生成等）はテキストベースで生成
+    if (resolved.isImageRead && (!imageBase64 || !imageMimeType) && !inputText) {
       return NextResponse.json(
-        { error: 'imageBase64 and imageMimeType are required for image_read type' },
+        { error: 'imageBase64/imageMimeType or inputText is required for image_read type' },
         { status: 400 }
       )
     }
