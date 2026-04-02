@@ -38,7 +38,8 @@ export function ImageRegenerateModal({
   originalImageUrl,
   onRegenerated,
 }: ImageRegenerateModalProps) {
-  const isUploadedMode = currentStyle === 'uploaded' && !!originalImageUrl
+  const isUploadedMode = currentStyle === 'uploaded'
+  const canRecomposite = isUploadedMode && !!originalImageUrl
 
   // AI generation state
   const [style, setStyle] = useState<ImageStyle>(
@@ -93,7 +94,7 @@ export function ImageRegenerateModal({
 
   // Auto-generate catchphrase on open (uploaded mode)
   useEffect(() => {
-    if (!open || !isUploadedMode || catchphrase) return
+    if (!open || !isUploadedMode || !canRecomposite || catchphrase) return
     handleGenerateCatchphrase()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, isUploadedMode])
@@ -263,6 +264,14 @@ export function ImageRegenerateModal({
             元の写真はそのまま維持し、キャッチコピーのテキストだけを変更します。
           </p>
 
+          {!canRecomposite && (
+            <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+              <p className="text-sm text-amber-400">
+                この投稿は元画像が保存されていないため、再合成できません。新しく投稿を作成してください。
+              </p>
+            </div>
+          )}
+
           {/* Catchphrase input */}
           <div className="space-y-2 mb-4">
             <label className="block text-sm font-medium text-slate-300">キャッチコピー</label>
@@ -273,13 +282,13 @@ export function ImageRegenerateModal({
                 onChange={(e) => setCatchphrase(e.target.value.slice(0, 30))}
                 maxLength={30}
                 placeholder="キャッチコピーを入力..."
-                disabled={isGenerating}
+                disabled={isGenerating || !canRecomposite}
                 className="flex-1 px-3 py-2.5 bg-slate-800 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50"
               />
               <button
                 type="button"
                 onClick={handleGenerateCatchphrase}
-                disabled={isGenerating || isGeneratingCatchphrase}
+                disabled={isGenerating || isGeneratingCatchphrase || !canRecomposite}
                 className="px-3 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl transition-colors disabled:opacity-50 text-xs whitespace-nowrap"
               >
                 {isGeneratingCatchphrase ? '生成中...' : '🔄 再生成'}
@@ -312,7 +321,7 @@ export function ImageRegenerateModal({
             </button>
             <button
               onClick={handleRecomposite}
-              disabled={isGenerating || !catchphrase.trim()}
+              disabled={isGenerating || !catchphrase.trim() || !canRecomposite}
               className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors disabled:opacity-50 text-sm"
             >
               {isGenerating ? '合成中...' : '再合成する'}
