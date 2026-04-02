@@ -21,14 +21,14 @@ app/api/
 │   ├── accounts/route.ts     # POST (FBトークン交換 + IGアカウント取得)
 │   └── publish/route.ts      # POST (Instagram投稿: JSON or FormData)
 ├── posts/
-│   ├── route.ts              # GET (list), POST (create)
+│   ├── route.ts              # GET (list, profileId filter対応), POST (create)
 │   ├── [id]/route.ts         # GET, PATCH (汎用更新: ホワイトリスト方式), DELETE
 │   └── [id]/image/route.ts   # POST (画像アップロード/差し替え), PUT (画像レコード更新)
 ├── post-types/
-│   ├── route.ts              # GET (list), POST (create)
+│   ├── route.ts              # GET (list), POST (create, flowType対応)
 │   └── [id]/
-│       ├── route.ts          # GET, PUT, DELETE
-│       └── duplicate/route.ts # POST (複製)
+│       ├── route.ts          # GET, PUT (flowType更新対応), DELETE
+│       └── duplicate/route.ts # POST (複製, flowType コピー対応)
 ├── profiles/
 │   ├── route.ts              # GET (list), POST (create)
 │   └── [id]/
