@@ -15,13 +15,20 @@ export function getOutputDimensions(aspectRatio: '1:1' | '4:5' | '16:9'): { widt
   }
 }
 
-function loadImage(src: string): Promise<HTMLImageElement> {
+async function loadImage(src: string): Promise<HTMLImageElement> {
+  // 外部URLはfetchでblobに変換してからCanvas描画（CORS問題を回避）
+  let imageSrc = src
+  if (!src.startsWith('blob:') && !src.startsWith('data:')) {
+    const res = await fetch(src)
+    const blob = await res.blob()
+    imageSrc = URL.createObjectURL(blob)
+  }
+
   return new Promise((resolve, reject) => {
     const img = new Image()
-    img.crossOrigin = 'anonymous'
     img.onload = () => resolve(img)
     img.onerror = reject
-    img.src = src
+    img.src = imageSrc
   })
 }
 
