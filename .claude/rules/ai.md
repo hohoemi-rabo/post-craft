@@ -188,6 +188,7 @@ AIを使うと…
 
 ### 関連投稿参照時のプロンプト拡張
 
+全投稿タイプ（標準フロー・image_readフロー共通）で利用可能。
 キャプション生成API (`/api/generate/caption`) に `relatedPostCaption` と `relatedPostHashtags` が渡された場合:
 
 **キャプション生成プロンプトに追加**:
