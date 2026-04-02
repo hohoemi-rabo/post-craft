@@ -63,7 +63,9 @@ export function ImageRegenerateModal({
   const [isGeneratingCatchphrase, setIsGeneratingCatchphrase] = useState(false)
   const [uploadedOriginalUrl, setUploadedOriginalUrl] = useState<string | null>(null)
 
-  const effectiveOriginalUrl = originalImageUrl || uploadedOriginalUrl
+  // blob: URLはセッション固有で永続化できないため無視
+  const safeOriginalUrl = originalImageUrl && !originalImageUrl.startsWith('blob:') ? originalImageUrl : null
+  const effectiveOriginalUrl = safeOriginalUrl || uploadedOriginalUrl
   const canRecomposite = isUploadedMode && !!effectiveOriginalUrl
 
   const selectedStyle = IMAGE_STYLES[style] ?? IMAGE_STYLES['manga_male']
@@ -153,7 +155,9 @@ export function ImageRegenerateModal({
       uploadFormData.append('image', compositedFile)
       uploadFormData.append('replace', 'true')
       uploadFormData.append('aspectRatio', ar)
-      uploadFormData.append('prompt', effectiveOriginalUrl)
+      // 永続URLのみをpromptに保存（blob:/data: URLは保存しない）
+      const promptToSave = effectiveOriginalUrl.startsWith('http') ? effectiveOriginalUrl : (safeOriginalUrl || '')
+      uploadFormData.append('prompt', promptToSave)
 
       const uploadRes = await fetch(`/api/posts/${postId}/image`, {
         method: 'POST',

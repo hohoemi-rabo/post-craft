@@ -18,10 +18,16 @@ export function getOutputDimensions(aspectRatio: string): { width: number; heigh
 }
 
 async function loadImage(src: string): Promise<HTMLImageElement> {
+  // blob: URLは無効な可能性があるためエラーにする
+  if (src.startsWith('blob:')) {
+    throw new Error('blob: URLは使用できません。写真を再選択してください。')
+  }
+
   // 外部URLはfetchでblobに変換してからCanvas描画（CORS問題を回避）
   let imageSrc = src
-  if (!src.startsWith('blob:') && !src.startsWith('data:')) {
+  if (!src.startsWith('data:')) {
     const res = await fetch(src)
+    if (!res.ok) throw new Error('画像の取得に失敗しました')
     const blob = await res.blob()
     imageSrc = URL.createObjectURL(blob)
   }
@@ -29,7 +35,7 @@ async function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image()
     img.onload = () => resolve(img)
-    img.onerror = reject
+    img.onerror = () => reject(new Error('画像の読み込みに失敗しました'))
     img.src = imageSrc
   })
 }
