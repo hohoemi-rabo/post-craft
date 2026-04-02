@@ -313,7 +313,8 @@ AIを使うと…
 - 確認画面でユーザーが編集・再生成可能（標準フロー・image_readフロー共通）
 - 30文字以内の制限
 - **AI生成画像**: 画像生成プロンプトにテキスト配置指示を含める（上部、白太字ゴシック体、ドロップシャドウ）
-- **ユーザー写真（image_read）**: `lib/canvas-text-overlay.ts` でCanvas APIにより合成（上部に半透明黒帯 + 白太字テキスト）
+- **ユーザー写真（image_read）**: `lib/canvas-text-overlay.ts` でCanvas APIにより合成（上部にグラデーション帯 + 白太字ストローク付きテキスト）
+- **履歴からの再合成**: 元画像を `post_images.prompt` に保存。再合成モーダルでキャッチコピーのみ変更可能（元画像未保存時は写真を再選択）
 
 ## キャラクター機能
 
@@ -360,7 +361,8 @@ AIを使うと…
 2. Gemini Vision で画像分析 + キャプション生成
 3. キャッチコピーを生成（確認画面で編集可能）
 4. Canvas API でキャッチコピーを写真上部に合成（canvas-text-overlay.ts）
-5. 合成画像を Supabase Storage にアップロード
+5. 元画像（テキストなし）+ 合成画像を Supabase Storage にアップロード
+6. 元画像URLを post_images.prompt に記録（履歴からの再合成用）
 ```
 
 ### マルチモーダル画像生成

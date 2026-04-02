@@ -11,7 +11,7 @@ components/
 ├── layout/       # レイアウト (header, footer, sidebar)
 ├── dashboard/    # ダッシュボード専用
 ├── create/       # 投稿作成専用
-├── history/      # 履歴一覧・編集 (post-list, post-list-client, post-card, post-detail-client, filter, delete-button, skeleton等)
+├── history/      # 履歴一覧・編集 (post-list, post-list-client, post-card, post-detail-client, image-regenerate-modal, filter, delete-button, skeleton等)
 ├── analysis/     # 分析機能 (wizard, report, generation-preview, profile-preview, posttype-preview-card等)
 ├── characters/   # キャラクター管理 (characters-client等)
 ├── remake/       # リメイク機能 (remake-suggestions, remake-suggestion-card, remake-source-info, remake-suggestions-report)

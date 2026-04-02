@@ -393,9 +393,11 @@ posts テーブル:
 
 ### 画像アップロード・差し替え・再生成
 ```typescript
-// POST /api/posts/[id]/image (FormData: image, replace?)
+// POST /api/posts/[id]/image (FormData: image, replace?, originalImage?, prompt?)
 // → replace=true: 既存画像を Storage + post_images から削除してから新規作成
 // → replace=false (デフォルト): 新規作成のみ
+// → originalImage: 元画像ファイル → {userId}/originals/{timestamp}.{ext} に保存
+// → prompt: 元画像URLを post_images.prompt に記録（再合成用）
 // → Supabase Storage generated-images/{userId}/uploaded/{timestamp}.{ext}
 // → post_images レコード作成 (style: 'uploaded')
 // → レスポンス: { imageUrl: string }
