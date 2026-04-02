@@ -5,8 +5,8 @@
 
 const FONT_FAMILY = '"Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif'
 const MAX_WIDTH_RATIO = 0.85
-const BAND_OPACITY = 0.55
-const MAX_BAND_HEIGHT_RATIO = 0.2
+const BAND_OPACITY = 0.7
+const MAX_BAND_HEIGHT_RATIO = 0.3
 
 export function getOutputDimensions(aspectRatio: '1:1' | '4:5' | '16:9'): { width: number; height: number } {
   switch (aspectRatio) {
@@ -38,11 +38,11 @@ function splitText(
 }
 
 function calculateFontSize(canvasWidth: number, textLength: number): number {
-  const baseFontSize = canvasWidth / 16
-  const minFontSize = canvasWidth / 27
+  const baseFontSize = canvasWidth / 12
+  const minFontSize = canvasWidth / 20
 
-  if (textLength <= 15) return baseFontSize
-  const scaled = baseFontSize * (15 / textLength)
+  if (textLength <= 12) return baseFontSize
+  const scaled = baseFontSize * (12 / textLength)
   return Math.max(scaled, minFontSize)
 }
 
@@ -75,8 +75,8 @@ export async function compositeTextOnImage(
   const lines = splitText(ctx, catchphrase, maxTextWidth)
 
   // Calculate band dimensions
-  const lineHeight = fontSize * 1.4
-  const padding = fontSize * 0.6
+  const lineHeight = fontSize * 1.5
+  const padding = fontSize * 0.8
   let bandHeight = lineHeight * lines.length + padding * 2
   const maxBandHeight = canvasHeight * MAX_BAND_HEIGHT_RATIO
   bandHeight = Math.min(bandHeight, maxBandHeight)
@@ -85,11 +85,11 @@ export async function compositeTextOnImage(
   ctx.fillStyle = `rgba(0, 0, 0, ${BAND_OPACITY})`
   ctx.fillRect(0, 0, canvasWidth, bandHeight)
 
-  // Draw text with drop shadow
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.7)'
-  ctx.shadowBlur = 4
-  ctx.shadowOffsetX = 2
-  ctx.shadowOffsetY = 2
+  // Draw text with strong drop shadow
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.9)'
+  ctx.shadowBlur = 8
+  ctx.shadowOffsetX = 3
+  ctx.shadowOffsetY = 3
   ctx.fillStyle = '#FFFFFF'
 
   const centerX = canvasWidth / 2
