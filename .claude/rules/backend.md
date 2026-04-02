@@ -53,7 +53,7 @@ app/api/
 │       ├── route.ts          # GET (list), POST (AI generate)
 │       └── [id]/route.ts     # PATCH (isUsed), DELETE
 ├── reports/
-│   └── route.ts              # GET (集計データ, ?period=1m|3m|all)
+│   └── route.ts              # GET (集計データ, ?period=1m|3m|all, lib/reports.ts のラッパー)
 ├── settings/
 │   └── hashtags/route.ts     # GET, PUT (レガシー必須ハッシュタグ設定)
 └── extract/route.ts          # POST (記事抽出)

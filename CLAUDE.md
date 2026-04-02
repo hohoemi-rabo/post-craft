@@ -68,9 +68,9 @@ src/
 │   ├── create/            # 投稿作成コンポーネント
 │   ├── history/           # 履歴一覧・編集 (post-list, post-list-client, post-card, post-detail-client, filter, delete-button, skeleton等)
 │   ├── remake/            # リメイク機能 (remake-suggestions, remake-suggestion-card, remake-source-info, remake-suggestions-report)
-│   ├── reports/           # 投稿レポート (reports-page-client, period-filter, summary-cards, post-type-chart, profile-chart, frequency-chart, hashtag-ranking)
+│   ├── reports/           # 投稿レポート (reports-content, reports-content-client, period-filter, summary-cards, post-type-chart, profile-chart, frequency-chart, hashtag-ranking)
 │   ├── publish/           # Instagram投稿コンポーネント
-│   ├── settings/          # 設定コンポーネント (post-type-list, post-type-form, profile-list, profile-detail-client等)
+│   ├── settings/          # 設定コンポーネント (post-type-list, post-type-form, post-types-content, post-types-filter, profiles-list, profiles-list-client, profile-detail-client等)
 │   └── providers/         # Context Providers
 ├── hooks/                 # カスタムフック
 ├── lib/                   # ユーティリティ
@@ -84,6 +84,7 @@ src/
 │   ├── canvas-text-overlay.ts # Canvas テキスト合成（image_read 写真用）
 │   ├── remake-prompts.ts      # リメイク提案AIプロンプト
 │   ├── chart-config.ts        # Recharts チャート共通設定
+│   ├── reports.ts             # レポート集計ロジック（API Route・Server Component共有）
 │   └── ...
 └── types/                 # 型定義
 ```
@@ -122,8 +123,8 @@ src/
 ### 投稿タイプ（DB管理）
 
 設定画面 (`/settings/post-types`) でユーザーがカスタマイズ可能。
-`post_types` テーブルで管理し、`usePostTypes` フックで取得。
-プロフィールタブフィルターで絞り込み表示対応（`usePostTypes(profileId)` でAPIフィルタリング）。
+`post_types` テーブルで管理。一覧は Server Component + Suspense で取得し、searchParams (`?profileId=`) でフィルタリング。
+ミューテーション操作（有効/無効、複製、削除、並び替え）は Client Component から API 呼び出し + `router.refresh()`。
 
 **ビルトインタイプ（7種類、初期データ）**:
 | slug | タイプ | 説明 |
@@ -329,12 +330,14 @@ src/
 投稿データを集計・可視化するレポートページ。
 
 - **ページ**: `/reports`（📊 投稿レポート）
+- **アーキテクチャ**: Server Component (page.tsx) → Suspense → async ReportsContent (Server) → ReportsContentClient (Client)
+- **データフェッチ**: `lib/reports.ts` の `getReportData()` で Supabase 直接クエリ（API Route とロジック共有）
 - **サマリー**: 総投稿数、投稿済み、未投稿、今月の投稿
 - **グラフ**: 投稿タイプ別円グラフ、プロフィール別円グラフ、投稿頻度棒グラフ（週別/月別）、ハッシュタグランキング
-- **期間フィルター**: 直近1ヶ月 / 3ヶ月 / 全期間（URL管理: `?period=1m|3m|all`）
+- **期間フィルター**: searchParams ベース（`?period=1m|3m|all`）、`PeriodFilterComponent` が `router.push()` で URL 更新
 - **リメイクおすすめ**: レポート下部にAIリメイク提案セクション
-- **チャートライブラリ**: Recharts（ダークテーマ対応）
-- **API**: GET `/api/reports?period=1m|3m|all`
+- **チャートライブラリ**: Recharts（`next/dynamic` + `ssr: false` でダイナミックインポート、ダークテーマ対応）
+- **API**: GET `/api/reports?period=1m|3m|all`（`lib/reports.ts` のラッパー）
 
 ## ルールファイル
 

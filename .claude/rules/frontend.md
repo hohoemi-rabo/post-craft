@@ -9,14 +9,14 @@ React, Tailwind CSS, UIコンポーネントのルール。
 components/
 ├── ui/           # 汎用UIコンポーネント (button, input, card等)
 ├── layout/       # レイアウト (header, footer, sidebar)
-├── dashboard/    # ダッシュボード専用
+├── dashboard/    # ダッシュボード専用 (dashboard-content, dashboard-skeleton)
 ├── create/       # 投稿作成専用
 ├── history/      # 履歴一覧・編集 (post-list, post-list-client, post-card, post-detail-client, image-regenerate-modal, filter, delete-button, skeleton等)
 ├── analysis/     # 分析機能 (wizard, report, generation-preview, profile-preview, posttype-preview-card等)
 ├── characters/   # キャラクター管理 (characters-client等)
 ├── remake/       # リメイク機能 (remake-suggestions, remake-suggestion-card, remake-source-info, remake-suggestions-report)
-├── reports/      # 投稿レポート (reports-page-client, period-filter, summary-cards, post-type-chart, profile-chart, frequency-chart, hashtag-ranking)
-├── settings/     # 設定 (post-type-list, post-type-form, profile-list, profile-detail-client等)
+├── reports/      # 投稿レポート (reports-content, reports-content-client, period-filter, summary-cards, post-type-chart, profile-chart, frequency-chart, hashtag-ranking)
+├── settings/     # 設定 (post-type-list, post-type-form, post-types-content, post-types-content-client, post-types-filter, profiles-list, profiles-list-client, profiles-list-skeleton, profile-detail-client等)
 └── providers/    # Context Providers
 ```
 
@@ -145,6 +145,30 @@ page.tsx (Server) → ヘッダー + フィルター即表示
 - 「もっと見る」ボタンで `/api/posts` から20件ずつ追加取得
 - 削除後は `router.refresh()` で Server Component を再実行（追加読み込み分はリセット）
 - `<Suspense key={postType}>` でフィルター変更時にスケルトン再表示
+
+### 一覧ページの Server Component + Suspense パターン（全適用ページ）
+
+| ページ | Server Component (page.tsx) | Suspense内 async SC | Client Component |
+|--------|---------------------------|---------------------|-----------------|
+| `/history` | ヘッダー + フィルター | `HistoryPostList` | `HistoryPostListClient` |
+| `/ideas` | ヘッダー + フィルター | `IdeasList` | — |
+| `/analysis` | ヘッダー | `AnalysisList` | — |
+| `/reports` | ヘッダー + PeriodFilter | `ReportsContent` | `ReportsContentClient` (dynamic import) |
+| `/settings/profiles` | パンくず + ヘッダー | `ProfilesList` | `ProfilesListClient` |
+| `/settings/post-types` | パンくず + ヘッダー + タブフィルター | `PostTypesContent` | `PostTypesContentClient` |
+| `/dashboard` | ウェルカム + クイックアクション | `DashboardContent` | — |
+
+**共通パターン**:
+- `page.tsx` で `auth()` + `redirect('/login')` → ヘッダー・フィルター即表示 → `<Suspense key={filterValue}>` でデータ部分をストリーミング
+- フィルターは `searchParams` ベースで `router.push()` によるURL更新
+- ミューテーション後は `router.refresh()` で Server Component を再実行
+
+### Recharts の dynamic import
+チャートコンポーネント（Recharts使用）は `next/dynamic` + `ssr: false` で遅延読み込み:
+```tsx
+import dynamic from 'next/dynamic'
+const PostTypeChart = dynamic(() => import('./post-type-chart'), { ssr: false })
+```
 
 ### 詳細ページの Server Component + Client Component 分割
 個別データの詳細ページは Server Component でデータ取得し、Client Component にprops で渡す:

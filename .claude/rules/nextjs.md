@@ -318,6 +318,15 @@ async function DataList({ userId, page }: Props) {
 - 削除等のミューテーション後は `router.refresh()` で Server Component 再実行
 - Client Component には最小限の props のみ渡す（シリアライゼーション最適化）
 
+**適用済みページ**:
+- `/history` → `HistoryPostList` + `HistoryPostListClient`
+- `/ideas` → `IdeasList`
+- `/analysis` → `AnalysisList`
+- `/reports` → `ReportsContent` + `ReportsContentClient`（Recharts は dynamic import）
+- `/settings/profiles` → `ProfilesList` + `ProfilesListClient`
+- `/settings/post-types` → `PostTypesContent` + `PostTypesContentClient`（searchParams フィルター）
+- `/dashboard` → `DashboardContent`（ウェルカム・クイックアクションは Suspense 外で即表示）
+
 ## Server Component + Client Component パターン（実装例: 詳細ページ）
 
 個別データの詳細ページの推奨構成。Server Component でデータ取得し、Client Component に渡す:
@@ -389,4 +398,6 @@ export function DetailClient({ initialData }: { initialData: Data }) {
 4. **フォント最適化** - `next/font` 使用
 5. **Streaming** - Suspense で段階的レンダリング
 6. **URL ベースの状態** - `searchParams` でフィルター（ブックマーク・ブラウザバック対応）
-7. **Server Component でデータ取得** - 詳細ページは `useEffect` フェッチではなく Server Component で直接クエリ
+7. **Server Component でデータ取得** - `useEffect` フェッチではなく Server Component で直接クエリ
+8. **Dynamic Import** - 大きなライブラリ（Recharts等）は `next/dynamic` + `ssr: false` で遅延読み込み
+9. **ロジック共有** - API Route と Server Component で同じロジックを使う場合は `lib/` に切り出し（例: `lib/reports.ts`）
