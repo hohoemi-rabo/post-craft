@@ -7,7 +7,7 @@ Google Gemini、プロンプト、画像生成のルール。
 | 用途 | モデル | 変数名 |
 |------|--------|--------|
 | 文章生成（キャプション、シーン説明、キャッチコピー等） | `gemini-3-flash-preview` | `geminiFlash` |
-| 画像分析（画像読み取り、キャラクター特徴抽出） | `gemini-3-pro-preview` | `geminiVision` |
+| 画像分析（画像読み取り、キャラクター特徴抽出） | `gemini-3.1-pro-preview` | `geminiVision` |
 | 画像生成 | `gemini-3.1-flash-image-preview` | `geminiImageGen` |
 | 画像生成（マルチモーダル） | `gemini-3.1-flash-image-preview` | `geminiImageGenMultimodal` |
 
@@ -405,7 +405,7 @@ export const geminiFlash = genAI.getGenerativeModel({
 
 // 画像分析（画像読み取り、キャラクター特徴抽出）
 export const geminiVision = genAI.getGenerativeModel({
-  model: 'gemini-3-pro-preview'
+  model: 'gemini-3.1-pro-preview'
 })
 
 // 画像生成（テキストのみ）
