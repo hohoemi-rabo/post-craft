@@ -363,6 +363,7 @@ export const config = {
 [API]
   /api/instagram/accounts  → トークン交換 + アカウント取得
   /api/instagram/publish   → メディアコンテナ作成 → ポーリング → 公開
+                             （複数画像時は子コンテナ → 親カルーセルコンテナ → 公開）
 
 [ライブラリ]
   lib/instagram.ts → Graph API v21.0 ラッパー関数
@@ -373,13 +374,31 @@ export const config = {
 // ダッシュボードから（JSON: 画像URL直接指定）
 POST /api/instagram/publish
 Content-Type: application/json
-{ imageUrl, caption, igAccountId, accessToken }
+{ imageUrls: string[], caption, igAccountId, accessToken }
+// → imageUrls.length >= 2 で自動的にカルーセル投稿（2〜10枚）
+// → 後方互換: 単一の imageUrl も受付（内部で [imageUrl] に変換）
 
-// スタンドアロンページから（FormData: ファイルアップロード）
+// スタンドアロンページから（FormData: ファイルアップロード, 単一画像）
 POST /api/instagram/publish
 Content-Type: multipart/form-data
 image(File), caption, igAccountId, accessToken
 ```
+
+### 複数画像（カルーセル）投稿
+```typescript
+// lib/instagram.ts のカルーセル関数:
+// - createCarouselItemContainer(igAccountId, imageUrl, accessToken)
+//   → 各画像の子コンテナ（is_carousel_item=true、キャプションなし）
+// - createCarouselContainer(igAccountId, childIds[], caption, accessToken)
+//   → 親コンテナ（media_type=CAROUSEL, children=子IDのカンマ区切り）
+// - publishCarousel(igAccountId, imageUrls[], caption, accessToken)
+//   → 子コンテナを順次生成（順序維持）→ 親コンテナ生成 → waitAndPublish
+// - waitForContainer(containerId, accessToken)
+//   → コンテナが FINISHED になるまでポーリング（waitAndPublish も内部利用）
+```
+- 制約: カルーセルは 2〜10 枚（範囲外は publishCarousel がエラー）
+- 投稿順 = imageUrls 配列の順 = post_images のアップロード順（created_at 昇順）
+- 子コンテナは1枚ずつ生成＋FINISHED待ちしてから親を作成（順序を保証）
 
 ### 投稿ステータス管理
 ```
@@ -407,10 +426,17 @@ posts テーブル:
 // → 古い画像を Storage から削除
 // → post_images レコードを UPDATE（なければ INSERT）
 // → レスポンス: { imageUrl: string }
+
+// DELETE /api/posts/[id]/image?imageUrl=... (個別画像削除, カルーセル用)
+// → post_id + image_url で対象を特定（所有権チェック込み）
+// → Storage + post_images レコードの両方を削除
+// → レスポンス: { success: true }
 ```
 - StepResult・履歴詳細のImageUploaderコンポーネントから呼び出し
 - アップロード後は通常のInstagram投稿フローが利用可能
+- POST は replace=false で追記（複数画像を蓄積）。カルーセル投稿の画像はこの追記で追加
 - PUT は画像再生成モーダル（ImageRegenerateModal）から呼び出し
+- DELETE は履歴詳細の編集モードで個別画像の🗑ボタンから呼び出し（usePostImageHandlers.handleImageDeleted）
 
 ### 投稿の汎用更新 (PATCH)
 ```typescript

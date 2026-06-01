@@ -243,7 +243,7 @@ hooks/
 ├── usePostEdit.ts            # 履歴詳細の編集モード
 ├── useCopyActions.ts         # コピー機能
 ├── usePostActions.ts         # 投稿アクション
-├── usePostImageHandlers.ts   # 画像ハンドラ
+├── usePostImageHandlers.ts   # 画像ハンドラ（追加・差し替え・再生成・個別削除 handleImageDeleted）
 ├── usePostTypes.ts           # 投稿タイプ CRUD・並び替え・有効/無効
 ├── useProfiles.ts            # プロフィール CRUD・並び替え
 ├── useUserSettings.ts        # ユーザー設定（必須ハッシュタグ等）
