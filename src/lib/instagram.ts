@@ -158,14 +158,13 @@ export async function publishMedia(
 }
 
 /**
- * Wait for a container to be ready, then publish
- * Polls every 2 seconds, max 30 seconds
+ * Poll a media container until it reaches FINISHED status.
+ * Polls every 2 seconds, max 30 seconds.
  */
-export async function waitAndPublish(
-  igAccountId: string,
+export async function waitForContainer(
   containerId: string,
   accessToken: string
-): Promise<string> {
+): Promise<void> {
   const maxAttempts = 15
   const intervalMs = 2000
 
@@ -173,7 +172,7 @@ export async function waitAndPublish(
     const status = await checkContainerStatus(containerId, accessToken)
 
     if (status.statusCode === 'FINISHED') {
-      return publishMedia(igAccountId, containerId, accessToken)
+      return
     }
 
     if (status.statusCode === 'ERROR' || status.statusCode === 'EXPIRED') {
@@ -187,4 +186,116 @@ export async function waitAndPublish(
   }
 
   throw new Error('Timed out waiting for media container to be ready')
+}
+
+/**
+ * Wait for a container to be ready, then publish
+ */
+export async function waitAndPublish(
+  igAccountId: string,
+  containerId: string,
+  accessToken: string
+): Promise<string> {
+  await waitForContainer(containerId, accessToken)
+  return publishMedia(igAccountId, containerId, accessToken)
+}
+
+/**
+ * Create a carousel item (child) container — a single image that will become
+ * one slide of a carousel. Children carry no caption.
+ */
+export async function createCarouselItemContainer(
+  igAccountId: string,
+  imageUrl: string,
+  accessToken: string
+): Promise<string> {
+  const url = `${GRAPH_API_BASE}/${igAccountId}/media`
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      image_url: imageUrl,
+      is_carousel_item: true,
+      access_token: accessToken,
+    }),
+  })
+
+  const data = await response.json()
+
+  if (data.error) {
+    throw new Error(
+      data.error.message || 'Failed to create carousel item container'
+    )
+  }
+
+  return data.id
+}
+
+/**
+ * Create a parent carousel container that references the child item containers.
+ */
+export async function createCarouselContainer(
+  igAccountId: string,
+  childContainerIds: string[],
+  caption: string,
+  accessToken: string
+): Promise<string> {
+  const url = `${GRAPH_API_BASE}/${igAccountId}/media`
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      media_type: 'CAROUSEL',
+      children: childContainerIds.join(','),
+      caption,
+      access_token: accessToken,
+    }),
+  })
+
+  const data = await response.json()
+
+  if (data.error) {
+    throw new Error(data.error.message || 'Failed to create carousel container')
+  }
+
+  return data.id
+}
+
+/**
+ * Publish a carousel (2〜10 images) to Instagram.
+ * Builds a child container per image, then a parent CAROUSEL container, then publishes.
+ */
+export async function publishCarousel(
+  igAccountId: string,
+  imageUrls: string[],
+  caption: string,
+  accessToken: string
+): Promise<string> {
+  if (imageUrls.length < 2 || imageUrls.length > 10) {
+    throw new Error('カルーセル投稿は2〜10枚の画像が必要です')
+  }
+
+  // 1. Create + finalize each child item container (sequential to preserve order)
+  const childIds: string[] = []
+  for (const imageUrl of imageUrls) {
+    const childId = await createCarouselItemContainer(
+      igAccountId,
+      imageUrl,
+      accessToken
+    )
+    await waitForContainer(childId, accessToken)
+    childIds.push(childId)
+  }
+
+  // 2. Create the parent carousel container, then wait + publish
+  const carouselId = await createCarouselContainer(
+    igAccountId,
+    childIds,
+    caption,
+    accessToken
+  )
+
+  return waitAndPublish(igAccountId, carouselId, accessToken)
 }

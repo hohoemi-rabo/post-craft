@@ -150,6 +150,67 @@ export async function POST(
   }
 }
 
+// DELETE /api/posts/[id]/image?imageUrl=... - Delete a single image
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { error: authError, userId } = await requireAuth()
+  if (authError) return authError
+
+  const { id: postId } = await params
+
+  // Check post ownership
+  const { error: ownershipError } = await requirePostOwnership(postId, userId!)
+  if (ownershipError) return ownershipError
+
+  const supabase = createServerClient()
+
+  const { searchParams } = new URL(request.url)
+  const imageUrl = searchParams.get('imageUrl')
+
+  if (!imageUrl) {
+    return NextResponse.json({ error: 'imageUrl is required' }, { status: 400 })
+  }
+
+  try {
+    // Find the target image, scoped to this post (ownership already verified)
+    const { data: image } = await supabase
+      .from('post_images')
+      .select('id, image_url')
+      .eq('post_id', postId)
+      .eq('image_url', imageUrl)
+      .single()
+
+    if (!image) {
+      return NextResponse.json({ error: 'Image not found' }, { status: 404 })
+    }
+
+    await deleteOldImage(supabase, image.image_url)
+
+    const { error: deleteError } = await supabase
+      .from('post_images')
+      .delete()
+      .eq('id', image.id)
+
+    if (deleteError) {
+      console.error('post_images delete error:', deleteError)
+      return NextResponse.json(
+        { error: 'Failed to delete image record' },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Image delete error:', error)
+    return NextResponse.json(
+      { error: 'Failed to delete image' },
+      { status: 500 }
+    )
+  }
+}
+
 // PUT /api/posts/[id]/image - Update image record (for AI regeneration)
 export async function PUT(
   request: Request,

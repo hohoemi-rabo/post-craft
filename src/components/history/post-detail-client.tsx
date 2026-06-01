@@ -25,6 +25,7 @@ interface PostDetailClientProps {
 export function PostDetailClient({ initialPost }: PostDetailClientProps) {
   const router = useRouter()
   const [post, setPost] = useState<Post | null>(initialPost)
+  const [showAddImage, setShowAddImage] = useState(false)
 
   // Edit mode hook
   const editHook = usePostEdit(initialPost.id, post, setPost as (post: Post) => void)
@@ -131,25 +132,77 @@ export function PostDetailClient({ initialPost }: PostDetailClientProps) {
         {/* Image section */}
         <div className="space-y-3">
           <h2 className="text-sm font-medium text-slate-300">生成画像</h2>
-          {firstImage && !editHook.showImageReplace ? (
-            <>
-              <div
-                className={`relative ${aspectClass} max-w-sm mx-auto bg-white/5 border border-white/10 rounded-xl overflow-hidden`}
-              >
-                <Image
-                  src={firstImage.image_url}
-                  alt="Generated image"
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-              </div>
+          {editHook.showImageReplace ? (
+            <div className="space-y-2">
+              <ImageUploader
+                postId={post.id}
+                onUploadComplete={imageHandlers.handleImageReplaceComplete}
+                replace
+                initialAspectRatio={(firstImage?.aspect_ratio as AspectRatio) || '1:1'}
+              />
               <button
-                onClick={() => postActions.downloadImage(firstImage.image_url)}
+                onClick={() => editHook.setShowImageReplace(false)}
+                className="w-full max-w-sm mx-auto block px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 text-xs rounded-lg transition-colors"
+              >
+                キャンセル
+              </button>
+            </div>
+          ) : post.post_images.length > 0 ? (
+            <>
+              {/* 画像ギャラリー（複数画像=カルーセル対応） */}
+              <div className="max-w-sm mx-auto space-y-2">
+                {post.post_images.length > 1 && (
+                  <p className="text-[11px] text-slate-400 text-center">
+                    🖼️ 複数画像（カルーセル）{post.post_images.length}枚 ／ 左上の番号が投稿順
+                  </p>
+                )}
+                <div
+                  className={
+                    post.post_images.length > 1 ? 'grid grid-cols-2 gap-2' : ''
+                  }
+                >
+                  {post.post_images.map((img, i) => (
+                    <div
+                      key={img.image_url}
+                      className={`relative ${aspectClass} bg-white/5 border border-white/10 rounded-xl overflow-hidden`}
+                    >
+                      <Image
+                        src={img.image_url}
+                        alt={`画像${i + 1}`}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                      {post.post_images.length > 1 && (
+                        <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-black/60 text-white text-[10px] rounded-full">
+                          {i + 1}
+                        </span>
+                      )}
+                      {editHook.isEditing && post.post_images.length > 1 && (
+                        <button
+                          onClick={() =>
+                            imageHandlers.handleImageDeleted(post.id, img.image_url)
+                          }
+                          className="absolute top-1.5 right-1.5 w-7 h-7 flex items-center justify-center bg-red-600/80 hover:bg-red-600 text-white text-xs rounded-full transition-colors"
+                          aria-label={`画像${i + 1}を削除`}
+                        >
+                          🗑
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                onClick={() =>
+                  postActions.downloadImage(post.post_images[0].image_url)
+                }
                 className="w-full max-w-sm mx-auto block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
               >
-                ⬇️ 画像をダウンロード
+                ⬇️ 先頭画像をダウンロード
               </button>
+
               {editHook.isEditing && (
                 <div className="space-y-2 max-w-sm mx-auto">
                   <div className="flex gap-2">
@@ -173,26 +226,43 @@ export function PostDetailClient({ initialPost }: PostDetailClientProps) {
                     </button>
                   </div>
                   <p className="text-[10px] text-slate-500 text-center">
-                    現在: {firstImage?.aspect_ratio || '1:1'}
+                    差し替え・比率変更・AI再生成は先頭画像が対象です（現在:{' '}
+                    {firstImage?.aspect_ratio || '1:1'}）
                   </p>
+
+                  {/* 画像を追加（カルーセル用） */}
+                  {showAddImage ? (
+                    <div className="space-y-2 pt-2 border-t border-white/10">
+                      <p className="text-[11px] text-slate-400 text-center">
+                        追加する画像を選択
+                      </p>
+                      <ImageUploader
+                        postId={post.id}
+                        onUploadComplete={(url, ratio) => {
+                          imageHandlers.handleImageAdded(url, ratio)
+                          setShowAddImage(false)
+                        }}
+                      />
+                      <button
+                        onClick={() => setShowAddImage(false)}
+                        className="w-full px-3 py-2 bg-white/5 hover:bg-white/10 text-slate-300 text-xs rounded-lg transition-colors"
+                      >
+                        キャンセル
+                      </button>
+                    </div>
+                  ) : (
+                    post.post_images.length < 10 && (
+                      <button
+                        onClick={() => setShowAddImage(true)}
+                        className="w-full px-3 py-2 bg-white/5 hover:bg-white/10 text-slate-300 text-xs rounded-lg transition-colors"
+                      >
+                        ➕ 画像を追加（最大10枚・カルーセル投稿）
+                      </button>
+                    )
+                  )}
                 </div>
               )}
             </>
-          ) : editHook.showImageReplace ? (
-            <div className="space-y-2">
-              <ImageUploader
-                postId={post.id}
-                onUploadComplete={imageHandlers.handleImageReplaceComplete}
-                replace
-                initialAspectRatio={(firstImage?.aspect_ratio as AspectRatio) || '1:1'}
-              />
-              <button
-                onClick={() => editHook.setShowImageReplace(false)}
-                className="w-full max-w-sm mx-auto block px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 text-xs rounded-lg transition-colors"
-              >
-                キャンセル
-              </button>
-            </div>
           ) : (
             <div className="space-y-2">
               <ImageUploader
@@ -419,7 +489,7 @@ export function PostDetailClient({ initialPost }: PostDetailClientProps) {
           isOpen={postActions.showPublishModal}
           onClose={() => postActions.setShowPublishModal(false)}
           caption={copyActions.getFullCaption()}
-          imageUrl={firstImage.image_url}
+          imageUrls={post.post_images.map((img) => img.image_url)}
           postId={post.id}
           aspectRatio={(firstImage.aspect_ratio || '1:1') as AspectRatio}
           onPublishSuccess={imageHandlers.handleInstagramPublishSuccess}

@@ -1,27 +1,34 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase'
-import { createMediaContainer, waitAndPublish } from '@/lib/instagram'
+import {
+  createMediaContainer,
+  waitAndPublish,
+  publishCarousel,
+} from '@/lib/instagram'
 import { IMAGE_UPLOAD } from '@/lib/constants'
 import { requireAuth } from '@/lib/api-utils'
 
 export const maxDuration = 60 // Allow up to 60 seconds for publishing
 
 async function publishToInstagram(
-  imageUrl: string,
+  imageUrls: string[],
   caption: string,
   igAccountId: string,
   accessToken: string
 ) {
+  // 2枚以上はカルーセル（複数画像）投稿
+  if (imageUrls.length > 1) {
+    return publishCarousel(igAccountId, imageUrls, caption, accessToken)
+  }
+
   const containerId = await createMediaContainer(
     igAccountId,
-    imageUrl,
+    imageUrls[0],
     caption,
     accessToken
   )
 
-  const mediaId = await waitAndPublish(igAccountId, containerId, accessToken)
-
-  return mediaId
+  return waitAndPublish(igAccountId, containerId, accessToken)
 }
 
 export async function POST(request: Request) {
@@ -31,22 +38,35 @@ export async function POST(request: Request) {
   try {
     const contentType = request.headers.get('content-type') || ''
 
-    let imageUrl: string
+    let imageUrls: string[]
     let caption: string
     let igAccountId: string
     let accessToken: string
 
     if (contentType.includes('application/json')) {
-      // Dashboard integration: image URL provided directly
+      // Dashboard integration: image URL(s) provided directly
       const body = await request.json()
-      imageUrl = body.imageUrl
+      // 複数画像（imageUrls）優先、後方互換で単一の imageUrl も受け付ける
+      imageUrls =
+        Array.isArray(body.imageUrls) && body.imageUrls.length > 0
+          ? body.imageUrls.filter((url: unknown): url is string => !!url)
+          : body.imageUrl
+            ? [body.imageUrl]
+            : []
       caption = body.caption
       igAccountId = body.igAccountId
       accessToken = body.accessToken
 
-      if (!imageUrl || !caption || !igAccountId || !accessToken) {
+      if (imageUrls.length === 0 || !caption || !igAccountId || !accessToken) {
         return NextResponse.json(
           { error: '画像URL、キャプション、アカウント情報は必須です' },
+          { status: 400 }
+        )
+      }
+
+      if (imageUrls.length > 10) {
+        return NextResponse.json(
+          { error: 'カルーセル投稿は最大10枚までです' },
           { status: 400 }
         )
       }
@@ -109,14 +129,14 @@ export async function POST(request: Request) {
         .from('generated-images')
         .getPublicUrl(fileName)
 
-      imageUrl = urlData.publicUrl
+      imageUrls = [urlData.publicUrl]
       caption = formCaption
       igAccountId = formIgAccountId
       accessToken = formAccessToken
     }
 
     const mediaId = await publishToInstagram(
-      imageUrl,
+      imageUrls,
       caption,
       igAccountId,
       accessToken

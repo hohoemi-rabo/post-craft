@@ -7,7 +7,7 @@ import { getAspectClass, type AspectRatio } from '@/lib/image-styles'
 
 interface PublishPreviewProps {
   account: InstagramAccount
-  imageUrl: string
+  imageUrls: string[]
   caption: string
   onPublish: (editedCaption: string) => void
   onBack: () => void
@@ -17,7 +17,7 @@ interface PublishPreviewProps {
 
 export function PublishPreview({
   account,
-  imageUrl,
+  imageUrls,
   caption,
   onPublish,
   onBack,
@@ -25,6 +25,9 @@ export function PublishPreview({
   aspectRatio = '1:1',
 }: PublishPreviewProps) {
   const [editedCaption, setEditedCaption] = useState(caption)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const isCarousel = imageUrls.length > 1
+  const mainImage = imageUrls[activeIndex] ?? imageUrls[0]
 
   return (
     <div className="space-y-4">
@@ -53,14 +56,53 @@ export function PublishPreview({
       </div>
 
       {/* Image preview */}
-      <div className={`relative ${getAspectClass(aspectRatio)} max-w-[200px] mx-auto bg-white/5 border border-white/10 rounded-xl overflow-hidden`}>
-        <Image
-          src={imageUrl}
-          alt="投稿画像"
-          fill
-          className="object-cover"
-          unoptimized
-        />
+      <div className="space-y-2">
+        <div className={`relative ${getAspectClass(aspectRatio)} max-w-[200px] mx-auto bg-white/5 border border-white/10 rounded-xl overflow-hidden`}>
+          <Image
+            src={mainImage}
+            alt="投稿画像"
+            fill
+            className="object-cover"
+            unoptimized
+          />
+          {isCarousel && (
+            <span className="absolute top-2 right-2 px-2 py-0.5 bg-black/60 text-white text-[10px] rounded-full">
+              {activeIndex + 1} / {imageUrls.length}
+            </span>
+          )}
+        </div>
+
+        {/* カルーセル: サムネイル一覧 */}
+        {isCarousel && (
+          <div className="flex flex-wrap justify-center gap-2">
+            {imageUrls.map((url, i) => (
+              <button
+                key={url}
+                type="button"
+                onClick={() => setActiveIndex(i)}
+                className={`relative w-12 h-12 rounded-lg overflow-hidden border-2 transition-colors ${
+                  i === activeIndex
+                    ? 'border-blue-500'
+                    : 'border-transparent hover:border-white/30'
+                }`}
+                aria-label={`${i + 1}枚目を表示`}
+              >
+                <Image
+                  src={url}
+                  alt={`${i + 1}枚目`}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+              </button>
+            ))}
+          </div>
+        )}
+        {isCarousel && (
+          <p className="text-[10px] text-slate-500 text-center">
+            複数画像（カルーセル）として {imageUrls.length} 枚を投稿します
+          </p>
+        )}
       </div>
 
       {/* Caption */}

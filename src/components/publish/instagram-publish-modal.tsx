@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useInstagram } from '@/components/providers/instagram-provider'
 import { AccountSelector } from '@/components/publish/account-selector'
 import { PublishPreview } from '@/components/publish/publish-preview'
@@ -11,7 +11,10 @@ interface InstagramPublishModalProps {
   isOpen: boolean
   onClose: () => void
   caption: string
-  imageUrl: string
+  /** 単一画像（後方互換） */
+  imageUrl?: string
+  /** 複数画像（カルーセル投稿用）。指定時は imageUrl より優先 */
+  imageUrls?: string[]
   postId?: string
   onPublishSuccess?: () => void
   aspectRatio?: AspectRatio
@@ -22,10 +25,21 @@ export function InstagramPublishModal({
   onClose,
   caption,
   imageUrl,
+  imageUrls,
   postId,
   onPublishSuccess,
   aspectRatio = '1:1',
 }: InstagramPublishModalProps) {
+  // 投稿対象の画像URL一覧（複数優先、なければ単一を配列化）
+  const images = useMemo(
+    () =>
+      imageUrls && imageUrls.length > 0
+        ? imageUrls
+        : imageUrl
+          ? [imageUrl]
+          : [],
+    [imageUrls, imageUrl]
+  )
   const {
     sdkLoaded,
     isLoggedIn,
@@ -77,7 +91,7 @@ export function InstagramPublishModal({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            imageUrl,
+            imageUrls: images,
             caption: editedCaption,
             igAccountId: selectedAccount.igAccountId,
             accessToken: selectedAccount.pageAccessToken,
@@ -117,7 +131,7 @@ export function InstagramPublishModal({
         setStep('error')
       }
     },
-    [selectedAccount, imageUrl, postId, onPublishSuccess]
+    [selectedAccount, images, postId, onPublishSuccess]
   )
 
   const handleRetry = useCallback(() => {
@@ -235,7 +249,7 @@ export function InstagramPublishModal({
         {step === 'confirm' && selectedAccount && (
           <PublishPreview
             account={selectedAccount}
-            imageUrl={imageUrl}
+            imageUrls={images}
             caption={caption}
             onPublish={handlePublish}
             onBack={() => {
