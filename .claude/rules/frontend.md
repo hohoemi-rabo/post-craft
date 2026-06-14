@@ -238,7 +238,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 ### ディレクトリ構造
 ```
 hooks/
-├── useContentGeneration.ts   # 投稿作成の生成ロジック（startImageReadCaptionOnly / startImageReadWithCatchphrase）
+├── useContentGeneration.ts   # 投稿作成の生成ロジック（startImageReadCaptionOnly / startImageReadWithCatchphrase / startFieldsImageRead）
 ├── useGenerationSteps.ts     # 生成ステップ進捗管理
 ├── usePostEdit.ts            # 履歴詳細の編集モード
 ├── useCopyActions.ts         # コピー機能

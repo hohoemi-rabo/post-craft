@@ -21,6 +21,8 @@ Google Gemini、プロンプト、画像生成のルール。
    - テンプレート・プレースホルダー・文字数をDBから動的に構築
 2. **`postType` あり、`postTypeId` なし** → `POST_TYPES` 定数からフォールバック（ビルトインタイプ）
 
+**画像解析（全タイプ対応）**: リクエストに `imageBase64` + `imageMimeType` が含まれていれば、投稿タイプに関係なく `geminiVision` で画像を解析し、結果を `【画像から読み取った内容】` としてプロンプト（fields/memo 両モード）に差し込む。`image_read`（メモ+画像）と `image_read_fields`（フォーム+画像）の両フローで利用される。
+
 **ビルトインタイプ（7種類）**:
 | slug | タイプ | ターゲット |
 |------|--------|-----------|
@@ -35,7 +37,8 @@ Google Gemini、プロンプト、画像生成のルール。
 **フロータイプ (`post_types.flow_type`)**:
 - `standard` (デフォルト): 通常の投稿フロー
 - `image_read`: 画像読み取り専用フロー（5ステップ: 画像+メモ→キャッチコピー→生成→完成）。複数プロフィールで利用可能（例: `image_read`, `image_read_biz`）
-- フロー分岐はコード内で `flowType === 'image_read'` で判定（slug文字列比較ではない）
+- `image_read_fields`: フォーム入力＋画像読み取りフロー（4ステップ: フォーム+任意画像→生成→完成）。fields モードのまま任意画像を解析し投稿文に反映。画像は投稿の1枚目としてそのまま保存（合成なし）。例: `student_showcase`
+- フロー分岐はコード内で `flowType === 'image_read'` / `flowType === 'image_read_fields'` で判定（slug文字列比較ではない）
 
 ### テンプレート構造
 
