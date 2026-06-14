@@ -7,7 +7,7 @@ import type { Placeholder } from '@/types/post-type'
 interface StepPostTypeProps {
   profileId?: string | null
   remakeSourcePostType?: string | null
-  onSelect: (postTypeId: string, slug: string, name: string, inputMode: 'fields' | 'memo', placeholders: Placeholder[], flowType: 'standard' | 'image_read') => void
+  onSelect: (postTypeId: string, slug: string, name: string, inputMode: 'fields' | 'memo', placeholders: Placeholder[], flowType: 'standard' | 'image_read' | 'image_read_fields') => void
 }
 
 export function StepPostType({ profileId, remakeSourcePostType, onSelect }: StepPostTypeProps) {

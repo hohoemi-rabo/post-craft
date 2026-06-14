@@ -58,7 +58,7 @@ export function PostTypeForm({ mode, initialData, defaultProfileId }: PostTypeFo
   const [minLength, setMinLength] = useState(initialData?.minLength ?? 200)
   const [maxLength, setMaxLength] = useState(initialData?.maxLength ?? 400)
   const [inputMode, setInputMode] = useState<'fields' | 'memo'>(initialData?.inputMode ?? 'fields')
-  const [flowType, setFlowType] = useState<'standard' | 'image_read'>(initialData?.flowType ?? 'standard')
+  const [flowType, setFlowType] = useState<'standard' | 'image_read' | 'image_read_fields'>(initialData?.flowType ?? 'standard')
   const [isActive, setIsActive] = useState(initialData?.isActive ?? true)
 
   // Memo & generation state
@@ -387,10 +387,27 @@ export function PostTypeForm({ mode, initialData, defaultProfileId }: PostTypeFo
               <span className="text-sm text-white">画像読取フロー</span>
               <span className="text-xs text-slate-500">（画像＋メモで生成）</span>
             </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="flowType"
+                value="image_read_fields"
+                checked={flowType === 'image_read_fields'}
+                onChange={() => setFlowType('image_read_fields')}
+                className="w-4 h-4 text-blue-600 bg-slate-800 border-white/10"
+              />
+              <span className="text-sm text-white">フォーム入力＋画像読取フロー</span>
+              <span className="text-xs text-slate-500">（フォーム＋任意画像で生成）</span>
+            </label>
           </div>
           {flowType === 'image_read' && (
             <p className="text-xs text-amber-400/80 mt-2">
               投稿作成時に画像をアップロードし、AIが画像内容を読み取ってキャプションを生成します。
+            </p>
+          )}
+          {flowType === 'image_read_fields' && (
+            <p className="text-xs text-amber-400/80 mt-2">
+              フォーム項目を入力し、任意で画像をアップロードできます。画像があればAIが内容を読み取り、フォーム情報と合わせて投稿文を生成します。画像は投稿の1枚目として保存されます。
             </p>
           )}
         </div>

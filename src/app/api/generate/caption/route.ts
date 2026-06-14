@@ -286,9 +286,9 @@ export async function POST(request: Request) {
       )
     }
 
-    // image_read: analyze image first
+    // 画像が渡されたら投稿タイプに関係なく解析する（image_read / image_read_fields など）
     let imageAnalysis = ''
-    if (resolved.isImageRead && imageBase64 && imageMimeType) {
+    if (imageBase64 && imageMimeType) {
       const analysisResult = await geminiVision.generateContent([
         `この画像の内容を詳しく説明してください:
 - 何が写っているか（文字、イラスト、写真など）

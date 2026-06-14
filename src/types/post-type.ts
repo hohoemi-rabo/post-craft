@@ -33,7 +33,7 @@ export interface PostTypeDB {
   inputMode: 'fields' | 'memo'
   profileId: string | null
   sourceAnalysisId: string | null
-  flowType: 'standard' | 'image_read'
+  flowType: 'standard' | 'image_read' | 'image_read_fields'
   profileRef?: { id: string; name: string; icon: string } | null
   createdAt: string
   updatedAt: string
@@ -56,5 +56,5 @@ export interface PostTypeFormData {
   typePrompt?: string
   inputMode: 'fields' | 'memo'
   profileId?: string
-  flowType?: 'standard' | 'image_read'
+  flowType?: 'standard' | 'image_read' | 'image_read_fields'
 }

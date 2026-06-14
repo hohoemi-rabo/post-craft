@@ -12,6 +12,7 @@ import {
   ProgressIndicator,
 } from '@/components/create'
 import { StepImageReadInput } from '@/components/create/step-image-read-input'
+import { StepFieldsImageInput } from '@/components/create/step-fields-image-input'
 import { isBuiltinPostType } from '@/types/post'
 import type { Placeholder } from '@/types/post-type'
 import type { ProfileDB } from '@/types/profile'
@@ -46,13 +47,21 @@ export default function CreatePage() {
     startGeneration,
     startImageReadCaptionOnly,
     startImageReadWithCatchphrase,
+    startFieldsImageRead,
     regenerateImage,
     resetGeneration,
     setGeneratedCaption,
   } = useContentGeneration({ onStepChange: setStep })
 
   // Calculate total steps based on postType and skipImage
-  const baseSteps = formState.flowType === 'image_read' ? 5 : formState.skipImage ? 5 : 6
+  const baseSteps =
+    formState.flowType === 'image_read_fields'
+      ? 4
+      : formState.flowType === 'image_read'
+        ? 5
+        : formState.skipImage
+          ? 5
+          : 6
 
   // Check for URL params (profileId, remakeFrom)
   const [remakeLoading, setRemakeLoading] = useState(false)
@@ -148,7 +157,7 @@ export default function CreatePage() {
   }, [])
 
   // Step 1: Select post type
-  const handleSelectPostType = (postTypeId: string, slug: string, name: string, inputMode: 'fields' | 'memo' = 'fields', placeholders: Placeholder[] = [], flowType: 'standard' | 'image_read' = 'standard') => {
+  const handleSelectPostType = (postTypeId: string, slug: string, name: string, inputMode: 'fields' | 'memo' = 'fields', placeholders: Placeholder[] = [], flowType: 'standard' | 'image_read' | 'image_read_fields' = 'standard') => {
     const builtinType = isBuiltinPostType(slug) ? slug : null
     setFormState((prev) => ({
       ...prev,
@@ -283,6 +292,29 @@ export default function CreatePage() {
     setGeneratedCaption('')
   }
 
+  // image_read_fields タイプ用: フォーム + 任意画像 入力後の処理
+  const handleFieldsImageSubmit = async (
+    inputText: string,
+    imageBase64: string | null,
+    imageMimeType: string | null,
+    file: File | null,
+    relatedPost?: RelatedPostData | null
+  ) => {
+    const newFormState = {
+      ...formState,
+      inputText,
+      uploadedImageFile: file,
+      uploadedImageBase64: imageBase64 || '',
+      uploadedImageMimeType: imageMimeType || '',
+      relatedPostId: relatedPost?.id || null,
+      relatedPostCaption: relatedPost?.caption || null,
+      relatedPostHashtags: relatedPost?.hashtags || null,
+    }
+    setFormState(newFormState)
+    setStep(3)
+    await startFieldsImageRead(newFormState, imageBase64, imageMimeType, file)
+  }
+
   // Determine which step to render
   const renderStep = () => {
     // リメイクデータ読み込み中
@@ -305,6 +337,50 @@ export default function CreatePage() {
         )
       }
       return <StepProfileSelect onSelect={handleSelectProfile} />
+    }
+
+    // image_read_fields タイプ専用フロー: 1->2(フォーム+画像)->3(生成)->4(結果)
+    if (formState.flowType === 'image_read_fields') {
+      switch (step) {
+        case 1:
+          return <StepPostType profileId={formState.profileId} remakeSourcePostType={formState.remakeSourcePostType} onSelect={handleSelectPostType} />
+        case 2:
+          return (
+            <StepFieldsImageInput
+              postTypeName={formState.postTypeName}
+              placeholders={currentPlaceholders}
+              initialText={formState.inputText}
+              initialRelatedPostId={formState.relatedPostId}
+              profileId={formState.profileId}
+              onSubmit={handleFieldsImageSubmit}
+              onBack={handleBack}
+            />
+          )
+        case 3:
+          return (
+            <StepGenerating
+              steps={generationSteps}
+              progress={generationProgress}
+            />
+          )
+        case 4:
+          return generatedResult ? (
+            <StepResult
+              caption={generatedResult.caption}
+              hashtags={generatedResult.hashtags}
+              imageUrl={generatedResult.imageUrl}
+              aspectRatio={formState.imageReadAspectRatio}
+              onRegenerateImage={undefined}
+              onCreateNew={handleCreateNew}
+              postId={savedPostId ?? undefined}
+              isRegenerating={false}
+              remakeSourceId={formState.remakeSourceId}
+              remakeSourcePostType={formState.remakeSourcePostType}
+            />
+          ) : null
+        default:
+          return null
+      }
     }
 
     // image_read タイプ専用フロー: 1->2(画像+メモ)->3(キャッチコピー)->4(生成)->5(結果)

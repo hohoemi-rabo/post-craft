@@ -531,6 +531,133 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
   )
 
   /**
+   * フォーム入力＋画像読み取りタイプ（flow_type='image_read_fields'）の生成処理
+   *
+   * フォーム情報（inputText）と任意の画像を AI に渡してキャプション生成、
+   * 投稿を保存し、画像があればそのまま投稿の1枚目として保存する。
+   * キャッチコピー合成・AI画像生成は行わない。
+   */
+  const startFieldsImageRead = useCallback(
+    async (
+      currentFormState: CreateFormState,
+      imageBase64: string | null,
+      imageMimeType: string | null,
+      file: File | null
+    ) => {
+      const hasImage = !!(file && imageBase64 && imageMimeType)
+      const steps: GenerationStep[] = hasImage
+        ? [
+            { id: 'caption', label: '投稿文を生成中...', status: 'pending' },
+            { id: 'save', label: '投稿を保存中...', status: 'pending' },
+            { id: 'upload', label: '画像をアップロード中...', status: 'pending' },
+          ]
+        : [
+            { id: 'caption', label: '投稿文を生成中...', status: 'pending' },
+            { id: 'save', label: '投稿を保存中...', status: 'pending' },
+          ]
+      initSteps(steps)
+
+      try {
+        // Step 1: キャプション生成（画像があれば解析も実行）
+        updateStepStatus('caption', 'loading')
+        const captionResponse = await fetch('/api/generate/caption', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            postType: currentFormState.postType,
+            postTypeId: currentFormState.postTypeId,
+            profileId: currentFormState.profileId || undefined,
+            inputText: currentFormState.inputText,
+            ...(hasImage ? { imageBase64, imageMimeType } : {}),
+            relatedPostCaption: currentFormState.relatedPostCaption || undefined,
+            relatedPostHashtags: currentFormState.relatedPostHashtags || undefined,
+            remakeSourceCaption: currentFormState.remakeSourceCaption || undefined,
+            remakeSourcePostType: currentFormState.remakeSourcePostType || undefined,
+          }),
+        })
+
+        if (!captionResponse.ok) {
+          const errorData = await captionResponse.json().catch(() => ({}))
+          throw new Error(errorData.error || 'キャプション生成に失敗しました')
+        }
+
+        const captionData = await captionResponse.json()
+        const caption = captionData.caption
+        const hashtags = captionData.hashtags || []
+        updateStepStatus('caption', 'complete')
+        setGenerationProgress(hasImage ? 33 : 50)
+
+        // Step 2: 投稿を保存
+        updateStepStatus('save', 'loading')
+        const saveRes = await fetch('/api/posts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            postType: currentFormState.postType || currentFormState.postTypeName || 'custom',
+            postTypeId: currentFormState.postTypeId,
+            profileId: currentFormState.profileId || null,
+            inputText: currentFormState.inputText,
+            sourceUrl: null,
+            generatedCaption: caption,
+            generatedHashtags: hashtags,
+            imageUrl: null,
+            imageStyle: hasImage ? 'uploaded' : null,
+            aspectRatio: null,
+            relatedPostId: currentFormState.relatedPostId || null,
+            remakeSourceId: currentFormState.remakeSourceId || null,
+          }),
+        })
+
+        if (!saveRes.ok) {
+          throw new Error('投稿の保存に失敗しました')
+        }
+
+        const savedPost = await saveRes.json()
+        setSavedPostId(savedPost.id)
+        markIdeaAsUsed(currentFormState.ideaId)
+        updateStepStatus('save', 'complete')
+        setGenerationProgress(hasImage ? 66 : 100)
+
+        // Step 3: 画像があればそのまま投稿画像として保存（合成なし）
+        let imageUrl: string | null = null
+        if (hasImage) {
+          updateStepStatus('upload', 'loading')
+          const uploadFormData = new FormData()
+          uploadFormData.append('image', file!)
+
+          const uploadRes = await fetch(`/api/posts/${savedPost.id}/image`, {
+            method: 'POST',
+            body: uploadFormData,
+          })
+
+          if (!uploadRes.ok) {
+            throw new Error('画像のアップロードに失敗しました')
+          }
+
+          const uploadData = await uploadRes.json()
+          imageUrl = uploadData.imageUrl
+          updateStepStatus('upload', 'complete')
+          setGenerationProgress(100)
+        }
+
+        setGeneratedResult({ caption, hashtags, imageUrl })
+        setTimeout(() => onStepChange(4), 500)
+      } catch (error) {
+        console.error('Generation error:', error)
+        const currentStep = generationSteps.find((s) => s.status === 'loading')
+        if (currentStep) {
+          updateStepStatus(
+            currentStep.id,
+            'error',
+            error instanceof Error ? error.message : '生成に失敗しました'
+          )
+        }
+      }
+    },
+    [generationSteps, initSteps, markIdeaAsUsed, onStepChange, setGenerationProgress, updateStepStatus]
+  )
+
+  /**
    * 画像の再生成
    */
   const regenerateImage = useCallback(
@@ -617,6 +744,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
     startGeneration,
     startImageReadCaptionOnly,
     startImageReadWithCatchphrase,
+    startFieldsImageRead,
     regenerateImage,
     resetGeneration,
     setGeneratedCaption,
