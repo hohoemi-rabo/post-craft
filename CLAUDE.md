@@ -385,6 +385,9 @@ NEXT_PUBLIC_GA_ID=
 # Instagram投稿 (Facebook Graph API)
 NEXT_PUBLIC_FACEBOOK_APP_ID=
 FACEBOOK_APP_SECRET=
+
+# Keepalive (Vercel Cron → Supabase スリープ防止)
+CRON_SECRET=
 ```
 
 ## 仕様書
