@@ -343,9 +343,13 @@ function objectToPostData(obj: Record<string, string>): InstagramPostData | null
   // post_id または caption のどちらかは必須
   if (!postId && !caption) return null
 
-  const hashtags = obj['hashtags']
-    ? parseHashtagField(obj['hashtags'])
-    : extractHashtags(caption)
+  // ハッシュタグはキャプション本文と hashtags フィールドの和集合を取る。
+  // Bright Data の hashtags フィールドは一部しか入らないことがあるため、
+  // 本文から抽出した完全なハッシュタグと統合して取りこぼしを防ぐ。
+  const hashtags = mergeHashtags(
+    extractHashtags(caption),
+    obj['hashtags'] ? parseHashtagField(obj['hashtags']) : []
+  )
 
   const postType = normalizePostType(obj['post_type'])
 
@@ -360,6 +364,25 @@ function objectToPostData(obj: Record<string, string>): InstagramPostData | null
     engagement_rate: obj['engagement_rate'] ? parseFloat(obj['engagement_rate']) : undefined,
     image_url: obj['image_url'] || undefined,
   }
+}
+
+/**
+ * 複数のハッシュタグ配列を和集合（大文字小文字を区別せず重複排除）で統合する。
+ * 出現順（最初の配列を優先）を維持する。
+ */
+function mergeHashtags(...lists: string[][]): string[] {
+  const seen = new Set<string>()
+  const result: string[] = []
+  for (const list of lists) {
+    for (const tag of list) {
+      const key = tag.toLowerCase()
+      if (tag && !seen.has(key)) {
+        seen.add(key)
+        result.push(tag)
+      }
+    }
+  }
+  return result
 }
 
 /**

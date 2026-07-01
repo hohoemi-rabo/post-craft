@@ -43,8 +43,10 @@ export function isBrightDataConfigured(): boolean {
 }
 
 function getConfig(): { token: string; datasetId: string } {
-  const token = process.env.BRIGHT_DATA_API_TOKEN
-  const datasetId = process.env.BRIGHT_DATA_INSTAGRAM_DATASET_ID
+  const token = process.env.BRIGHT_DATA_API_TOKEN?.trim()
+  // API request builder の URL をまるごと貼り付けた場合に備え、
+  // dataset_id 本体（先頭の gd_xxx 部分）だけを抽出する
+  const datasetId = process.env.BRIGHT_DATA_INSTAGRAM_DATASET_ID?.trim().split(/[&?\s]/)[0]
   if (!token || !datasetId) {
     throw new BrightDataError('Bright Data の環境変数が設定されていません')
   }
