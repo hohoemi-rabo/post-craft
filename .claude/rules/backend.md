@@ -454,6 +454,41 @@ posts テーブル:
 - 非同期処理は `.then()` チェーンで対応
 - HTTPS 必須（localhost では `--experimental-https` オプションが必要）
 
+## Bright Data 連携 (`lib/brightdata.ts`)
+
+競合Instagram分析のデータ取得を、CSV/JSONアップロード（Phase 1）に加えて
+Bright Data Web Scraper API（Dataset API v3）で直接取得する（Phase 2）。
+
+### 方式
+- **Discover by URL**: プロフィールURL（`https://www.instagram.com/<account>/`）を渡し、最新 N 件の投稿を発見して収集
+- **ジョブ型（非同期）フロー**:
+  1. `trigger`（`POST /datasets/v3/trigger?dataset_id=...&type=discover_new&discover_by=url`）→ `snapshot_id` を受領
+  2. `progress`（`GET /datasets/v3/progress/<snapshot_id>`）を ready までポーリング
+  3. `snapshot`（`GET /datasets/v3/snapshot/<snapshot_id>?format=json`）でデータ取得
+
+### 主要関数
+```typescript
+// 環境変数（BRIGHT_DATA_API_TOKEN + BRIGHT_DATA_INSTAGRAM_DATASET_ID）が揃っているか
+isBrightDataConfigured(): boolean
+
+// アカウント名 → 最新N件を取得し、内部データ構造に変換して返す
+fetchInstagramPostsViaBrightData(accountName, { numOfPosts }): Promise<{ profile, posts, warnings }>
+```
+
+- 取得件数上限は 200、デフォルト 30。ポーリングは約4.5分でタイムアウト（route は `maxDuration=300`）
+- 取得データは `mapRawItemsToInstagramData()`（`lib/csv-parser.ts`）でCSVアップロードと**共通の内部構造**に変換（`InstagramProfileData` + `InstagramPostData[]`）。以降のAI分析パイプラインは経路非依存
+- **dataset_id サニタイズ**: API request builder の URL をまるごと環境変数に貼っても `gd_xxx` 本体だけを抽出（`getConfig()` で `split(/[&?\s]/)[0]`）
+- **ハッシュタグ和集合**: Bright Data の `hashtags` フィールドは一部しか入らないことがあるため、キャプション本文から抽出したハッシュタグと和集合を取る（`mergeHashtags`、CSV経路にも適用）
+
+### API ルート
+```typescript
+// POST /api/analysis/fetch-instagram (JSON: analysisId, accountName, numOfPosts?)
+// → 認証 + 所有権チェック → isBrightDataConfigured() 未設定なら 503
+// → status を analyzing → fetchInstagramPostsViaBrightData → raw_data 保存 → status pending
+// → executeAnalysis を fire-and-forget → 失敗時は status failed + error_message
+// competitor_analyses.data_source = 'api'（CSVは 'upload'、ブログは 'crawl'）
+```
+
 ## ブログクローラー (`lib/blog-crawler.ts`)
 
 ### サイトマップ探索 (`discoverSitemap()`)

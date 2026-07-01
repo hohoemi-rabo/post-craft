@@ -12,7 +12,8 @@ components/
 ├── dashboard/    # ダッシュボード専用 (dashboard-content, dashboard-skeleton)
 ├── create/       # 投稿作成専用
 ├── history/      # 履歴一覧・編集 (post-list, post-list-client, post-card, post-detail-client, image-regenerate-modal, filter, delete-button, skeleton等)
-├── analysis/     # 分析機能 (wizard, report, generation-preview, profile-preview, posttype-preview-card等)
+├── analysis/     # 分析機能 (wizard, source-selector, data-input-form, analysis-progress, report, generation-preview等)
+│              #   data-input-form: Instagram取得方法トグル「📁CSVアップロード / ⚡API直接取得」(brightDataEnabled 時のみ)
 ├── characters/   # キャラクター管理 (characters-client等)
 ├── remake/       # リメイク機能 (remake-suggestions, remake-suggestion-card, remake-source-info, remake-suggestions-report)
 ├── reports/      # 投稿レポート (reports-content, reports-content-client, period-filter, summary-cards, post-type-chart, profile-chart, frequency-chart, hashtag-ranking)

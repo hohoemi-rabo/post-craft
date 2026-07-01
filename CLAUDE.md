@@ -81,6 +81,8 @@ src/
 │   ├── analysis-executor.ts   # 分析実行ロジック
 │   ├── generation-prompts.ts  # プロフィール・投稿タイプ自動生成プロンプト
 │   ├── blog-crawler.ts        # ブログクロール・サイトマップ探索
+│   ├── brightdata.ts          # Bright Data API連携（Instagram投稿の直接取得）
+│   ├── csv-parser.ts          # Bright Data CSV/JSON パース + 共通変換 (mapRawItemsToInstagramData)
 │   ├── canvas-text-overlay.ts # Canvas テキスト合成（image_read 写真用）
 │   ├── remake-prompts.ts      # リメイク提案AIプロンプト
 │   ├── chart-config.ts        # Recharts チャート共通設定
@@ -296,7 +298,7 @@ src/
 - **DB**: `competitor_analyses`（分析データ）、`generated_configs`（生成設定・適用状態）
 - **ページ**: `/analysis`（一覧）、`/analysis/new`（ウィザード）、`/analysis/[id]`（レポート）、`/analysis/[id]/generate`（生成プレビュー）
 - **API**: `/api/analysis`（CRUD）、`/api/analysis/[id]/generate`（AI生成）、`/api/analysis/[id]/apply`（適用）、`/api/analysis/[id]/status`、`/api/analysis/upload`、`/api/analysis/fetch-instagram`（Bright Data API直接取得）、`/api/analysis/blog-crawl`、`/api/analysis/sitemap-discover`
-- **Bright Data 連携**: `lib/brightdata.ts`（Dataset API v3: trigger→progress→snapshot）。取得データは `mapRawItemsToInstagramData()`（`lib/csv-parser.ts`）でCSVアップロードと共通の内部構造に変換。`BRIGHT_DATA_API_TOKEN` + `BRIGHT_DATA_INSTAGRAM_DATASET_ID` 設定時のみウィザードに「⚡ API直接取得」トグルを表示
+- **Bright Data 連携**: `lib/brightdata.ts`（Dataset API v3: trigger→progress→snapshot、方式は「Discover by URL」= プロフィールURLから最新N件を発見）。取得データは `mapRawItemsToInstagramData()`（`lib/csv-parser.ts`）でCSVアップロードと共通の内部構造に変換。`BRIGHT_DATA_API_TOKEN` + `BRIGHT_DATA_INSTAGRAM_DATASET_ID` 設定時のみウィザードに「⚡ API直接取得」トグル（取得件数 30/50/100/200 = 最新から）を表示。ハッシュタグはキャプション本文と `hashtags` フィールドの和集合を取得（`mergeHashtags`）
 - **適用**: `generated_configs` のデータを `profiles` + `post_types` テーブルに INSERT、slug 重複時は `-2`, `-3` サフィックス付与、失敗時はロールバック
 - **編集してから適用**: 生成プレビューで各フィールドをインライン編集してから適用可能
 - **コンポーネント**: `analysis-wizard`, `analysis-report`, `generation-preview`, `profile-preview`, `posttype-preview-card` 等
