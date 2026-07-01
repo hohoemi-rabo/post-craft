@@ -102,7 +102,12 @@ export function AnalysisWizard({ brightDataEnabled = false }: { brightDataEnable
       </div>
 
       {/* ステップコンテンツ */}
-      {step === 1 && <SourceSelector onSelect={handleSourceSelect} />}
+      {step === 1 && (
+        <SourceSelector
+          onSelect={handleSourceSelect}
+          brightDataEnabled={brightDataEnabled}
+        />
+      )}
       {step === 2 && (
         <DataInputForm
           config={config}

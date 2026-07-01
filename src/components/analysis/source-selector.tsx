@@ -4,15 +4,19 @@ import type { AnalysisSourceType } from '@/types/analysis'
 
 interface SourceSelectorProps {
   onSelect: (sourceTypes: AnalysisSourceType[]) => void
+  brightDataEnabled?: boolean
 }
 
-const sourceOptions = [
+function buildSourceOptions(brightDataEnabled: boolean) {
+  return [
   {
     id: 'instagram' as const,
     types: ['instagram'] as AnalysisSourceType[],
     icon: '📸',
     title: 'Instagram 競合分析',
-    description: '競合アカウントの投稿データ（CSV/JSON）をアップロードして、投稿パターンやトーンを分析',
+    description: brightDataEnabled
+      ? '競合アカウント名を入力してAPIで直接取得、またはCSV/JSONをアップロードして投稿パターンやトーンを分析'
+      : '競合アカウントの投稿データ（CSV/JSON）をアップロードして、投稿パターンやトーンを分析',
   },
   {
     id: 'blog' as const,
@@ -29,9 +33,11 @@ const sourceOptions = [
     description: 'Instagram + ブログの両方を分析し、最適な投稿戦略を導き出します',
     recommended: true,
   },
-]
+  ]
+}
 
-export function SourceSelector({ onSelect }: SourceSelectorProps) {
+export function SourceSelector({ onSelect, brightDataEnabled = false }: SourceSelectorProps) {
+  const sourceOptions = buildSourceOptions(brightDataEnabled)
   return (
     <div className="grid gap-4 md:grid-cols-3">
       {sourceOptions.map((option) => (
