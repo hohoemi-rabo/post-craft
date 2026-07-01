@@ -257,30 +257,34 @@ function mapFieldName(fieldName: string): string | null {
     'id': 'post_id',
     'inputurl': 'post_id',
     'url': 'post_id',
+    'shortcode': 'post_id', // Bright Data
 
     // Caption
     'caption': 'caption',
     'text': 'caption',
-    'description': 'caption',
+    'description': 'caption', // Bright Data
 
     // Likes
     'likescount': 'likes_count',
-    'likes': 'likes_count',
+    'likes': 'likes_count', // Bright Data
 
     // Comments
     'commentscount': 'comments_count',
     'comments': 'comments_count',
+    'numcomments': 'comments_count', // Bright Data
 
     // Posted at
     'postedat': 'posted_at',
     'timestamp': 'posted_at',
     'date': 'posted_at',
     'createdat': 'posted_at',
+    'dateposted': 'posted_at', // Bright Data
 
     // Post type
     'posttype': 'post_type',
     'type': 'post_type',
     'mediatype': 'post_type',
+    'contenttype': 'post_type', // Bright Data
 
     // Hashtags
     'hashtags': 'hashtags',
@@ -295,8 +299,10 @@ function mapFieldName(fieldName: string): string | null {
 
     // Profile fields
     'username': 'username',
+    'userposted': 'username', // Bright Data
     'displayname': 'display_name',
     'fullname': 'display_name',
+    'profilename': 'display_name', // Bright Data
     'bio': 'bio',
     'biography': 'bio',
     'followerscount': 'followers_count',
@@ -398,6 +404,34 @@ function normalizePostType(value?: string): 'image' | 'carousel' | 'video' | 're
   if (normalized.includes('reel')) return 'reel'
   if (normalized.includes('video')) return 'video'
   return 'image'
+}
+
+/**
+ * 生の投稿オブジェクト配列を内部データ構造（InstagramPostData[] + Profile）に変換する。
+ * CSV/JSON アップロードと Bright Data API 取得の両方で共通利用する（単一の変換ロジック）。
+ *
+ * @param rawItems  投稿レコードの配列（API/JSON の生オブジェクト）
+ * @param profileRaw プロフィール情報を含む生オブジェクト（任意）。先頭レコード等を渡す
+ */
+export function mapRawItemsToInstagramData(
+  rawItems: Record<string, unknown>[],
+  profileRaw?: Record<string, unknown>
+): { profile: InstagramProfileData | null; posts: InstagramPostData[]; warnings: string[] } {
+  const posts: InstagramPostData[] = []
+  for (const item of rawItems) {
+    const mapped = mapRawObject(item)
+    const post = objectToPostData(mapped)
+    if (post) posts.push(post)
+  }
+
+  const { posts: limitedPosts, warning } = limitPosts(posts)
+  const warnings = warning ? [warning] : []
+
+  const profile = profileRaw
+    ? extractProfileFromJson(profileRaw, limitedPosts)
+    : null
+
+  return { profile, posts: limitedPosts, warnings }
 }
 
 /**

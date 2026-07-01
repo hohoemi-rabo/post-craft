@@ -38,6 +38,7 @@ app/api/
 ├── analysis/
 │   ├── route.ts              # GET (list), POST (create)
 │   ├── upload/route.ts       # POST (CSVアップロード)
+│   ├── fetch-instagram/route.ts # POST (Bright Data API直接取得, maxDuration=300)
 │   ├── blog-crawl/route.ts   # POST (ブログクロール, sitemapUrl オプション対応)
 │   ├── sitemap-discover/route.ts # POST (サイトマップ自動探索・手動検証)
 │   └── [id]/

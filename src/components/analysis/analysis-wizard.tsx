@@ -13,7 +13,9 @@ export interface AnalysisConfig {
   sourceTypes: AnalysisSourceType[]
   instagram?: {
     accountName: string
+    dataSource: 'upload' | 'api'
     file: File | null
+    numOfPosts?: number
     analysisId: string | null
   }
   blog?: {
@@ -26,7 +28,7 @@ export interface AnalysisConfig {
 
 const STEP_LABELS = ['ソース選択', 'データ入力', '分析実行'] as const
 
-export function AnalysisWizard() {
+export function AnalysisWizard({ brightDataEnabled = false }: { brightDataEnabled?: boolean }) {
   const router = useRouter()
   const [step, setStep] = useState<WizardStep>(1)
   const [config, setConfig] = useState<AnalysisConfig>({
@@ -104,6 +106,7 @@ export function AnalysisWizard() {
       {step === 2 && (
         <DataInputForm
           config={config}
+          brightDataEnabled={brightDataEnabled}
           onSubmit={handleDataSubmit}
           onBack={() => setStep(1)}
         />

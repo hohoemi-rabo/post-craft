@@ -5,9 +5,12 @@ import type { AnalysisConfig } from './analysis-wizard'
 
 interface DataInputFormProps {
   config: AnalysisConfig
+  brightDataEnabled?: boolean
   onSubmit: (config: AnalysisConfig) => void
   onBack: () => void
 }
+
+const NUM_OF_POSTS_OPTIONS = [30, 50, 100, 200] as const
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 const ACCEPTED_EXTENSIONS = ['.csv', '.json']
@@ -18,9 +21,13 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-export function DataInputForm({ config, onSubmit, onBack }: DataInputFormProps) {
+export function DataInputForm({ config, brightDataEnabled = false, onSubmit, onBack }: DataInputFormProps) {
   // Instagram state
   const [accountName, setAccountName] = useState(config.instagram?.accountName || '')
+  const [dataSource, setDataSource] = useState<'upload' | 'api'>(
+    config.instagram?.dataSource || 'upload'
+  )
+  const [numOfPosts, setNumOfPosts] = useState<number>(config.instagram?.numOfPosts || 30)
   const [file, setFile] = useState<File | null>(config.instagram?.file || null)
   const [fileError, setFileError] = useState<string | null>(null)
   const [isDragOver, setIsDragOver] = useState(false)
@@ -174,7 +181,10 @@ export function DataInputForm({ config, onSubmit, onBack }: DataInputFormProps) 
   }, [])
 
   // Validation
-  const isInstagramValid = !hasInstagram || (accountName.trim().length > 0 && file !== null)
+  const isInstagramValid = !hasInstagram || (
+    accountName.trim().length > 0 &&
+    (dataSource === 'api' ? brightDataEnabled : file !== null)
+  )
   const isBlogValid = !hasBlog || (
     isBlogUrlValid && (
       discoveryState === 'found' ||
@@ -192,7 +202,9 @@ export function DataInputForm({ config, onSubmit, onBack }: DataInputFormProps) 
       ...(hasInstagram && {
         instagram: {
           accountName: accountName.trim().replace(/^@/, ''),
-          file,
+          dataSource,
+          file: dataSource === 'upload' ? file : null,
+          numOfPosts: dataSource === 'api' ? numOfPosts : undefined,
           analysisId: null,
         },
       }),
@@ -222,8 +234,43 @@ export function DataInputForm({ config, onSubmit, onBack }: DataInputFormProps) 
             <span>📸</span> Instagram 競合データ
           </h3>
           <p className="text-sm text-white/50 mb-5">
-            Bright Data からエクスポートした CSV/JSON ファイルをアップロード
+            {dataSource === 'api'
+              ? 'Bright Data API でアカウントの投稿を直接取得します'
+              : 'Bright Data からエクスポートした CSV/JSON ファイルをアップロード'}
           </p>
+
+          {/* データ取得方法の切り替え（Bright Data API が有効な場合のみ） */}
+          {brightDataEnabled && (
+            <div className="mb-5">
+              <label className="block text-sm font-medium text-white/80 mb-1.5">
+                データ取得方法
+              </label>
+              <div className="inline-flex p-1 rounded-xl bg-white/5 border border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setDataSource('upload')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all min-h-[40px] cursor-pointer ${
+                    dataSource === 'upload'
+                      ? 'bg-blue-500 text-white shadow'
+                      : 'text-white/60 hover:text-white'
+                  }`}
+                >
+                  📁 CSVアップロード
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDataSource('api')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all min-h-[40px] cursor-pointer ${
+                    dataSource === 'api'
+                      ? 'bg-blue-500 text-white shadow'
+                      : 'text-white/60 hover:text-white'
+                  }`}
+                >
+                  ⚡ API直接取得
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="space-y-4">
             {/* アカウント名 */}
@@ -243,7 +290,36 @@ export function DataInputForm({ config, onSubmit, onBack }: DataInputFormProps) 
               </div>
             </div>
 
-            {/* ファイルアップロード */}
+            {/* API直接取得モード: 取得件数の選択 */}
+            {dataSource === 'api' && (
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-1.5">
+                  取得する投稿数
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {NUM_OF_POSTS_OPTIONS.map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setNumOfPosts(n)}
+                      className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all min-h-[44px] cursor-pointer ${
+                        numOfPosts === n
+                          ? 'bg-blue-500 text-white shadow'
+                          : 'bg-white/5 text-white/60 hover:text-white hover:bg-white/10 border border-white/10'
+                      }`}
+                    >
+                      {n}件
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-2 text-xs text-white/40">
+                  最新の投稿を取得します。件数が多いほど取得に時間がかかります（数分程度）。
+                </p>
+              </div>
+            )}
+
+            {/* ファイルアップロード（CSVアップロードモードのみ） */}
+            {dataSource === 'upload' && (
             <div>
               <label className="block text-sm font-medium text-white/80 mb-1.5">
                 データファイル <span className="text-red-400">*</span>
@@ -301,6 +377,7 @@ export function DataInputForm({ config, onSubmit, onBack }: DataInputFormProps) 
                 <p className="mt-2 text-sm text-red-400">{fileError}</p>
               )}
             </div>
+            )}
           </div>
         </section>
       )}

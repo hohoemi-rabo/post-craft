@@ -290,12 +290,13 @@ src/
 ### 分析機能（Phase 4）
 競合のInstagramアカウントやブログ記事を分析し、プロフィールと投稿タイプを自動生成する機能。
 
-- **分析ソース**: Instagram（CSV/手動入力）、ブログ（URL クロール）
+- **分析ソース**: Instagram（CSVアップロード / Bright Data API直接取得）、ブログ（URL クロール）
 - **分析フロー**: ソース選択 → データ入力 → AI分析実行 → レポート表示
 - **生成フロー**: 分析結果 → プロフィール＋投稿タイプ生成 → プレビュー → 編集（任意） → 適用
 - **DB**: `competitor_analyses`（分析データ）、`generated_configs`（生成設定・適用状態）
 - **ページ**: `/analysis`（一覧）、`/analysis/new`（ウィザード）、`/analysis/[id]`（レポート）、`/analysis/[id]/generate`（生成プレビュー）
-- **API**: `/api/analysis`（CRUD）、`/api/analysis/[id]/generate`（AI生成）、`/api/analysis/[id]/apply`（適用）、`/api/analysis/[id]/status`、`/api/analysis/upload`、`/api/analysis/blog-crawl`、`/api/analysis/sitemap-discover`
+- **API**: `/api/analysis`（CRUD）、`/api/analysis/[id]/generate`（AI生成）、`/api/analysis/[id]/apply`（適用）、`/api/analysis/[id]/status`、`/api/analysis/upload`、`/api/analysis/fetch-instagram`（Bright Data API直接取得）、`/api/analysis/blog-crawl`、`/api/analysis/sitemap-discover`
+- **Bright Data 連携**: `lib/brightdata.ts`（Dataset API v3: trigger→progress→snapshot）。取得データは `mapRawItemsToInstagramData()`（`lib/csv-parser.ts`）でCSVアップロードと共通の内部構造に変換。`BRIGHT_DATA_API_TOKEN` + `BRIGHT_DATA_INSTAGRAM_DATASET_ID` 設定時のみウィザードに「⚡ API直接取得」トグルを表示
 - **適用**: `generated_configs` のデータを `profiles` + `post_types` テーブルに INSERT、slug 重複時は `-2`, `-3` サフィックス付与、失敗時はロールバック
 - **編集してから適用**: 生成プレビューで各フィールドをインライン編集してから適用可能
 - **コンポーネント**: `analysis-wizard`, `analysis-report`, `generation-preview`, `profile-preview`, `posttype-preview-card` 等
@@ -388,6 +389,10 @@ FACEBOOK_APP_SECRET=
 
 # Keepalive (Vercel Cron → Supabase スリープ防止)
 CRON_SECRET=
+
+# Bright Data (分析: Instagram API直接取得。未設定時はCSVアップロードのみ)
+BRIGHT_DATA_API_TOKEN=
+BRIGHT_DATA_INSTAGRAM_DATASET_ID=
 ```
 
 ## 仕様書

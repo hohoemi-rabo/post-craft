@@ -624,13 +624,19 @@ src/app/(dashboard)/
 ## 10. 環境変数（追加分）
 
 ```bash
-# Bright Data（Phase 2 で使用）
+# Bright Data（Phase 2: Instagram API直接連携。未設定時はCSVアップロードのみ）
 BRIGHT_DATA_API_TOKEN=
-BRIGHT_DATA_COLLECTOR_ID=
+BRIGHT_DATA_INSTAGRAM_DATASET_ID=
 
 # ブログ分析（既存のGOOGLE_AI_API_KEYを共用）
 # 追加の環境変数は不要
 ```
+
+> **Phase 2 実装メモ**: Bright Data Web Scraper API（Dataset API v3）の
+> `trigger` → `progress` ポーリング → `snapshot` 取得フローで実装
+> （`src/lib/brightdata.ts`）。取得データは `mapRawItemsToInstagramData()`
+> でCSVアップロードと共通の内部構造に変換する。両環境変数が揃っている場合のみ
+> 新規分析ウィザードに「⚡ API直接取得」トグルが表示される。
 
 ---
 

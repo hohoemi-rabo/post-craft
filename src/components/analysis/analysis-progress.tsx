@@ -30,10 +30,14 @@ export function AnalysisProgress({ config, onComplete }: AnalysisProgressProps) 
 
   const startAnalysis = useCallback(async () => {
     // 進捗ステップを初期化
+    const igIsApi = config.instagram?.dataSource === 'api'
     const initialSteps: ProgressStep[] = []
     if (hasInstagram) {
       initialSteps.push({ label: '分析レコードを作成中...', status: 'pending' })
-      initialSteps.push({ label: 'ファイルをアップロード中...', status: 'pending' })
+      initialSteps.push({
+        label: igIsApi ? 'Instagram データを取得中...' : 'ファイルをアップロード中...',
+        status: 'pending',
+      })
     }
     if (hasBlog) {
       if (!hasInstagram) {
@@ -60,7 +64,7 @@ export function AnalysisProgress({ config, onComplete }: AnalysisProgressProps) 
             sourceType: 'instagram',
             sourceIdentifier: config.instagram.accountName,
             sourceDisplayName: `@${config.instagram.accountName}`,
-            dataSource: 'upload',
+            dataSource: igIsApi ? 'api' : 'upload',
           }),
         })
 
@@ -76,29 +80,59 @@ export function AnalysisProgress({ config, onComplete }: AnalysisProgressProps) 
 
         if (abortRef.current) return
 
-        // 2. ファイルアップロード
-        updateStep(stepIndex, { status: 'in-progress' })
-        const formData = new FormData()
-        formData.append('file', config.instagram.file!)
-        formData.append('analysisId', igAnalysisId!)
+        // 2. データ取得（API直接取得 or ファイルアップロード）
+        if (igIsApi) {
+          updateStep(stepIndex, {
+            status: 'in-progress',
+            label: 'Instagram データを取得中...（数分かかる場合があります）',
+          })
 
-        const uploadRes = await fetch('/api/analysis/upload', {
-          method: 'POST',
-          body: formData,
-        })
+          const fetchRes = await fetch('/api/analysis/fetch-instagram', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              analysisId: igAnalysisId,
+              accountName: config.instagram.accountName,
+              numOfPosts: config.instagram.numOfPosts,
+            }),
+          })
 
-        if (!uploadRes.ok) {
+          if (!fetchRes.ok) {
+            const fetchData = await fetchRes.json()
+            throw new Error(fetchData.error || 'Instagram データの取得に失敗しました')
+          }
+
+          const fetchData = await fetchRes.json()
+          updateStep(stepIndex, {
+            status: 'completed',
+            label: 'Instagram データを取得しました',
+            detail: `${fetchData.postCount}件の投稿を取得`,
+          })
+          stepIndex++
+        } else {
+          updateStep(stepIndex, { status: 'in-progress' })
+          const formData = new FormData()
+          formData.append('file', config.instagram.file!)
+          formData.append('analysisId', igAnalysisId!)
+
+          const uploadRes = await fetch('/api/analysis/upload', {
+            method: 'POST',
+            body: formData,
+          })
+
+          if (!uploadRes.ok) {
+            const uploadData = await uploadRes.json()
+            throw new Error(uploadData.error || 'ファイルのアップロードに失敗しました')
+          }
+
           const uploadData = await uploadRes.json()
-          throw new Error(uploadData.error || 'ファイルのアップロードに失敗しました')
+          updateStep(stepIndex, {
+            status: 'completed',
+            label: 'ファイルをアップロードしました',
+            detail: `${uploadData.postCount}件の投稿を検出`,
+          })
+          stepIndex++
         }
-
-        const uploadData = await uploadRes.json()
-        updateStep(stepIndex, {
-          status: 'completed',
-          label: 'ファイルをアップロードしました',
-          detail: `${uploadData.postCount}件の投稿を検出`,
-        })
-        stepIndex++
       }
 
       if (abortRef.current) return
