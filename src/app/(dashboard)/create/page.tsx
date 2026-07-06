@@ -260,7 +260,7 @@ export default function CreatePage() {
     text: string,
     file: File,
     selectedAspectRatio: '1:1' | '4:5' | '16:9',
-    relatedPost?: import('@/components/create/related-post-selector').RelatedPostData | null
+    relatedPost?: RelatedPostData | null
   ) => {
     const newFormState = {
       ...formState,

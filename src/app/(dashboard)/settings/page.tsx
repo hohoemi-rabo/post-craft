@@ -1,15 +1,12 @@
-'use client'
-
-import { signOut, useSession } from 'next-auth/react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { auth } from '@/lib/auth'
+import { LogoutButton } from '@/components/settings/logout-button'
 
-export default function SettingsPage() {
-  const { data: session } = useSession()
-
-  const handleLogout = async () => {
-    await signOut({ callbackUrl: '/' })
-  }
+export default async function SettingsPage() {
+  const session = await auth()
+  if (!session?.user) redirect('/login')
 
   return (
     <div className="space-y-8">
@@ -53,7 +50,7 @@ export default function SettingsPage() {
         <div className="flex items-start gap-6">
           {/* Avatar */}
           <div className="flex-shrink-0">
-            {session?.user?.image ? (
+            {session.user.image ? (
               <Image
                 src={session.user.image}
                 alt={session.user.name || 'User'}
@@ -63,7 +60,7 @@ export default function SettingsPage() {
               />
             ) : (
               <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                {session?.user?.name?.charAt(0) || '?'}
+                {session.user.name?.charAt(0) || '?'}
               </div>
             )}
           </div>
@@ -72,11 +69,11 @@ export default function SettingsPage() {
           <div className="flex-1 space-y-4">
             <div>
               <label className="block text-sm text-slate-400 mb-1">名前</label>
-              <p className="text-white font-medium">{session?.user?.name || '未設定'}</p>
+              <p className="text-white font-medium">{session.user.name || '未設定'}</p>
             </div>
             <div>
               <label className="block text-sm text-slate-400 mb-1">メールアドレス</label>
-              <p className="text-white font-medium">{session?.user?.email || '未設定'}</p>
+              <p className="text-white font-medium">{session.user.email || '未設定'}</p>
             </div>
           </div>
         </div>
@@ -88,12 +85,7 @@ export default function SettingsPage() {
         <p className="text-slate-400 mb-4">
           ログアウトすると、再度Googleアカウントでログインが必要になります。
         </p>
-        <button
-          onClick={handleLogout}
-          className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition-colors"
-        >
-          ログアウト
-        </button>
+        <LogoutButton />
       </div>
 
       {/* App Info */}

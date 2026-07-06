@@ -1,13 +1,8 @@
-'use client'
-
-import Link from 'next/link'
-import { useSession } from 'next-auth/react'
 import Header from '@/components/layout/header'
 import Footer from '@/components/layout/footer'
+import { CtaLink } from '@/components/home/cta-link'
 
 export default function Home() {
-  const { data: session } = useSession()
-
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
@@ -38,21 +33,7 @@ export default function Home() {
 
             {/* CTAボタン */}
             <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-              {session ? (
-                <Link
-                  href="/dashboard"
-                  className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 rounded-xl hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 shadow-lg hover:shadow-xl transition-all duration-300"
-                >
-                  ダッシュボードへ
-                </Link>
-              ) : (
-                <Link
-                  href="/login"
-                  className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 rounded-xl hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 shadow-lg hover:shadow-xl transition-all duration-300"
-                >
-                  無料で始める
-                </Link>
-              )}
+              <CtaLink authedHref="/dashboard" authedLabel="ダッシュボードへ" />
             </div>
           </div>
 
@@ -202,21 +183,7 @@ export default function Home() {
               <p className="text-gray-300 mb-6">
                 Googleアカウントでログインするだけ
               </p>
-              {session ? (
-                <Link
-                  href="/create"
-                  className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 rounded-xl hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 shadow-lg hover:shadow-xl transition-all duration-300"
-                >
-                  投稿を作成する
-                </Link>
-              ) : (
-                <Link
-                  href="/login"
-                  className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 rounded-xl hover:from-purple-700 hover:via-pink-600 hover:to-orange-500 shadow-lg hover:shadow-xl transition-all duration-300"
-                >
-                  無料で始める
-                </Link>
-              )}
+              <CtaLink authedHref="/create" authedLabel="投稿を作成する" />
             </div>
           </div>
         </div>

@@ -1,12 +1,12 @@
-'use client'
-
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
 import { PostTypeForm } from '@/components/settings/post-type-form'
 
-export default function NewPostTypePage() {
-  const searchParams = useSearchParams()
-  const profileId = searchParams.get('profileId') ?? undefined
+export default async function NewPostTypePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ profileId?: string }>
+}) {
+  const { profileId } = await searchParams
 
   return (
     <div className="space-y-6">

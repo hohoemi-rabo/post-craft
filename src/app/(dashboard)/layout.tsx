@@ -16,9 +16,10 @@ export default function DashboardLayout({
 
   return (
     <InstagramPublishProvider>
+      {/* FB SDKはInstagram投稿時のみ使用するため、アイドル時に遅延読み込み */}
       <Script
         src="https://connect.facebook.net/ja_JP/sdk.js"
-        strategy="afterInteractive"
+        strategy="lazyOnload"
       />
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
         {/* Header */}

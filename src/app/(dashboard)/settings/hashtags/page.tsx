@@ -1,5 +1,3 @@
-'use client'
-
 import Link from 'next/link'
 import { HashtagSettings } from '@/components/settings/hashtag-settings'
 
