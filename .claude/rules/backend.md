@@ -336,8 +336,12 @@ export async function GET() {
 ```
 
 ### ミドルウェア
+
+**重要**: `src/` ディレクトリ構成のため、ミドルウェアは `src/middleware.ts` に配置すること。
+リポジトリルート直下の `middleware.ts` は Next.js に無視される（ビルドは通るが実行されない）。
+
 ```typescript
-// middleware.ts
+// src/middleware.ts
 import { auth } from '@/lib/auth'
 
 export default auth((req) => {
