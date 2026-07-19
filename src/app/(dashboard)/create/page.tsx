@@ -17,7 +17,7 @@ import { isBuiltinPostType } from '@/types/post'
 import type { Placeholder } from '@/types/post-type'
 import type { ProfileDB } from '@/types/profile'
 import { type ImageStyle, type AspectRatio, type BackgroundType } from '@/lib/image-styles'
-import { type CreateFormState, INITIAL_FORM_STATE } from '@/types/create-flow'
+import { type CreateFormState, type UploadedImage, INITIAL_FORM_STATE } from '@/types/create-flow'
 import { useContentGeneration } from '@/hooks/useContentGeneration'
 import { useProfiles } from '@/hooks/useProfiles'
 import type { RelatedPostData } from '@/components/create/related-post-selector'
@@ -253,21 +253,17 @@ export default function CreatePage() {
     setGeneratedCaption('')
   }
 
-  // image_read タイプ用: 画像アップロード + メモ入力後の処理
+  // image_read タイプ用: 画像アップロード（1〜5枚） + メモ入力後の処理
   const handleImageReadSubmit = async (
-    imageBase64: string,
-    imageMimeType: string,
+    images: UploadedImage[],
     text: string,
-    file: File,
     selectedAspectRatio: '1:1' | '4:5' | '16:9',
     relatedPost?: RelatedPostData | null
   ) => {
     const newFormState = {
       ...formState,
       inputText: text,
-      uploadedImageFile: file,
-      uploadedImageBase64: imageBase64,
-      uploadedImageMimeType: imageMimeType,
+      uploadedImages: images,
       imageReadAspectRatio: selectedAspectRatio,
       relatedPostId: relatedPost?.id || null,
       relatedPostCaption: relatedPost?.caption || null,
@@ -275,7 +271,7 @@ export default function CreatePage() {
     }
     setFormState(newFormState)
     setStep(3)
-    await startImageReadCaptionOnly(imageBase64, imageMimeType, text, newFormState)
+    await startImageReadCaptionOnly(images, text, newFormState)
   }
 
   // image_read タイプ用: キャッチコピー確定後

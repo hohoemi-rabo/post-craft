@@ -20,6 +20,8 @@ export default async function PostDetailPage({
     .select(POST_SELECT_QUERY)
     .eq('id', id)
     .eq('user_id', session.user.id)
+    // カルーセルの画像順（アップロード順）を保証
+    .order('created_at', { referencedTable: 'post_images', ascending: true })
     .single()
 
   if (error || !data) notFound()

@@ -2,6 +2,16 @@ import type { ImageStyle, AspectRatio, BackgroundType } from '@/lib/image-styles
 import type { PostType } from '@/types/post'
 
 /**
+ * アップロード画像（image_read フロー用）
+ * base64 はクロップ済みJPEG（data: プレフィックスなし）
+ */
+export interface UploadedImage {
+  file: File
+  base64: string
+  mimeType: string
+}
+
+/**
  * 投稿作成フォームの状態
  */
 export interface CreateFormState {
@@ -17,7 +27,9 @@ export interface CreateFormState {
   useCharacterImage: boolean
   catchphrase: string
   backgroundType: BackgroundType
-  // image_read タイプ用
+  // image_read フロー用（1〜5枚、[0] がキャッチコピー合成対象）
+  uploadedImages: UploadedImage[]
+  // image_read_fields フロー用（単一画像）
   uploadedImageFile: File | null
   uploadedImageBase64: string
   uploadedImageMimeType: string
@@ -79,7 +91,9 @@ export const INITIAL_FORM_STATE: CreateFormState = {
   useCharacterImage: false,
   catchphrase: '',
   backgroundType: 'tech',
-  // image_read タイプ用
+  // image_read フロー用
+  uploadedImages: [],
+  // image_read_fields フロー用
   uploadedImageFile: null,
   uploadedImageBase64: '',
   uploadedImageMimeType: '',

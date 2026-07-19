@@ -16,6 +16,8 @@ interface GenerateCaptionRequest {
   sourceUrl?: string
   imageBase64?: string
   imageMimeType?: string
+  // 複数画像（image_read フロー: 1〜5枚。指定時は imageBase64/imageMimeType より優先）
+  images?: { base64: string; mimeType: string }[]
   relatedPostCaption?: string
   relatedPostHashtags?: string[]
   remakeSourceCaption?: string
@@ -208,7 +210,15 @@ export async function POST(request: Request) {
 
   try {
     const body: GenerateCaptionRequest = await request.json()
-    const { postType, postTypeId, profileId, inputText, sourceUrl, imageBase64, imageMimeType, relatedPostCaption, relatedPostHashtags, remakeSourceCaption, remakeSourcePostType } = body
+    const { postType, postTypeId, profileId, inputText, sourceUrl, imageBase64, imageMimeType, images, relatedPostCaption, relatedPostHashtags, remakeSourceCaption, remakeSourcePostType } = body
+
+    // 画像入力の正規化（複数画像 or レガシー単一画像 → 配列。最大5枚）
+    const imageInputs =
+      images && images.length > 0
+        ? images.slice(0, 5)
+        : imageBase64 && imageMimeType
+          ? [{ base64: imageBase64, mimeType: imageMimeType }]
+          : []
 
     // Resolve post type configuration
     let resolved: ResolvedPostType
@@ -279,7 +289,7 @@ export async function POST(request: Request) {
     }
 
     // image_read で画像なしの場合（履歴からの再生成等）はテキストベースで生成
-    if (resolved.isImageRead && (!imageBase64 || !imageMimeType) && !inputText) {
+    if (resolved.isImageRead && imageInputs.length === 0 && !inputText) {
       return NextResponse.json(
         { error: 'imageBase64/imageMimeType or inputText is required for image_read type' },
         { status: 400 }
@@ -287,21 +297,30 @@ export async function POST(request: Request) {
     }
 
     // 画像が渡されたら投稿タイプに関係なく解析する（image_read / image_read_fields など）
+    // 複数画像は1回の呼び出しでまとめて解析し、全体を踏まえた読み取り結果を得る
     let imageAnalysis = ''
-    if (imageBase64 && imageMimeType) {
-      const analysisResult = await geminiVision.generateContent([
-        `この画像の内容を詳しく説明してください:
+    if (imageInputs.length > 0) {
+      const visionPrompt =
+        imageInputs.length > 1
+          ? `これらは1つのInstagram投稿（カルーセル）に使う${imageInputs.length}枚の画像です。以下を日本語で詳細に説明してください:
+1. 各画像について順番に（1枚目、2枚目…）何が写っているか説明する。文字が含まれていれば、その内容をすべて書き起こす
+2. ${imageInputs.length}枚に共通するテーマ・被写体をまとめる
+3. 同じ場所・対象を時間をおいて撮影した定点観測（経過記録）と思われる場合は、画像間の変化・進捗・成長を具体的に読み取る
+4. イベント・告知が含まれる場合は、日時・場所・内容・料金などを抽出する`
+          : `この画像の内容を詳しく説明してください:
 - 何が写っているか（文字、イラスト、写真など）
 - 文字が含まれていれば、その内容をすべて書き起こす
 - イベント・告知であれば、日時・場所・内容・料金など
 - 全体のメッセージや目的
-日本語で詳細に説明してください。`,
-        {
+日本語で詳細に説明してください。`
+      const analysisResult = await geminiVision.generateContent([
+        visionPrompt,
+        ...imageInputs.map((img) => ({
           inlineData: {
-            mimeType: imageMimeType,
-            data: imageBase64,
+            mimeType: img.mimeType,
+            data: img.base64,
           },
-        },
+        })),
       ])
       imageAnalysis = analysisResult.response.text()
     }

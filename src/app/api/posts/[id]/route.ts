@@ -19,6 +19,8 @@ export async function GET(
       .select(POST_SELECT_QUERY)
       .eq('id', id)
       .eq('user_id', userId)
+      // カルーセルの画像順（アップロード順）を保証
+      .order('created_at', { referencedTable: 'post_images', ascending: true })
       .single()
 
     if (fetchError || !post) {

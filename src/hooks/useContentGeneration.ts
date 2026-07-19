@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import type { CreateFormState, GeneratedResult, GenerationStep } from '@/types/create-flow'
+import type { CreateFormState, GeneratedResult, GenerationStep, UploadedImage } from '@/types/create-flow'
 import type { ImageStyle, AspectRatio } from '@/lib/image-styles'
 import { compositeTextOnImage, blobToFile, base64ToBlob, getOutputDimensions } from '@/lib/canvas-text-overlay'
 import { useGenerationSteps } from './useGenerationSteps'
@@ -380,8 +380,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
    */
   const startImageReadCaptionOnly = useCallback(
     async (
-      imageBase64: string,
-      imageMimeType: string,
+      images: UploadedImage[],
       text: string,
       currentFormState: CreateFormState
     ) => {
@@ -394,8 +393,7 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
             postTypeId: currentFormState.postTypeId,
             profileId: currentFormState.profileId,
             inputText: text,
-            imageBase64,
-            imageMimeType,
+            images: images.map(({ base64, mimeType }) => ({ base64, mimeType })),
             relatedPostCaption: currentFormState.relatedPostCaption || undefined,
             relatedPostHashtags: currentFormState.relatedPostHashtags || undefined,
           }),
@@ -426,19 +424,30 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
       catchphrase: string,
       currentFormState: CreateFormState
     ) => {
+      const imgs = currentFormState.uploadedImages
+      if (!imgs || imgs.length === 0) {
+        alert('画像が見つかりません。もう一度画像を選択してください。')
+        onStepChange(2)
+        return
+      }
+
       const steps: GenerationStep[] = [
         { id: 'composite', label: 'キャッチコピーを合成中...', status: 'pending' },
         { id: 'save', label: '投稿を保存中...', status: 'pending' },
-        { id: 'upload', label: '画像をアップロード中...', status: 'pending' },
+        ...imgs.map((_, i) => ({
+          id: `upload-${i}`,
+          label: imgs.length > 1 ? `画像をアップロード中 (${i + 1}/${imgs.length})...` : '画像をアップロード中...',
+          status: 'pending' as const,
+        })),
       ]
       initSteps(steps)
 
       try {
-        // Step 1: Canvas でテキスト合成
+        // Step 1: Canvas でテキスト合成（1枚目のみ = カルーセルの表紙）
         updateStepStatus('composite', 'loading')
         const aspectRatio = currentFormState.imageReadAspectRatio || '1:1'
         const { width, height } = getOutputDimensions(aspectRatio)
-        const imageDataUrl = `data:${currentFormState.uploadedImageMimeType};base64,${currentFormState.uploadedImageBase64}`
+        const imageDataUrl = `data:${imgs[0].mimeType};base64,${imgs[0].base64}`
         const compositedBlob = await compositeTextOnImage(imageDataUrl, catchphrase, width, height)
         const compositedFile = blobToFile(compositedBlob, `composited-${Date.now()}.jpg`)
         updateStepStatus('composite', 'complete')
@@ -474,35 +483,46 @@ export function useContentGeneration({ onStepChange }: UseContentGenerationOptio
         updateStepStatus('save', 'complete')
         setGenerationProgress(60)
 
-        // Step 3: 合成画像 + 元画像をアップロード
-        updateStepStatus('upload', 'loading')
-        const uploadFormData = new FormData()
-        uploadFormData.append('image', compositedFile)
+        // Step 3: 画像を順次アップロード（直列 = post_images の挿入順 = カルーセル投稿順を保証）
+        let firstImageUrl: string | null = null
+        for (let i = 0; i < imgs.length; i++) {
+          updateStepStatus(`upload-${i}`, 'loading')
+          const uploadFormData = new FormData()
+          uploadFormData.append('aspectRatio', aspectRatio)
 
-        // 元画像（テキストなし）も一緒に送信して保存
-        if (currentFormState.uploadedImageBase64 && currentFormState.uploadedImageMimeType) {
-          const originalBlob = base64ToBlob(currentFormState.uploadedImageBase64, currentFormState.uploadedImageMimeType)
-          const originalFile = blobToFile(originalBlob, `original-${Date.now()}.jpg`)
-          uploadFormData.append('originalImage', originalFile)
+          if (i === 0) {
+            // 1枚目: キャッチコピー合成済み画像 + 元画像（再合成モーダル用に post_images.prompt へ保存される）
+            uploadFormData.append('image', compositedFile)
+            const originalBlob = base64ToBlob(imgs[0].base64, imgs[0].mimeType)
+            const originalFile = blobToFile(originalBlob, `original-${Date.now()}.jpg`)
+            uploadFormData.append('originalImage', originalFile)
+          } else {
+            // 2枚目以降: クロップ済み画像をそのままアップロード
+            const blob = base64ToBlob(imgs[i].base64, imgs[i].mimeType)
+            uploadFormData.append('image', blobToFile(blob, `upload-${Date.now()}-${i}.jpg`))
+          }
+
+          const uploadRes = await fetch(`/api/posts/${savedPost.id}/image`, {
+            method: 'POST',
+            body: uploadFormData,
+          })
+
+          if (!uploadRes.ok) {
+            throw new Error(imgs.length > 1 ? `画像のアップロードに失敗しました（${i + 1}枚目）` : '画像のアップロードに失敗しました')
+          }
+
+          const { imageUrl } = await uploadRes.json()
+          if (i === 0) {
+            firstImageUrl = imageUrl
+          }
+          updateStepStatus(`upload-${i}`, 'complete')
+          setGenerationProgress(60 + Math.round((40 * (i + 1)) / imgs.length))
         }
-
-        const uploadRes = await fetch(`/api/posts/${savedPost.id}/image`, {
-          method: 'POST',
-          body: uploadFormData,
-        })
-
-        if (!uploadRes.ok) {
-          throw new Error('画像のアップロードに失敗しました')
-        }
-
-        const { imageUrl } = await uploadRes.json()
-        updateStepStatus('upload', 'complete')
-        setGenerationProgress(100)
 
         setGeneratedResult({
           caption: generatedCaption,
           hashtags: generatedHashtagsFromCaption,
-          imageUrl,
+          imageUrl: firstImageUrl,
         })
 
         setTimeout(() => onStepChange(5), 500)
